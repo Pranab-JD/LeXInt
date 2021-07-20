@@ -1,2 +1,2 @@
-# LExInt
-Leja Exponential Integrators
+# LeXInt
+**Le**ja e**X**ponential **Int**egrators
