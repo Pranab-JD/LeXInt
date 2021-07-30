@@ -1,1 +1,1 @@
-### Leja Exponential Integrators (Python)
+### Exponential Integrators (Leja Interpolatoion)
