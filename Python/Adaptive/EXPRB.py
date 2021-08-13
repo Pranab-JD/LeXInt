@@ -16,9 +16,9 @@ def EXPRB32(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     """
     Parameters
     ----------
-	u               : 1D vector u (input)
-	dt              : Step size
-	RHS_func	    : RHS function
+    u               : 1D vector u (input)
+    dt              : Step size
+    RHS_func	    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
@@ -85,9 +85,9 @@ def EXPRB43(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     """
     Parameters
     ----------
-	u               : 1D vector u (input)
-	dt              : Step size
-	RHS_func	    : RHS function
+    u               : 1D vector u (input)
+    dt              : Step size
+    RHS_func	    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
