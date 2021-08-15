@@ -9,5 +9,5 @@ def RHS_func(u):
 
 	return stencil_applied_to_u
 ```
-	
+
 If different stencils are used for different physical phenomena (e.g. centered differences for diffusion and upwind for advection), the two stencils applied to 'u' vector are to be combined together.
