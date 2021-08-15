@@ -45,7 +45,7 @@ def Leja_Points():
 
     """
     dt = np.dtype("f8")
-    return np.fromfile('real_leja_d.bin', dtype = dt)
+    return np.fromfile('../Constant/real_leja_d.bin', dtype = dt)
 
 
 def Divided_Difference(X, func):
@@ -192,16 +192,21 @@ def real_Leja_phi(u, dt, RHS_func, interp_func, c, Gamma, phi_func, rel_tol):
     """
 
     def func(xx):
-
+    
         np.seterr(divide = 'ignore', invalid = 'ignore')
 
         zz = (dt * (c + Gamma*xx))
-        var = phi_func(zz)
+        
+        interp_values = np.zeros(len(xx))
+        
+        for ii in range(len(xx)):
+            interp_values[ii] = phi_func(zz[ii])
 
-        if phi_func != phi_1 or phi_func != phi_2 or phi_func != phi_3 or phi_func != phi_4:
+        if phi_func != phi_1 and phi_func != phi_2 and phi_func != phi_3 and phi_func != phi_4:
             print('Error: Phi function not defined!!')
 
-        return var
+        return interp_values
+
 
     ### ------------------------------------------------------------------- ###
 
