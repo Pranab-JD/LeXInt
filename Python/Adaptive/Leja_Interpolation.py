@@ -7,6 +7,7 @@ Description: -
         Interpolation at Leja points
 """
 
+import os
 import numpy as np
 
 ################################################################################################
@@ -45,6 +46,7 @@ def Leja_Points():
 
     """
     dt = np.dtype("f8")
+    
     return np.fromfile('real_leja_d.bin', dtype = dt)
 
 
@@ -204,6 +206,8 @@ def real_Leja_phi(u, dt, RHS_func, interp_func, c, Gamma, phi_func, rel_tol):
         return var
 
     ### ------------------------------------------------------------------- ###
+    
+    print("Curretn directory: ", os.getcwd())
 
     Leja_X = Leja_Points()                                  # Leja Points
     coeffs = Divided_Difference(Leja_X, func)               # Polynomial Coefficients
