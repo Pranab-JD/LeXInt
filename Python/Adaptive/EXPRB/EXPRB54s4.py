@@ -1,7 +1,4 @@
 import sys
-
-sys.path.insert(1, "../../Adaptive/")
-
 from Leja_Interpolation import *
 
 ################################################################################################
@@ -16,7 +13,7 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
-    Real_Imag_Leja  : 0 - Real, 1 - Imag
+    Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     Returns
     -------
@@ -32,7 +29,7 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     elif Real_Imag_Leja == 1:
         Leja_phi = imag_Leja_phi
     else:
-        print("Error!! Choose 0 for real or 1 for imag Leja points.")
+        print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
 
     epsilon = 1e-7
 

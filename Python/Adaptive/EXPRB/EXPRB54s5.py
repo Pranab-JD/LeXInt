@@ -1,12 +1,9 @@
 import sys
-
-sys.path.insert(1, "../../Adaptive/")
-
 from Leja_Interpolation import *
 
 ################################################################################################
 
-def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
+def EXPRB54s5(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     """
     Parameters
     ----------
@@ -16,7 +13,7 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
-    Real_Imag_Leja  : 0 - Real, 1 - Imag
+    Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     Returns
     -------
@@ -32,7 +29,7 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     elif Real_Imag_Leja == 1:
         Leja_phi = imag_Leja_phi
     else:
-        print("Error!! Choose 0 for real or 1 for imag Leja points.")
+        print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
 
     epsilon = 1e-7
 
@@ -50,8 +47,8 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     ############## --------------------- ##############
 
     ### Internal stage 1
-    a_n_f, rhs_calls_2 = Leja_phi(u, dt/4, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    a_n = u + (a_n_f * dt/4)
+    a_n_f, rhs_calls_2 = Leja_phi(u, dt/2, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
+    a_n = u + (a_n_f * dt/2)
 
     ############## --------------------- ##############
 
@@ -70,10 +67,9 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     ############# --------------------- ##############
 
     ### Internal stage 2
-    b_n_f,  rhs_calls_3 = Leja_phi(u, dt/2, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    b_n_nl, rhs_calls_4 = Leja_phi(u, dt/2, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, phi_3, rel_tol)
+    b_n_nl, rhs_calls_3 = Leja_phi(u, dt/2, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, phi_3, rel_tol)
 
-    b_n = u + (1/2 * b_n_f * dt) + (4 * b_n_nl * dt)
+    b_n = u + (1/2 * a_n_f * dt) + (b_n_nl * dt)
 
     ############# --------------------- ##############
 
@@ -86,10 +82,10 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     ############# --------------------- ##############
     
     ### Internal stage 3
-    c_n_f,  rhs_calls_5 = Leja_phi(u, 9*dt/10, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    c_n_nl, rhs_calls_6 = Leja_phi(u, 9*dt/10, RHS_func, (Nonlin_b - Nonlin_u), c, Gamma, phi_3, rel_tol)
+    c_n_f,  rhs_calls_4 = Leja_phi(u, dt/3, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
+    c_n_nl, rhs_calls_5 = Leja_phi(u, dt/3, RHS_func, (Nonlin_b - Nonlin_u), c, Gamma, phi_3, rel_tol)
 
-    c_n = u + (1/2 * c_n_f * dt) + (4 * c_n_nl * dt)
+    c_n = u + (1/3 * c_n_f * dt) + (8/27 * c_n_nl * dt)
 
     ############# --------------------- ##############
 
@@ -101,18 +97,32 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
 
     ############# --------------------- ##############
     
+    ### Internal stage 4
+    d_n_nl, rhs_calls_6 = Leja_phi(u, dt, RHS_func, (Nonlin_c - Nonlin_u), c, Gamma, phi_3, rel_tol)
+
+    d_n = u + (u_flux * dt) + (18 * d_n_nl * dt)
+
+    ############# --------------------- ##############
+
+    ### J(u) * d
+    Linear_d = (RHS_func(u + (epsilon * d_n)) - f_u)/epsilon
+
+    ### F(d) = f(d) - (J(u) * d)
+    Nonlin_d = RHS_func(d_n) - Linear_d
+
+    ############# --------------------- ##############
+    
     ### Interpolation of nonlinear remainders for final solutions
-    u_nl_4_3, rhs_calls_7  = Leja_phi(u, dt, RHS_func, (-56*Nonlin_u + 64*Nonlin_a - 8*Nonlin_b), c, Gamma, phi_3, rel_tol)
-    u_nl_4_4, rhs_calls_8  = Leja_phi(u, dt, RHS_func, (80*Nonlin_u - 60*Nonlin_a - (285/8)*Nonlin_b + (125/8)*Nonlin_c), c, Gamma, phi_4, rel_tol)
-    u_nl_5_3, rhs_calls_9  = Leja_phi(u, dt, RHS_func, (-(1208/81)*Nonlin_u + 18*Nonlin_b - (250/81)*Nonlin_c), c, Gamma, phi_3, rel_tol)
-    u_nl_5_4, rhs_calls_10 = Leja_phi(u, dt, RHS_func, ((1120/27)*Nonlin_u - 60*Nonlin_b + (500/27)*Nonlin_c), c, Gamma, phi_4, rel_tol)
+    u_nl_3, rhs_calls_7  = Leja_phi(u, dt, RHS_func, (-50*Nonlin_u - 32*Nonlin_b + 81*Nonlin_c + Nonlin_d), c, Gamma, phi_3, rel_tol)
+    u_nl_4, rhs_calls_8  = Leja_phi(u, dt, RHS_func, (360*Nonlin_u + 384*Nonlin_b - 729*Nonlin_c - 15*Nonlin_d), c, Gamma, phi_4, rel_tol)
+    u_nl_5, rhs_calls_9  = Leja_phi(u, dt, RHS_func, (-864*Nonlin_u - 1152*Nonlin_b + 1944*Nonlin_c + 72*Nonlin_d), c, Gamma, phi_5, rel_tol)
 
     ### 4th and 5th order solutions
-    u_exprb4 = u + (u_flux * dt) + (u_nl_4_3 * dt) + (u_nl_4_4 * dt)
-    u_exprb5 = u + (u_flux * dt) + (u_nl_5_3 * dt) + (u_nl_5_4 * dt)
+    u_exprb4 = u + (u_flux * dt) + (u_nl_3 * dt) + (u_nl_4 * dt)
+    u_exprb5 = u_exprb4 + (u_nl_5 * dt)
 
     ## Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + \
-                    rhs_calls_6 + rhs_calls_7 + rhs_calls_8 + rhs_calls_9 + rhs_calls_10 + 8
+                    rhs_calls_6 + rhs_calls_7 + rhs_calls_8 + rhs_calls_9 + 10
 
     return u_exprb4, u_exprb5, num_rhs_calls
