@@ -1,12 +1,9 @@
 import sys
-
-sys.path.insert(1, "../../Adaptive/")
-
 from Leja_Interpolation import *
 
 ################################################################################################
 
-def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
+def EPIRK5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     """
     Parameters
     ----------
@@ -16,7 +13,7 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
-    Real_Imag_Leja  : 0 - Real, 1 - Imag
+    Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     Returns
     -------
@@ -32,7 +29,7 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     elif Real_Imag_Leja == 1:
         Leja_phi = imag_Leja_phi
     else:
-        print("Error!! Choose 0 for real or 1 for imag Leja points.")
+        print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
 
     epsilon = 1e-7
     
@@ -58,11 +55,19 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
 
     ### RHS of PDE at u
     f_u = RHS_func(u)
+    
+    ############## --------------------- ##############
+    
+    ### Check if iterations converge for largest value of "f_u" and "dt".
+    ### If this stage doesn't converge, we have to go for a smaller 
+    ### step size. "u_flux" is used in the final stage.
+    
+    u_flux, rhs_calls_1 = Leja_phi(u, g31 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
 
     ############## --------------------- ##############
 
     ### Internal stage 1
-    a_n_f, rhs_calls_1 = Leja_phi(u, g11 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
+    a_n_f, rhs_calls_2 = Leja_phi(u, g11 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
     a_n = u + (a_n_f * a11 * dt)
 
     ############## --------------------- ##############
@@ -82,8 +87,8 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     ############# --------------------- ##############
 
     ### Internal stage 2
-    b_n_f, rhs_calls_2  = Leja_phi(u, g21 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    b_n_nl, rhs_calls_3 = Leja_phi(u, g22 * dt, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, phi_1, rel_tol)
+    b_n_f, rhs_calls_3  = Leja_phi(u, g21 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
+    b_n_nl, rhs_calls_4 = Leja_phi(u, g22 * dt, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, phi_1, rel_tol)
 
     b_n = u + (b_n_f * a21 * dt) + (b_n_nl * a22 * dt)
 
@@ -96,9 +101,6 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     Nonlin_b = RHS_func(b_n) - Linear_b
 
     ############# --------------------- ##############
-    
-    ### Final stage
-    u_flux, rhs_calls_4 = Leja_phi(u, g31 * dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
     
     ### Nonlinear remainders for 5th order solution
     u_nl_1_5, rhs_calls_5 = Leja_phi(u, g32 * dt, RHS_func, (-Nonlin_u + Nonlin_a), c, Gamma, phi_1, rel_tol)
@@ -116,5 +118,3 @@ def EPIKR5P1(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
                     rhs_calls_6 + rhs_calls_7 + rhs_calls_8 + 6
 
     return u_epirk4, u_epirk5, num_rhs_calls
-
-##############################################################################

@@ -9,8 +9,8 @@ Description: -
 
 """
 
-from EPIRK5P1 import EPIKR5P1
-from EPIRK5P2 import EPIKR5P2
+from EPIRK5P1 import EPIRK5P1
+from EPIRK5P2 import EPIRK5P2
 
 """
 References: -
