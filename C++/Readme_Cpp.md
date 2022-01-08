@@ -1,1 +1,0 @@
-### Exponential Integrators (Leja Interpolation)
