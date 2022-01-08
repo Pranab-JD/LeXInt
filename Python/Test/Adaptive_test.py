@@ -13,22 +13,25 @@ import numpy as np
 # import matplotlib.pyplot as plt
 from scipy.sparse import csr_matrix
 
-sys.path.insert(1, "../Constant/Explicit/")
-import Explicit
+sys.path.insert(1, "../Adaptive/Embedded_Explicit/")
+from Embedded_explicit import *
 
-sys.path.insert(1, "../Constant/")
+sys.path.insert(1, "../Adaptive/")
 import Eigenvalues
 
-sys.path.insert(1, "../Constant/EXPRB/")
-import EXPRB
+sys.path.insert(1, "../Adaptive/EXPRB/")
+from EXPRB import *
+
+sys.path.insert(1, "../Adaptive/EPIRK/")
+from EPIRK import *
 
 ### ------------------------------------------------------ ###
 
-### Initialize_matrces
-N = 100                 # Number of points along X
+### Initialize_matrices
+N = 256                 # Number of points along X
 xmin = 0                # Min value of X
 xmax = 1                # Max value of X
-eta = 50                # Peclet number
+eta = 1                 # Peclet number
 dx = (xmax - xmin)/N    # Grid spacing
 
 ## Periodic boundaries
@@ -38,7 +41,7 @@ X = np.linspace(xmin, xmax, N, endpoint = False)
 adv_cfl = dx/eta
 dif_cfl = dx**2/2
 dt_cfl = min(adv_cfl, dif_cfl)
-tmax = 1e-2
+tmax = 5e-2
 R = eta/dx
 F = 1/dx**2     
 
@@ -92,35 +95,77 @@ def RHS_func(u):
     
 def solve():
     
-    ### Solve viscous Burgers' eqation
-    u, c, Gamma = Viscous_Burgers()
+    ### Parameters
+    dt = 0.9 * dt_cfl
     
-    ### Temporal paramerters    
-    time_elapsed = 0.0
-    dt = 0.09 * dt_cfl
+    time = 0                                            # Time
+    counter = 0                                         # Counter for # of time steps
+    count_mv = 0                                        # Counter for matrix-vector products
+        
+    dt_history = []                                     # Array - dt used
+    time_arr = []                                       # Array - time elapsed after each time step
+    
+    Method_order = 3                                    # Order of the time integrator (error estimator)
+    tol = 1e-8
+    emax = '{:5.1e}'.format(tol)
     
     ### Create required files/directories
-    path = os.path.expanduser("./Test_data/Rosenbrock_Euler/Data_" + str(float(dt/dt_cfl)) + "_dt_cfl")
+    path = os.path.expanduser("./Test_data/Adaptive/eta_1/EXPRB43/tol_" + str(emax))
     if os.path.exists(path):
         shutil.rmtree(path)                     # remove previous directory with same name
     os.makedirs(path, 0o777)                    # create directory with access rights
+
+    ### Solve viscous Burgers' equation
+    u, c, Gamma = Viscous_Burgers()
     
-    while time_elapsed < tmax:
+    while time < tmax:
         
-        if time_elapsed + dt > tmax:
-            dt = tmax - time_elapsed
+        if time + dt > tmax:
+            dt = tmax - time
             
-        # u_new, rhs_calls =  Explicit.RK2(u, dt, RHS_func)
-        u_new, rhs_calls =  EXPRB.Rosenbrock_Euler(u, dt, RHS_func, c, Gamma, 1e-4, 0)
+        # u_low, u_high, rhs_calls_1 = RKF45(u, dt, RHS_func)
+        u_low, u_high, rhs_calls_1 = EXPRB43(u, dt, RHS_func, c, Gamma, tol, 0)
+        
+        ### Error
+        error = np.mean(abs(u_low - u_high))
+        
+        if error > tol:
+            
+            new_dt = dt * (tol/error)**(1/(Method_order + 1))
+            dt = 0.8 * new_dt                       # Safety factor
+            
+            # u_low, u_high, rhs_calls_2 = RKF45(u, dt, RHS_func)
+            u_low, u_high, rhs_calls_2 = EXPRB43(u, dt, RHS_func, c, Gamma, tol, 0)
+        
+            error = np.mean(abs(u_low - u_high))
+            
+        else:
+            rhs_calls_2 = 0
         
         ### Update u and time
-        u = u_new.copy()
-        time_elapsed = time_elapsed + dt
+        u = u_high.copy()
+        time = time + dt
+        
+        dt_history.append(dt)
+        time_arr.append(time)
+        count_mv = count_mv + rhs_calls_1 + rhs_calls_2
+        
+        ### dt for next time step
+        new_dt = dt * (tol/error)**(1/(Method_order + 1))
+        dt = 0.8 * new_dt                       # Safety factor
         
     ## Write final data to files
     file_final_sol = open(path + "/Final_data_sol.txt", 'w+')
-    file_final_sol.write(' '.join(map(str, u_new)) % u_new)
+    file_final_sol.write(' '.join(map(str, u_high)) % u_high)
     file_final_sol.close()
+    
+    ### Write simulation results to file
+    file_res = open(path + '/Results.txt', 'w+')
+    file_res.write('Number of matrix-vector products = %d' % count_mv + '\n' + '\n')
+    file_res.write(' '.join(map(str, dt_history)) % dt_history + '\n' + '\n')
+    file_res.write(' '.join(map(str, time_arr)) % time_arr)
+    file_res.close()
+
                 
 ### Call the function
 solve()
