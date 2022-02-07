@@ -105,8 +105,8 @@ def EXPRB54s4(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     u_nl_5_4, rhs_calls_10 = Leja_phi(u, dt, RHS_func, ((1120/27)*Nonlin_u - 60*Nonlin_b + (500/27)*Nonlin_c), c, Gamma, phi_4, rel_tol)
 
     ### 4th and 5th order solutions
-    u_exprb4 = u + (u_flux * dt) + (u_nl_4_3 * dt) + (u_nl_4_4 * dt)
-    u_exprb5 = u + (u_flux * dt) + (u_nl_5_3 * dt) + (u_nl_5_4 * dt)
+    u_exprb4 = u + (u_flux * dt) + (u_nl_4_3 + u_nl_4_4) * dt
+    u_exprb5 = u + (u_flux * dt) + (u_nl_5_3 + u_nl_5_4) * dt
 
     ## Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + \

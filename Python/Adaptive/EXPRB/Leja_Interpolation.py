@@ -19,7 +19,7 @@ def phi_1(z):
     phi_1_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-6:
+        if abs(z[ii]) <= 1e-7:
             phi_1_array[ii] = 1 + z[ii] * (1./2. + z[ii] * (1./6. + z[ii] * (1./24. + 1./120. * z[ii])))
         else:
             phi_1_array[ii] = (np.exp(z[ii]) - 1)/z[ii]
@@ -31,7 +31,7 @@ def phi_2(z):
     phi_2_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-5:
+        if abs(z[ii]) <= 1e-7:
             phi_2_array[ii] = 1./2. + z[ii] * (1./6. + z[ii] * (1./24. + z[ii] * (1./120. + 1./720. * z[ii])));
         else:
             phi_2_array[ii] = (np.exp(z[ii]) - z[ii] - 1)/z[ii]**2
@@ -43,7 +43,7 @@ def phi_3(z):
     phi_3_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-4:
+        if abs(z[ii]) <= 1e-6:
             phi_3_array[ii] = 1./6. + z[ii] * (1./24. + z[ii] * (1./120. + z[ii] * (1./720. + 1./5040. * z[ii])));
         else:
             phi_3_array[ii] = (np.exp(z[ii]) - z[ii]**2/2 - z[ii] - 1)/z[ii]**3
@@ -55,7 +55,7 @@ def phi_4(z):
     phi_4_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-4:
+        if abs(z[ii]) <= 1e-5:
             phi_4_array[ii] = 1./24. + z[ii] * (1./120. + z[ii] * (1./720. + z[ii] * (1./5040. + 1./40320. * z[ii])));
         else:
             phi_4_array[ii] = (np.exp(z[ii]) - z[ii]**3/6 - z[ii]**2/2 - z[ii] - 1)/z[ii]**4
@@ -67,7 +67,7 @@ def phi_5(z):
     phi_5_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-4:
+        if abs(z[ii]) <= 1e-5:
             phi_5_array[ii] = 1./120. + z[ii] * (1./720. + z[ii] * (1./5040. + z[ii] * (1./40320. + 1./362880. * z[ii])));
         else:
             phi_5_array[ii] = (np.exp(z[ii]) - z[ii]**4/24 - z[ii]**3/6 - z[ii]**2/2 - z[ii] - 1)/z[ii]**5
@@ -124,8 +124,8 @@ def real_Leja_exp(u, dt, RHS_func, c, Gamma, rel_tol):
     Returns
     ----------
     polynomial              : Polynomial interpolation of 
-                              matrix exponential of 'u'
-                              at real Leja points
+                              matrix exponential multiplied
+                              by 'u' at real Leja points
     ii                      : # of RHS calls
 
     """
@@ -143,11 +143,12 @@ def real_Leja_exp(u, dt, RHS_func, c, Gamma, rel_tol):
     poly = coeffs[0] * poly
 
     ## a_1, a_2 .... a_n terms
-    max_Leja_pts = 100                                     # Max number of Leja points
-    y = u.copy()                                           # x values of the polynomial
-    poly_vals = np.zeros(max_Leja_pts)                     # Array for error incurred
-    y_val = np.zeros((max_Leja_pts, len(u)))               # Stores x values till polynomial converges
-    scale_fact = 1/Gamma                                   # Re-scaling factor
+    epsilon = 1e-7
+    max_Leja_pts = 500                                      # Max number of Leja points
+    scale_fact = 1/Gamma                                    # Re-scaling factor
+    
+    y = u.copy()                                            # x values of the polynomial
+    poly_vals = np.zeros(max_Leja_pts)                      # Array for error incurred
 
     ### ------------------------------------------------------------------- ###
 
@@ -164,41 +165,31 @@ def real_Leja_exp(u, dt, RHS_func, c, Gamma, rel_tol):
 
         ## Re-scale and re-shift
         y = y * shift_fact
-        y = y + scale_fact * Jacobian_function
+        y = y + (scale_fact * Jacobian_function)
 
         ## Error incurred
         poly_vals[ii] = (sum(abs(y)**2)/len(y))**0.5 * abs(coeffs[ii])
 
         ## If new number (next order) to be added < tol, ignore it
         if  poly_vals[ii] < rel_tol:
-            # print('No. of Leja points used (real phi) = ', ii)
+            print('No. of Leja points used (real exp) = ', ii)
             # print('----------Tolerance reached---------------')
-            y_val[ii, :] = coeffs[ii] * y
+            print(poly_vals[ii])
+            poly = poly + (coeffs[ii] * y)
             break
 
         ## To stop diverging
-        elif poly_vals[ii] > 1e13:
-            return 5 * u, ii
+        # elif poly_vals[ii] > 1e13:
+        #     return 5 * u, ii
 
         else:
-            y_val[ii, :] = coeffs[ii] * y
+            poly = poly + (coeffs[ii] * y)
 
         if ii >= max_Leja_pts - 1:
             print("Error!! Max. # of Leja points reached!!")
             return 5 * u, ii
 
     ### ------------------------------------------------------------------- ###
-
-    ### Choose polynomial terms up to the smallest term, ignore the rest
-    if np.argmin(poly_vals[np.nonzero(poly_vals)]) + 1 == 0:               # Tolerance reached
-        min_poly_val_x = np.argmin(poly_vals[np.nonzero(poly_vals)])
-
-    else:
-        min_poly_val_x = np.argmin(poly_vals[np.nonzero(poly_vals)]) + 1   # Starts to diverge
-
-    ### Form the polynomial
-    for jj in range(1, min_poly_val_x + 1):
-        poly = poly + y_val[jj, :]
 
     ## Solution
     polynomial = poly.copy()
@@ -255,16 +246,16 @@ def real_Leja_phi(u, dt, RHS_func, interp_func, c, Gamma, phi_func, rel_tol):
     ### ------------------------------------------------------------------- ###
 
     ## a_1, a_2 .... a_n terms
-    y = interp_func.copy()                                  # x values of the polynomial
-    max_Leja_pts = 100                              # Max number of Leja points
-    poly_vals = np.zeros(max_Leja_pts)                      # Array for error incurred
     epsilon = 1e-7
-    y_val = np.zeros((max_Leja_pts, len(u)))                # Stores x values till polynomial converges
+    max_Leja_pts = 500                                      # Max number of Leja points
     scale_fact = 1/Gamma                                    # Re-scaling factor
+    
+    y = interp_func.copy()                                  # x values of the polynomial
+    poly_vals = np.zeros(max_Leja_pts)                      # Array for error incurred
+        
+    ### ------------------------------ ###
 
-    ### ------------------------------------------------------------------- ###
-
-    ## Iterate until convergence is reached
+    ## Iterate until converges
     for ii in range(1, max_Leja_pts):
 
         shift_fact = -c * scale_fact - Leja_X[ii - 1]       # Re-shifting factor
@@ -277,41 +268,35 @@ def real_Leja_phi(u, dt, RHS_func, interp_func, c, Gamma, phi_func, rel_tol):
 
         ## Re-scale and re-shift
         y = y * shift_fact
-        y = y + scale_fact * Jacobian_function
+        y = y + (scale_fact * Jacobian_function)
 
         ## Error incurred
         poly_vals[ii] = (sum(abs(y)**2)/len(y))**0.5 * abs(coeffs[ii])
 
         ## If new number (next order) to be added < tol, ignore it
         if  poly_vals[ii] < 0.1 * rel_tol:
-            # print('No. of Leja points used (real phi) = ', ii)
+            print("No. of Leja points used (real phi) = ", ii)
             # print('----------Tolerance reached---------------')
-            y_val[ii, :] = coeffs[ii] * y
+            poly = poly + (coeffs[ii] * y)
             break
 
-        ## To stop diverging
-        elif poly_vals[ii] > 1e13:
+        ### To stop diverging
+        elif poly_vals[ii] > 1e5:
+            # print()
+            # print(poly_vals[1:ii])
+            print("Starts to diverge after ", ii, " iterations with dt = ", dt)
+            # print(coeffs[1:ii])
             return 5 * interp_func, ii * 2
 
         else:
-            y_val[ii, :] = coeffs[ii] * y
+           poly = poly + (coeffs[ii] * y)
 
-        if ii >= max_Leja_pts - 1:
-            print("Max. # of Leja points reached!")
-            return 5 * interp_func, ii * 2
+        # if ii >= max_Leja_pts - 1:
+        #     # print(poly_vals[1:ii+1])
+        #     print("Max. # of Leja points reached!")
+        #     return 5 * interp_func, ii * 2
 
     ### ------------------------------------------------------------------- ###
-
-    ### Choose polynomial terms up to the smallest term, ignore the rest
-    if np.argmin(poly_vals[np.nonzero(poly_vals)]) + 1 == 0:               # Tolerance reached
-        min_poly_val_x = np.argmin(poly_vals[np.nonzero(poly_vals)])
-
-    else:
-        min_poly_val_x = np.argmin(poly_vals[np.nonzero(poly_vals)]) + 1   # Starts to diverge
-
-    ### Form the polynomial
-    for jj in range(1, min_poly_val_x + 1):
-        poly = poly + y_val[jj, :]
 
     ## Solution
     polynomial = poly.copy()
