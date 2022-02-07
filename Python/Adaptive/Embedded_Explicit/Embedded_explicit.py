@@ -9,3 +9,5 @@ Description: -
 """
 
 from RKF45 import RKF45
+from DOPRI54 import DOPRI54
+from Cash_Karp import Cash_Karp
