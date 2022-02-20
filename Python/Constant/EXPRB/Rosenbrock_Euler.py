@@ -16,7 +16,7 @@ def Rosenbrock_Euler(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     c               : Shifting factor
     Gamma           : Scaling factor
     rel_tol         : Accuracy of the polynomial so formed
-    Real_Imag_Leja  : 0 - Real, 1 - Imag
+    Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     Returns
     -------

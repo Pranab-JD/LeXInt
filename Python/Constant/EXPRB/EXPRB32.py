@@ -2,7 +2,7 @@ from Leja_Interpolation import *
 
 ################################################################################################
 
-def EXPRB42(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
+def EXPRB32(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     """
     Parameters
     ----------
@@ -16,7 +16,7 @@ def EXPRB42(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
 
     Returns
     -------
-    u_exprb42       : 1D vector u (output) after time dt (4th order)
+    u_exprb3        : 1D vector u (output) after time dt (3rd order)
     num_rhs_calls   : # of RHS calls
     
     """
@@ -27,21 +27,24 @@ def EXPRB42(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
     elif Real_Imag_Leja == 1:
         Leja_phi = imag_Leja_phi
     else:
-        print("Error!! Choose 0 for real or 1 for imag Leja points.")
+        print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
 
     epsilon = 1e-7
-
+    
     ### RHS of PDE at u
     f_u = RHS_func(u)
 
     ############## --------------------- ##############
-    
-    ### Internal stage 1
-    a_n_f, rhs_calls_1 = Leja_phi(u, 3*dt/4, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    a_n = u + (a_n_f * 3*dt/4)
+
+    ### Internal stage 1 
+    a_n_f, rhs_calls_1 = Leja_phi(u, dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
+    a_n = u + (a_n_f * dt)
+
+    ### 2nd order solution
+    u_exprb2 = a_n
 
     ############## --------------------- ##############
-    
+
     ### J(u) * u
     Linear_u = (RHS_func(u + (epsilon * u)) - f_u)/epsilon
 
@@ -56,13 +59,11 @@ def EXPRB42(u, dt, RHS_func, c, Gamma, rel_tol, Real_Imag_Leja):
 
     ############## --------------------- ##############
 
-    u_flux, rhs_calls_2 = Leja_phi(u, dt, RHS_func, f_u, c, Gamma, phi_1, rel_tol)
-    u_nl_3, rhs_calls_3 = Leja_phi(u, dt, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, phi_3, rel_tol)
-
-    ### 4th order solution
-    u_exprb42 = u + (u_flux * dt) + (u_nl_3 * 32*dt/9)
+    ### 3rd order solution
+    u_3, rhs_calls_2 = Leja_phi(u, dt, RHS_func, 2*(Nonlin_a - Nonlin_u), c, Gamma, phi_3, rel_tol)
+    u_exprb3 = u_exprb2 + (u_3 * dt)
 
     ## Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 4
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 4
 
-    return u_exprb42, num_rhs_calls
+    return u_exprb3, num_rhs_calls
