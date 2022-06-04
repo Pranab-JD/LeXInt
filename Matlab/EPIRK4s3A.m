@@ -9,7 +9,6 @@ function [u_epirk3, u_epirk4, num_rhs_calls] = EPIRK4s3A(u, dt, RHS_func, c, Gam
     % c               : Shifting factor
     % Gamma           : Scaling factor
     % rel_tol         : Accuracy of the polynomial so formed
-    % Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     % Returns
     % -------
@@ -36,7 +35,7 @@ function [u_epirk3, u_epirk4, num_rhs_calls] = EPIRK4s3A(u, dt, RHS_func, c, Gam
         u_epirk3 = u;
         u_epirk4 = u + (2*rel_tol*u);
         num_rhs_calls = rhs_calls_1;
-        
+
         return
     end
 

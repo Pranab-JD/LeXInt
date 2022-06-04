@@ -75,7 +75,7 @@ function [polynomial, num_rhs_calls, Leja_convergence] = real_Leja_phi(u, dt, RH
 
         %%% To stop diverging
         elseif poly_error > 1e7
-            disp("Starts to diverge after ", ii, " iterations with dt = ", dt)
+%             disp('Starts to diverge after ", ii, " iterations.')
             polynomial = interp_func;
             num_rhs_calls = 2*ii; 
             Leja_convergence = 0;

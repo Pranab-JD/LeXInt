@@ -9,7 +9,6 @@ function [u_exprb2, u_exprb3, num_rhs_calls] = EXPRB32(u, dt, RHS_func, c, Gamma
     % c               : Shifting factor
     % Gamma           : Scaling factor
     % rel_tol         : Accuracy of the polynomial so formed
-    % Real_Imag_Leja  : 0 - Real, 1 - Imaginary
 
     % Returns
     % -------

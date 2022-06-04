@@ -1,4 +1,4 @@
-function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma, rel_tol)
+function [u_exprb3, u_exprb5, num_rhs_calls] = EXPRB53s3(u, dt, RHS_func, c, Gamma, rel_tol)
     %%% ---------------------------------------------------
     %
     % Parameters
@@ -13,7 +13,7 @@ function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma
     % Returns
     % -------
     % u_exprb3        : 1D vector u (output) after time dt (3rd order)
-    % u_exprb4        : 1D vector u (output) after time dt (4th order)
+    % u_exprb5        : 1D vector u (output) after time dt (5th order)
     % num_rhs_calls   : # of RHS calls
     %
     %%% ---------------------------------------------------
@@ -33,7 +33,7 @@ function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma
     if convergence == 0
 
         u_exprb3 = u;
-        u_exprb4 = u + (2*rel_tol*u);
+        u_exprb5 = u + (2*rel_tol*u);
         num_rhs_calls = rhs_calls_1;
         
         return
@@ -41,7 +41,7 @@ function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma
 
     %%%%%%%%%%%%%%%%%% --------------------- %%%%%%%%%%%%%%%%%%
 
-    %%% Internal stage 1 
+    %%% Internal stage 1; a = u + 1/2 phi_1(1/2 J(u) dt) f(u) dt
     [a_n_f, rhs_calls_2, ~] = real_Leja_phi(u, dt/2, RHS_func, f_u, c, Gamma, @phi_1, rel_tol);
     a_n = u + (a_n_f * dt/2);
 
@@ -63,9 +63,12 @@ function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma
 
     %%%%%%%%%%%%%%%%%% --------------------- %%%%%%%%%%%%%%%%%%
 
-    %%% Internal stage 2
-    [b_n_nl, rhs_calls_3, ~] = real_Leja_phi(u, dt, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, @phi_1, rel_tol);
-    b_n = u + (u_flux * dt) + (b_n_nl * dt);
+    %%% Internal stage 2; b = u + 9/10 phi_1(9/10 J(u) dt) f(u) dt + (27/25 phi_3(1/2 J(u) dt) + 729/125 phi_3(9/10 J(u) dt)) (F(a) - F(u)) dt
+    [b_n_f,    rhs_calls_3, ~] = real_Leja_phi(u, 9*dt/10, RHS_func, f_u, c, Gamma, @phi_1, rel_tol);
+    [b_n_nl_1, rhs_calls_4, ~] = real_Leja_phi(u, dt/2, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, @phi_3, rel_tol);
+    [b_n_nl_2, rhs_calls_5, ~] = real_Leja_phi(u, 9*dt/10, RHS_func, (Nonlin_a - Nonlin_u), c, Gamma, @phi_3, rel_tol);
+
+    b_n = u + (9/10 * b_n_f * dt) + (27/25 * b_n_nl_1 * dt) + (729/125 * b_n_nl_2 * dt);
 
     %%%%%%%%%%%%%%%%%% --------------------- %%%%%%%%%%%%%%%%%%
 
@@ -77,14 +80,19 @@ function [u_exprb3, u_exprb4, num_rhs_calls] = EXPRB43(u, dt, RHS_func, c, Gamma
 
     %%%%%%%%%%%%%%%%%% --------------------- %%%%%%%%%%%%%%%%%%
 
-    %%% 3rd & 4th order solution
-    [u_nl_3, rhs_calls_4, ~] = real_Leja_phi(u, dt, RHS_func, (-14*Nonlin_u + 16*Nonlin_a - 2*Nonlin_b), c, Gamma, @phi_3, rel_tol);
-    [u_nl_4, rhs_calls_5, ~] = real_Leja_phi(u, dt, RHS_func, (36*Nonlin_u - 48*Nonlin_a + 12*Nonlin_b), c, Gamma, @phi_4, rel_tol);
+    %%% 3rd & 5th order solution
+    [u_nl_3,  rhs_calls_6, ~] = real_Leja_phi(u, dt, RHS_func, (-(312/81)*Nonlin_u + 2*Nonlin_a + (150/81)*Nonlin_b), c, Gamma, @phi_3, rel_tol);
+    [u_nl_5a, rhs_calls_7, ~] = real_Leja_phi(u, dt, RHS_func, (-(1208/81)*Nonlin_u + 18*Nonlin_a - (250/81)*Nonlin_b), c, Gamma, @phi_3, rel_tol);
+    [u_nl_5b, rhs_calls_8, ~] = real_Leja_phi(u, dt, RHS_func, ((1120/27)*Nonlin_u - 60*Nonlin_a + (500/27)*Nonlin_b), c, Gamma, @phi_4, rel_tol);
 
+    %%% u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) ((-312/81)F(u) + 2F(a) + (150/81)F(b)) dt
     u_exprb3 = u + (u_flux * dt) + (u_nl_3 * dt);
-    u_exprb4 = u_exprb3 + (u_nl_4 * dt);
+
+    %%% u_5 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) ((-1208/81)F(u) + 18F(a) - (250/81)F(b)) dt + phi_4(J(u) dt) ((1120/27)F(u) - 60F(a) + (500/27)F(b)) dt
+    u_exprb5 = u + (u_flux * dt) + (u_nl_5a * dt) + (u_nl_5b * dt);
 
     %%% Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + 6;
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + ...
+                    rhs_calls_6 + rhs_calls_7 + rhs_calls_8 + 6;
 
 end
