@@ -6,9 +6,9 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, tol, Real_Imag):
     """
     Parameters
     ----------
-	u               : 1D vector u (input)
-	dt              : Step size
-	RHS_function	: RHS function
+    u               : 1D vector u (input)
+    dt              : Step size
+    RHS_function	: RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     tol             : Accuracy of the polynomial so formed
@@ -19,7 +19,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, tol, Real_Imag):
     u_exprb2        : 1D vector u (output) after time dt (2nd order)
     u_exprb3        : 1D vector u (output) after time dt (3rd order)
     num_rhs_calls   : # of RHS calls
-    
+
     """
 
     ### Interpolate on either real Leja or imaginary Leja points.
