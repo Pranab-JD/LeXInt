@@ -51,7 +51,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     ### p_1, p_2, ...., p_n terms
     epsilon = 1e-7
     convergence = 0                                         # 0 -> did not converge, 1-> converged
-    max_Leja_pts = 1000                                     # Max number of Leja points    
+    max_Leja_pts = 100                                      # Max number of Leja points    
     rhs_u = RHS_function(u)                                 # RHS of the function at u
     y = interp_function.copy()                              # To avoid changing 'interp_function'
     
