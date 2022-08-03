@@ -41,13 +41,13 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
-        epsilon = 1e-7
+        epsilon = 1e-4
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
-        Nonlinear_y = RHS_function(y)*dt - Linear_y
+        Nonlinear_y = RHS_function(y) - Linear_y
         
         return Nonlinear_y
     
@@ -75,10 +75,10 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b-(2*R_a)))*dt,    [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b-(2*R_a)))*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b - 2*R_a))*dt,    [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b - 2*R_a))*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
-    ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (-1024R(a) + 1458R(b)) dt + phi_4(J(u) dt) (27648R(a) - 34992N(b)) dt
+    ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (-1024R(a) + 1458R(b)) dt + phi_4(J(u) dt) (27648R(a) - 34992R(b)) dt
     u_epirk4 = u + u_flux[:, 2] + u_nl_3[:, 0] + u_nl_4[:, 0]
 
     ### Proxy of computational cost
