@@ -1,10 +1,13 @@
 import numpy as np
 
-### Phi Functions ('z' is assumed to be a double)
+### Phi Functions ('z' is assumed to be an array of doubles of complex doubles)
 
 def phi_1(z):
     
-    phi_1_array = np.zeros(len(z))
+    if np.imag(z[0]) != 0.0:
+        phi_1_array = np.zeros(len(z), dtype = "complex")
+    else:
+        phi_1_array = np.zeros(len(z))
     
     for ii in range(len(z)):
         if abs(z[ii]) <= 1e-7:
@@ -21,7 +24,10 @@ def phi_1(z):
 
 def phi_2(z):
     
-    phi_2_array = np.zeros(len(z))
+    if np.imag(z[0]) != 0.0:
+        phi_2_array = np.zeros(len(z), dtype = "complex")
+    else:
+        phi_2_array = np.zeros(len(z))
     
     for ii in range(len(z)):
         if abs(z[ii]) <= 1e-6:
@@ -38,7 +44,10 @@ def phi_2(z):
 
 def phi_3(z):
     
-    phi_3_array = np.zeros(len(z))
+    if np.imag(z[0]) != 0.0:
+        phi_3_array = np.zeros(len(z), dtype = "complex")
+    else:
+        phi_3_array = np.zeros(len(z))
     
     for ii in range(len(z)):
         if abs(z[ii]) <= 1e-5:
@@ -55,10 +64,13 @@ def phi_3(z):
 
 def phi_4(z):
     
-    phi_4_array = np.zeros(len(z))
+    if np.imag(z[0]) != 0.0:
+        phi_4_array = np.zeros(len(z), dtype = "complex")
+    else:
+        phi_4_array = np.zeros(len(z))
     
     for ii in range(len(z)):
-        if abs(z[ii]) <= 1e-4:
+        if abs(z[ii]) <= 1e-3:
             phi_4_array[ii] = 1./np.math.factorial(4) + z[ii] * (1./np.math.factorial(5)  + z[ii] * (1./np.math.factorial(6)  + \
                                                         z[ii] * (1./np.math.factorial(7)  + z[ii] * (1./np.math.factorial(8)  + \
                                                         z[ii] * (1./np.math.factorial(9)  + z[ii] * (1./np.math.factorial(10) + \
