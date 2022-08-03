@@ -18,9 +18,8 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     Returns
     ----------
     polynomial_array        : Polynomial interpolation of 'interp_function' 
-                              multiplied by 'phi_function' at real Leja points
+                        multiplied by 'phi_function' at real Leja points
     ii                      : # of RHS calls
-    convergence             : 0 -> did not converge, 1-> converged
 
     """
     
@@ -44,51 +43,41 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     ### Compute the polynomial
     polynomial_array = np.zeros((len(interp_function), num_interpolations))
 
-    # print(np.shape(interp_function))
     ### p_0 term
     for ij in range(0, num_interpolations):
         polynomial_array[:, ij] = interp_function * poly_coeffs[0, ij]
 
-    ### Error incurred in polynomial interpolation
-    poly_error = np.zeros(num_interpolations)
-
     ### p_1, p_2, ...., p_n terms
     epsilon = 1e-7
-    convergence = 0                                         # 0 -> did not converge, 1-> converged
-    max_Leja_pts = 1000                                     # Max number of Leja points    
-    rhs_u = RHS_function(u)                                 # RHS of the function at u
+    max_Leja_pts = 100                                      # Max number of Leja points    
     y = interp_function.copy()                              # To avoid changing 'interp_function'
+    
+    ### Error incurred in polynomial interpolation
+    poly_error = np.zeros(max_Leja_pts)
     
     ### Iterate until converges
     for ii in range(1, max_Leja_pts):
         
         ### Compute numerical Jacobian
-        Jacobian_function = (RHS_function(u + (epsilon * y)) - rhs_u)/epsilon
+        Jacobian_function = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### Re-scale and re-shift
         y = y * (-c/Gamma - Leja_X[ii - 1])
         y = y + (Jacobian_function/Gamma)
 
         ### Error estimate
-        poly_error[:] = np.mean(abs(y)) * abs(poly_coeffs[ii, 0:num_interpolations])
+        poly_error[ii] = np.mean(abs(y)) * abs(poly_coeffs[ii, np.argmax(integrator_coeffs)])
         
         ########### -------------------------------------- ###########
         
         ### Keep adding terms to the polynomial
         for ij in range(0, num_interpolations):
 
-            ### To prevent diverging, restart simulations with smaller dt
-            if poly_error[ij] > 1e7:
-                polynomial_array[:, ij] = interp_function
-                convergence = 0
-                return polynomial_array, ii, convergence
-            
             ### Add the new term to the polynomial
             polynomial_array[:, ij] = polynomial_array[:, ij] + (poly_coeffs[ii, ij] * y)
             
         ### If new term to be added < tol, break loop; safety factor = 0.1
-        if  poly_error[-1] < 0.1*tol:
-            convergence = 1
+        if  poly_error[ii] < 0.1*tol or (ii > 2 and poly_error[ii] - poly_error[ii - 1] > 0):
             break
 
-    return polynomial_array, ii, convergence
+    return polynomial_array, 2*ii
