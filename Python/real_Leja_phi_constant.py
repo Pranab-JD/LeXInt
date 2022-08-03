@@ -18,7 +18,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     Returns
     ----------
     polynomial_array        : Polynomial interpolation of 'interp_function' 
-                        multiplied by 'phi_function' at real Leja points
+                              multiplied by 'phi_function' at real Leja points
     ii                      : # of RHS calls
 
     """
