@@ -28,7 +28,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ### Interpolate on either real Leja or imaginary Leja points.
     if Real_Imag == 0:
-        Leja_phi = real_Leja_phi_constant
+        Leja_phi = real_Leja_phi
     elif Real_Imag == 1:
         Leja_phi = imag_Leja_phi
     else:
@@ -53,11 +53,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Internal stage 1; interpolation of f_u at 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
-    
-    ## If it does not converge, return (try with smaller dt)
-    if convergence == 0:
-        return u, 2.1*u, rhs_calls_1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     a = u + u_flux[:, 0]
@@ -75,7 +71,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Final nonlinear stage
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
     
     ### 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
     u_exprb3 = a + (2 * u_nl_3[:, 0])

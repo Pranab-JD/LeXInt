@@ -6,7 +6,7 @@ from Phi_functions import *
 
 ################################################################################################
 
-def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EPIRK4s3B(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -28,7 +28,7 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ### Interpolate on either real Leja or imaginary Leja points
     if Real_Imag == 0:
-        Leja_phi = real_Leja_phi_constant
+        Leja_phi = real_Leja_phi
     elif Real_Imag == 1:
         Leja_phi = imag_Leja_phi
     else:

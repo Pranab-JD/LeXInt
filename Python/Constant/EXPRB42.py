@@ -6,7 +6,7 @@ from Phi_functions import *
 
 ################################################################################################
 
-def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -21,15 +21,14 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     Returns
     -------
-    u_exprb2        : 1D vector u (output) after time dt (2nd order)
-    u_exprb3        : 1D vector u (output) after time dt (3rd order)
+    u_exprb4        : 1D vector u (output) after time dt (4th order)
     num_rhs_calls   : # of RHS calls
 
     """
 
     ### Interpolate on either real Leja or imaginary Leja points.
     if Real_Imag == 0:
-        Leja_phi = real_Leja_phi_constant
+        Leja_phi = real_Leja_phi
     elif Real_Imag == 1:
         Leja_phi = imag_Leja_phi
     else:
@@ -54,11 +53,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Vertical interpolation of f_u at 3/4 and 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [3/4, 1], c, Gamma, Leja_X, phi_1, tol)
-    
-    ## If it does not converge, return (try with smaller dt)
-    if convergence == 0:
-        return u, 2.1*u, rhs_calls_1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [3/4, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + 3/4 phi_1(3/4 J(u) dt) f(u) dt
     a = u + (3/4 * u_flux[:, 0])
@@ -76,7 +71,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Final nonlinear stage
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
     
     ### 3rd order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + 32/9 phi_3(J(u) dt) R(a) dt
     u_exprb3 = u + u_flux[:, 1] + (32/9 * u_nl_3[:, 0])

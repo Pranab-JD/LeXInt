@@ -28,7 +28,7 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ### Interpolate on either real Leja or imaginary Leja points
     if Real_Imag == 0:
-        Leja_phi = real_Leja_phi_constant
+        Leja_phi = real_Leja_phi
     elif Real_Imag == 1:
         Leja_phi = imag_Leja_phi
     else:
@@ -53,11 +53,7 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
 	### Vertical interpolation of f_u at 1/2 and 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1/2, 2/3, 1], c, Gamma, Leja_X, phi_1, tol)
-
-    ### If it does not converge, return (try with smaller dt)
-    if convergence == 0:
-        return u, 2.1*u, rhs_calls_1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1/2, 2/3, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + 1/2 phi_1(1/2 J(u) dt) f(u) dt
     a = u + (1/2 * u_flux[:, 0])
@@ -78,8 +74,8 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, (32*R_a - 27/2*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (-144*R_a + 81*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, (32*R_a - 27/2*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (-144*R_a + 81*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
  
     ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (32R(a) - (27/2)R(b)) dt + phi_4(J(u) dt) (-144R(a) + 81R(b)) dt
     u_epirk4 = u + u_flux[:, 2] + u_nl_3[:, 0] + u_nl_4[:, 0]

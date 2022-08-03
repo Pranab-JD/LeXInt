@@ -21,8 +21,7 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     Returns
     -------
-    u_exprb2        : 1D vector u (output) after time dt (2nd order)
-    u_exprb3        : 1D vector u (output) after time dt (3rd order)
+    u_roseu         : 1D vector u (output) after time dt (2nd order)
     num_rhs_calls   : # of RHS calls
 
     """
@@ -39,11 +38,7 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     f_u = RHS_function(u)
 
     ### Internal stage 1; interpolation of f_u at 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
-    
-    ## If it does not converge, return (try with smaller dt)
-    if convergence == 0:
-        return u, 2.1*u, rhs_calls_1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_roseu = u + u_flux[:, 0]

@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi import *
+from real_Leja_phi_constant import *
 from Phi_functions import *
 
 ################################################################################################
@@ -29,7 +29,7 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ### Interpolate on either real Leja or imaginary Leja points
     if Real_Imag == 0:
-        Leja_phi = real_Leja_phi_constant
+        Leja_phi = real_Leja_phi
     elif Real_Imag == 1:
         Leja_phi = imag_Leja_phi
     else:
@@ -44,7 +44,7 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y))*dt - f_u*dt)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y)*dt - Linear_y
@@ -54,11 +54,7 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
 	### Vertical interpolation of f_u at 1/2 and 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1/8, 1/9, 1], c, Gamma, Leja_X, phi_1, tol)
-
-    ### If it does not converge, return (try with smaller dt)
-    if convergence == 0:
-        return u, 2.1*u, rhs_calls_1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1/8, 1/9, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + 1/8 phi_1(1/8 J(u) dt) f(u) dt
     a = u + (1/8 * u_flux[:, 0])
@@ -79,8 +75,8 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b-(2*R_a))),    [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b-(2*R_a))), [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_2 = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b-(2*R_a)))*dt,    [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b-(2*R_a)))*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (-1024R(a) + 1458R(b)) dt + phi_4(J(u) dt) (27648R(a) - 34992N(b)) dt
     u_epirk4 = u + u_flux[:, 2] + u_nl_3[:, 0] + u_nl_4[:, 0]
@@ -88,4 +84,4 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 7
 
-    return u_epirk3, u_epirk4, num_rhs_calls
+    return u_epirk4, num_rhs_calls
