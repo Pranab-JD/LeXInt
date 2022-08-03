@@ -53,7 +53,7 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     
     ############## --------------------- ##############
 
-	### Vertical interpolation of f_u at 1/2 and 1
+    ### Vertical interpolation of f_u at 1/8, 1/9, and 1
     u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1/8, 1/9, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + 1/8 phi_1(1/8 J(u) dt) f(u) dt
