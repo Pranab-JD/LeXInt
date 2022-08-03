@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi import *
+from real_Leja_phi_constant import *
 from Phi_functions import *
 
 ################################################################################################
@@ -21,7 +21,6 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     Returns
     -------
-    u_epirk4        : 1D vector u (output) after time dt (4th order)
     u_epirk5        : 1D vector u (output) after time dt (5th order)
     num_rhs_calls   : # of RHS calls
 
@@ -51,80 +50,57 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
         
         return Nonlinear_y
     
-    ### Parameters of EPIRK5P1 (5th order)
-    a11 = 0.35129592695058193092;
-    a21 = 0.84405472011657126298;
-    a22 = 1.6905891609568963624;
+    ### Parameters of EPIRK5P1
+    a11 = 0.35129592695058193092
+    a21 = 0.84405472011657126298
+    a22 = 1.6905891609568963624
 
-    b1  = 1.0;
-    b2  = 1.2727127317356892397;
-    b3  = 2.2714599265422622275;
+    b1  = 1.0
+    b2  = 1.2727127317356892397
+    b3  = 2.2714599265422622275
 
-    g11 = 0.35129592695058193092;
-    g21 = 0.84405472011657126298;
-    g22 = 0.5;
-    g31 = 1.0;
-    g32 = 0.71111095364366870359;
-    g33 = 0.62378111953371494809;
-    
-    ### 4th order
-    g32_4 = 0.5;
-    g33_4 = 1.0;
+    g11 = 0.35129592695058193092
+    g21 = 0.84405472011657126298
+    g22 = 1.0
+    g31 = 1.0
+    g32 = 0.71111095364366870359
+    g33 = 0.62378111953371494809
 
-    
-    u_flux, rhs_calls_1 = Leja_phi(u, g31 * dt, RHS_function, f_u, c, Gamma, phi_1, tol)
+    ### Vertical interpolation of f_u at g11, g21, and g31
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
 
     ############## --------------------- ##############
 
-    ### Internal stage 1
-    a_n_f, rhs_calls_2 = Leja_phi(u, g11 * dt, RHS_function, f_u, c, Gamma, phi_1, tol)
-    a_n = u + (a_n_f * a11 * dt)
+    ### Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt
+    a = u + (a11 * u_flux[:, 0])
+    
+    ### Nonlinear remainder at a
+    Nonlinear_u = Nonlinear_remainder(u)
+    Nonlinear_a = Nonlinear_remainder(a)
+    
+    R_a = Nonlinear_a - Nonlinear_u
 
     ############## --------------------- ##############
 
-    ### J(u) * u
-    Linear_u = (RHS_function(u + (epsilon * u)) - f_u)/epsilon
+    ### Vertical interpolation of R_a at g32 and g22
+    u_nl_1, rhs_calls_2 = Leja_phi(u, dt, RHS_function, R_a*dt, [g32, g22], c, Gamma, Leja_X, phi_1, tol)
 
-    ### F(u) = f(u) - (J(u) * u)
-    Nonlin_u = f_u - Linear_u
+    ### b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R_a dt
+    b = u + (a21 * u_flux[:, 1]) + (a22 * u_nl_1[:, 1])
 
-    ### J(u) * a
-    Linear_a = (RHS_function(u + (epsilon * a_n)) - f_u)/epsilon
-
-    ### F(a) = f(a) - (J(u) * a)
-    Nonlin_a = RHS_function(a_n) - Linear_a
-
-    ############# --------------------- ##############
-
-    ### Internal stage 2
-    b_n_f, rhs_calls_3  = Leja_phi(u, g21 * dt, RHS_function, f_u, c, Gamma, phi_1, tol)
-    b_n_nl, rhs_calls_4 = Leja_phi(u, g22 * dt, RHS_function, (Nonlin_a - Nonlin_u), c, Gamma, phi_1, tol)
-
-    b_n = u + (b_n_f * a21 * dt) + (b_n_nl * a22 * dt)
-
-    ############# --------------------- ##############
-
-    ### J(u) * b
-    Linear_b = (RHS_function(u + (epsilon * b_n)) - f_u)/epsilon
-
-    ### F(b) = f(b) - (J(u) * b)
-    Nonlin_b = RHS_function(b_n) - Linear_b
+    ### Nonlinear remainder at b
+    Nonlinear_b = Nonlinear_remainder(b)
+    
+    R_b = Nonlinear_b - Nonlinear_u
 
     ############# --------------------- ##############
     
-    ### Nonlinear remainders for 5th order solution
-    u_nl_1_5, rhs_calls_5 = Leja_phi(u, g32 * dt, RHS_function, (-Nonlin_u + Nonlin_a), c, Gamma, phi_1, tol)
-    u_nl_3_5, rhs_calls_6 = Leja_phi(u, g33 * dt, RHS_function, (Nonlin_u - 2*Nonlin_a + Nonlin_b), c, Gamma, phi_3, tol)
-    
-    ### Nonlinear remainders for 4th order solution
-    u_nl_1_4, rhs_calls_7 = Leja_phi(u, g32_4 * dt, RHS_function, (-Nonlin_u + Nonlin_a), c, Gamma, phi_1, tol)
-    u_nl_3_4, rhs_calls_8 = Leja_phi(u, g33_4 * dt, RHS_function, (Nonlin_u - 2*Nonlin_a + Nonlin_b), c, Gamma, phi_3, tol)
+    ### Vertical interpolation of (-2*R_a + R_b) at g33
+    u_nl_2, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (-2*R_a + R_b)*dt, [g33], c, Gamma, Leja_X, phi_3, tol)
  
-    u_epirk4 = u + (u_flux * b1 * dt) + (u_nl_1_4 * b2 * dt) + (u_nl_3_4 * b3 * dt)
-    u_epirk5 = u + (u_flux * b1 * dt) + (u_nl_1_5 * b2 * dt) + (u_nl_3_5 * b3 * dt)
+    u_epirk5 = u + u_flux[:, 2] + (b2 * u_nl_1[:, 0]) + (b3 * u_nl_2[:, 0])
 
-    ## Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + \
-                    rhs_calls_6 + rhs_calls_7 + rhs_calls_8 + 6
+    ### Proxy of computational cost
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 7
 
-    return u_epirk4, u_epirk5, num_rhs_calls
+    return u_epirk5, num_rhs_calls
