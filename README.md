@@ -20,6 +20,6 @@ Other references:
 3. Deka \& Einkemmer (2022), *Exponential Integrators for Resistive Magnetohydrodynamics: Matrix-free Leja Interpolation and Efficient Adaptive Time Stepping*, ApJS, [259, 57](https://doi.org/10.3847/1538-4365/ac5177)
 
 ## Contact
-Pranab J. Deka  <pranab.deka@uibk.ac.at> <br />
-Lukas Einkemmer <lukas.einkemmer@uibk.ac.at> <br />
-Mayya Tokman  <mtokman@ucmerced.edu>
+Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
+Lukas Einkemmer (<lukas.einkemmer@uibk.ac.at>) <br />
+Mayya Tokman  (<mtokman@ucmerced.edu>)
