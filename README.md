@@ -1,9 +1,6 @@
 #  [LeXInt](#)
 
-[**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package exponential integrators using the method of polynomial interpolation at Leja points.
-
-<font color="red">This text is red!</font>
-
+[@@Le@@](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package exponential integrators using the method of polynomial interpolation at Leja points.
 
 
 
