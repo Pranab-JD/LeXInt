@@ -12,6 +12,6 @@
 
 
 # Contact
-Pranab J. Deka Email: <pranab.deka@uibk.ac.at> \\
-Lukas Einkemmer Email: <pranab.deka@uibk.ac.at> \\
-Mayya Tokman Email: <pranab.deka@uibk.ac.at>
+Pranab J. Deka Email: <pranab.deka@uibk.ac.at> <br />
+Lukas Einkemmer Email: <lukas.einkemmer@uibk.ac.at> <br />
+Mayya Tokman Email: <mtokman@ucmerced.edu>
