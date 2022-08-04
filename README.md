@@ -10,6 +10,8 @@
 # Literature
 The publication associated with this code:
 
+Deka et al. (2022), "LeXInt: Leja interpolation for Exponential Integrators"
+
 Other literatures:
 1. Caliari et al. (2014), "Comparison of software for computing the action of the matrix exponential", BIT Numer. Math., [54, 113](https://doi.org/10.1007/s10543-013-0446-0)
 
