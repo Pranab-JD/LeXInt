@@ -92,7 +92,7 @@ def EXPRB53s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_nl_5_4, rhs_calls_5, convergence = Leja_phi(u, dt, RHS_function, (-60*R_a + (500/27)*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (2R(a) + (150/81)R(b)) dt
-    u_exprb4 = u + u_flux[:, 2] + u_nl_4_3[:, 0]
+    u_exprb3 = u + u_flux[:, 2] + u_nl_4_3[:, 0]
     
     ### 5th order solution; u_5 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (18R(a) - (250/81)R(b)) dt + phi_4(J(u) dt) (-60R(a) + (500/27)R(b)) dt
     u_exprb5 = u + u_flux[:, 2] + u_nl_5_3[:, 0] + u_nl_5_4[:, 0]
@@ -100,4 +100,4 @@ def EXPRB53s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + 9
 
-    return u_exprb4, u_exprb5, num_rhs_calls
+    return u_exprb3, u_exprb5, num_rhs_calls
