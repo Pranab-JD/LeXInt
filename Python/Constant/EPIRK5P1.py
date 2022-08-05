@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi_constant import *
 from Phi_functions import *
+from real_Leja_phi_constant import *
+from imag_Leja_phi_constant import *
 
 ################################################################################################
 
@@ -34,16 +35,13 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -67,7 +65,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     g33 = 0.62378111953371494809
 
     ### Vertical interpolation of f_u at g11, g21, and g31
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
 
     ############## --------------------- ##############
 
@@ -101,6 +99,6 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_epirk5 = u + u_flux[:, 2] + (b2 * u_nl_1[:, 0]) + (b3 * u_nl_2[:, 0])
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 7
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 9
 
     return u_epirk5, num_rhs_calls

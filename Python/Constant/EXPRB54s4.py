@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi_constant import *
 from Phi_functions import *
+from real_Leja_phi_constant import *
+from imag_Leja_phi_constant import *
 
 ################################################################################################
 
@@ -34,16 +35,13 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -52,8 +50,8 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     
     ############## --------------------- ##############
     
-    ### Vertical interpolation of f_u at 1/4, 1/2, 9/10, and 1
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1/4, 1/2, 9/10, 1], c, Gamma, Leja_X, phi_1, tol)
+    ### Vertical interpolation of RHS_function(u) at 1/4, 1/2, 9/10, and 1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/4, 1/2, 9/10, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + (1/4) phi_1(1/4 J(u) dt) f(u) dt
     a_n = u + (1/4 * u_flux[:, 0])
@@ -104,6 +102,6 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_exprb5 = u + u_flux[:, 3] + u_nl_5_3[:, 0] + u_nl_5_4[:, 0]
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + 9
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + rhs_calls_5 + 12
 
     return u_exprb5, num_rhs_calls

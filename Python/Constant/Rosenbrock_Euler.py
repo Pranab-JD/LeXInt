@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi_constant import *
 from Phi_functions import *
+from real_Leja_phi_constant import *
+from imag_Leja_phi_constant import *
 
 ################################################################################################
 
@@ -33,12 +34,9 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
         Leja_phi = imag_Leja_phi
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
-    
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
 
-    ### Internal stage 1; interpolation of f_u at 1
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    ### Stage 1; interpolation of RHS_function(u) at 1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_roseu = u + u_flux[:, 0]

@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi_constant import *
 from Phi_functions import *
+from real_Leja_phi_constant import *
+from imag_Leja_phi_constant import *
 
 ################################################################################################
 
@@ -34,16 +35,13 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -52,8 +50,8 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     
     ############## --------------------- ##############
 
-	### Vertical interpolation of f_u at 1/2 and 1
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1/2, 1], c, Gamma, Leja_X, phi_1, tol)
+	### Vertical interpolation of RHS_function(u) at 1/2 and 1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/2, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### Internal stage 1; a = u + 1/2 phi_1(1/2 J(u) dt) f(u) dt
     a = u + (1/2 * u_flux[:, 0])
@@ -91,6 +89,6 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_exprb4 = u + u_flux[:, 1] + u_nl_3[:, 0] + u_nl_4[:, 0]
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + 7
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + 9
 
     return u_exprb4, num_rhs_calls

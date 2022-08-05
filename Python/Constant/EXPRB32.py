@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi_constant import *
 from Phi_functions import *
+from real_Leja_phi_constant import *
+from imag_Leja_phi_constant import *
 
 ################################################################################################
 
@@ -34,16 +35,13 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -52,21 +50,14 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ############## --------------------- ##############
 
-    ### Internal stage 1; interpolation of f_u at 1
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    ### Internal stage 1; interpolation of RHS_function(u) at 1
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     a = u + u_flux[:, 0]
 
-    ############## --------------------- ##############
-
-    ### Nonlinear remainder at u
-    Nonlinear_u = Nonlinear_remainder(u)
-
-    ### Nonlinear remainder at a
-    Nonlinear_a = Nonlinear_remainder(a)
-    
-    R_a = Nonlinear_a - Nonlinear_u
+    ### Difference of nonlinear remainders at a
+    R_a = Nonlinear_remainder(a) - Nonlinear_remainder(u)
 
     ############## --------------------- ##############
 
@@ -77,6 +68,6 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_exprb3 = a + (2 * u_nl_3[:, 0])
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 5
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 6
 
     return u_exprb3, num_rhs_calls
