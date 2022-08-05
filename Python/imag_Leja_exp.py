@@ -7,7 +7,7 @@ def imag_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
     ----------
     u                       : 1D vector u (input)
     dt                      : Step size
-    RHS_function	        : RHS function
+    RHS_function            : RHS function
     c                       : Shifting factor
     Gamma                   : Scaling factor
     Leja_X                  : Array of Leja points
