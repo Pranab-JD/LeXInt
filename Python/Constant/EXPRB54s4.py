@@ -38,7 +38,7 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
-        epsilon = 1e-7
+        epsilon = 1e-5
         
         ### J(u) * y
         Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
@@ -95,7 +95,7 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_5_3, rhs_calls_4 = Leja_phi(u, dt, RHS_function, (18*R_b - (250/81)*R_c)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_5_3, rhs_calls_4 = Leja_phi(u, dt, RHS_function, (18*R_b - (250/81)*R_c)*dt,  [1], c, Gamma, Leja_X, phi_3, tol)
     u_nl_5_4, rhs_calls_5 = Leja_phi(u, dt, RHS_function, (-60*R_b + (500/27)*R_c)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
     
     ### 5th order solution; u_5 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (18R(a) - (250/81)R(b)) dt + phi_4(J(u) dt) (-60R(a) + (500/27)R(b)) dt
