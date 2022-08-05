@@ -1,6 +1,6 @@
 import numpy as np
 
-### Phi Functions ('z' is assumed to be an array of doubles or complex doubles)
+### Phi Functions ('z' is assumed to be an array of doubles of complex doubles)
 
 def phi_1(z):
     
