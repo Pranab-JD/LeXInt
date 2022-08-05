@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi import *
 from Phi_functions import *
+from real_Leja_phi import *
+from imag_Leja_phi import *
 
 ################################################################################################
 
@@ -12,7 +13,7 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ----------
     u               : 1D vector u (input)
     dt              : Step size
-    RHS_function	: RHS function
+    RHS_function    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     Leja_X          : Array of Leja points
@@ -35,17 +36,14 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
-
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
+        
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
         
@@ -53,8 +51,8 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     
     ############## --------------------- ##############
 
-	### Vertical interpolation of f_u at 1/2 and 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1/2, 1], c, Gamma, Leja_X, phi_1, tol)
+	### Vertical interpolation of RHS_function(u) at 1/2 and 1
+    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/2, 1], c, Gamma, Leja_X, phi_1, tol)
 
     ### If it does not converge, return (try with smaller dt)
     if convergence == 0:
@@ -76,7 +74,7 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Internal stage 2
     b_n_nl, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
-    ### b = u + phi_1(J(u) dt) f(u) dt + phi_1(J(u) dt) (N(a) - N(u)) dt
+    ### b = u + phi_1(J(u) dt) f(u) dt + phi_1(J(u) dt) R(a) dt
     b = u + u_flux[:, 1] + b_n_nl[:, 0]
 
     ### Nonlinear remainder at b
@@ -90,13 +88,13 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_nl_3, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (16*R_a - 2*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
     u_nl_4, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (-48*R_a + 12*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
-    ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (-14N(u) + 16N(a) - 2N(b)) dt
+    ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (16R(a) - 2R(b)) dt
     u_exprb3 = u + u_flux[:, 1] + u_nl_3[:, 0]
     
-    ### 4th order solution; u_4 = u_3 + phi_4(J(u) dt) (36N(u) - 48N(a) + 12N(b)) dt
+    ### 4th order solution; u_4 = u_3 + phi_4(J(u) dt) (-48R(a) + 12R(b)) dt
     u_exprb4 = u_exprb3 + u_nl_4[:, 0]
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + 7
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + rhs_calls_4 + 9
 
     return u_exprb3, u_exprb4, num_rhs_calls

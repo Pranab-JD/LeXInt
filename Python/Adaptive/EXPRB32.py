@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi import *
 from Phi_functions import *
+from real_Leja_phi import *
+from imag_Leja_phi import *
 
 ################################################################################################
 
@@ -12,7 +13,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ----------
     u               : 1D vector u (input)
     dt              : Step size
-    RHS_function	: RHS function
+    RHS_function    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     Leja_X          : Array of Leja points
@@ -35,16 +36,13 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -53,8 +51,8 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     ############## --------------------- ##############
 
-    ### Internal stage 1; interpolation of f_u at 1
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    ### Internal stage 1; interpolation of RHS_function(u) at 1
+    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
     
     ## If it does not converge, return (try with smaller dt)
     if convergence == 0:
@@ -63,25 +61,18 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_exprb2 = u + u_flux[:, 0]
 
-    ############## --------------------- ##############
-
-    ### Nonlinear remainder at u
-    Nonlinear_u = Nonlinear_remainder(u)
-
-    ### Nonlinear remainder at u_exprb2
-    Nonlinear_a = Nonlinear_remainder(u_exprb2)
-    
-    R_a = Nonlinear_a - Nonlinear_u
+    ### Difference of nonlinear remainders at a
+    R_a = Nonlinear_remainder(u_exprb2) - Nonlinear_remainder(u)
 
     ############## --------------------- ##############
 
     ### Final nonlinear stage
     u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
     
-    ### 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) (N(a) - N(u)) dt
-    u_exprb3 = u_exprb2 + (2 * u_nl_3[:, 0])
+    ### 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
+    u_exprb3 = u_exprb2 + (2*u_nl_3[:, 0])
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 5
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 6
 
     return u_exprb2, u_exprb3, num_rhs_calls

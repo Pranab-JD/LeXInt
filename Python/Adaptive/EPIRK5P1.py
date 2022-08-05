@@ -1,8 +1,9 @@
 import sys
 sys.path.insert(1, "../")
 
-from real_Leja_phi import *
 from Phi_functions import *
+from real_Leja_phi import *
+from imag_Leja_phi import *
 
 ################################################################################################
 
@@ -12,7 +13,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ----------
     u               : 1D vector u (input)
     dt              : Step size
-    RHS_function	: RHS function
+    RHS_function    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     Leja_X          : Array of Leja points
@@ -35,16 +36,13 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     else:
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
     
-    ### RHS of PDE at u
-    f_u = RHS_function(u)
-    
     ### Function to compute the nonlinear remainder at stage 'y'
     def Nonlinear_remainder(y):
         
         epsilon = 1e-7
         
         ### J(u) * y
-        Linear_y = (RHS_function(u + (epsilon * y)) - f_u)/epsilon
+        Linear_y = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
         ### F(y) = f(y) - (J(u) * y)
         Nonlinear_y = RHS_function(y) - Linear_y
@@ -62,7 +60,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 
     g11 = 0.35129592695058193092
     g21 = 0.84405472011657126298
-    g22 = 0.5
+    g22 = 1.0
     g31 = 1.0
     g32 = 0.71111095364366870359
     g33 = 0.62378111953371494809
@@ -71,8 +69,8 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     g32_4 = 0.5
     g33_4 = 1.0
 
-    ### Vertical interpolation of f_u at g11, g21, and g31
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, f_u*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
+    ### Vertical interpolation of RHS_function(u) at g11, g21, and g31
+    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
     
     ### If it does not converge, return (try with smaller dt)
     if convergence == 0:
@@ -115,6 +113,6 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_epirk5 = u + u_flux[:, 2] + (b2 * u_nl_1[:, 1]) + (b3 * u_nl_2[:, 0])
 
     ### Proxy of computational cost
-    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 7
+    num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 9
 
     return u_epirk4, u_epirk5, num_rhs_calls
