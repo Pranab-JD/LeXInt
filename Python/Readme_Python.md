@@ -1,4 +1,4 @@
-### Exponential Integrators (Leja Interpolation)
+# Exponential Integrators (Leja Interpolation)
 
 It is expected that the rhs function is defined in the following way:
 
