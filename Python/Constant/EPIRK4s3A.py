@@ -13,7 +13,7 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ----------
     u               : 1D vector u (input)
     dt              : Step size
-    RHS_function	: RHS function
+    RHS_function    : RHS function
     c               : Shifting factor
     Gamma           : Scaling factor
     Leja_X          : Array of Leja points
