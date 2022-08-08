@@ -71,7 +71,7 @@ def Power_iteration(u, RHS_function):
     for ii in range(niters):
 
         ### Compute new eigenvector
-        eigen_vector = (RHS_function(u + (epsilon * vector)) - rhs_u)/epsilon
+        eigen_vector = (RHS_function(u + (epsilon * vector)) - RHS_function(u - (epsilon * vector)))/(2*epsilon)
 
         ### Max of eigenvector = eigenvalue
         eigen_value[ii] = np.max(abs(eigen_vector))
