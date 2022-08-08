@@ -2,7 +2,7 @@
 
 [**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package exponential integrators using the method of polynomial interpolation at Leja points.
 
-Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) methods use the Leja interpolation method to compute the phi function, in the case of nonlinear PDEs.
+Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) methods use the Leja interpolation method to compute the $\varphi$ functions, in the case of nonlinear PDEs.
 
 For linear PDEs, one can get the **exact** solution in time by directly computing the matrix exponential using the functions "real_Leja_exp" and/or "imag_Leja_phi".
 
