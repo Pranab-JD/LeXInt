@@ -86,6 +86,6 @@ def Power_iteration(u, RHS_function):
             largest_eigen_value = - eigen_value[ii]           # Real eigenvalue has to be NEGATIVE
             break
 
-    return largest_eigen_value, ii + 2
+    return largest_eigen_value, 2*ii
 
 ################################################################################################
