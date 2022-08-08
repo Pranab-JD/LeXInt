@@ -52,7 +52,7 @@ def Power_iteration(u, RHS_function):
     Parameters
     ----------
     u                       : 1D vector u (input)
-    RHS_function	        : RHS function
+    RHS_function	    : RHS function
 
     Returns
     -------
