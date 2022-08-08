@@ -66,7 +66,6 @@ def Power_iteration(u, RHS_function):
     epsilon = 1e-7
     eigen_value = np.zeros(niters)              # Array of max. eigen value at each iteration
     vector = np.zeros(len(u)); vector[0] = 1    # Initial estimate of eigen vector
-    rhs_u = RHS_function(u)                     # RHS of PDE at u
 
     for ii in range(niters):
 
