@@ -54,7 +54,7 @@ def Power_iteration(u, RHS_function):
     Returns
     -------
     largest_eigen_value     : Largest eigen value (within 10% accuracy)
-    ii + 2                  : # of RHS calls
+    2*ii                    : # of RHS calls
 
     """
 
