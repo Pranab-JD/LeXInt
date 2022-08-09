@@ -7,7 +7,7 @@ Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta
 ## Literature
 The publication associated with this code:
 
-Deka, Einkemmer, and Tokman (2022), *\texttt{LeXInt}: Package for Exponential Integrators employing Leja interpolation*, arXiv:
+Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, arXiv:
 
 Other references:
 1. Caliari et al. (2014), *Comparison of software for computing the action of the matrix exponential*, BIT Numer. Math., [54, 113](https://doi.org/10.1007/s10543-013-0446-0)
