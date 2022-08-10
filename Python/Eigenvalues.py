@@ -76,5 +76,3 @@ def Power_iteration(u, RHS_function):
             break
 
     return largest_eigen_value, 2*ii
-
-################################################################################################
