@@ -26,7 +26,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     ### Number of interpolations at one go
     num_interpolations = len(integrator_coeffs)
 
-    ### Phi function applied to 'interp_function' (scaled and shifted)
+    ### Phi function applied to 'interp_function' (scaled and shifted); scaling down of c and Gamma (i.e. largest and smallest eigenvalue) by dt
     phi_function_array = np.zeros((len(Leja_X), num_interpolations))
     
     for ij in range(0, num_interpolations):
