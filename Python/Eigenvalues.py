@@ -1,5 +1,5 @@
 """
-Created on Thu Jul 23 15:54:52 2020
+Created on Thu Aug 8 20:22 2022
 
 @author: Pranab JD
 
@@ -22,8 +22,8 @@ def Gershgorin(A):
 
     Returns
     -------
-    eig_real : Largest real eigen value (negative magnitude)
-    eig_imag : Largest imaginary eigen value
+    eig_real : Largest real eigenvalue (negative magnitude)
+    eig_imag : Largest imaginary eigenvalue
 
     """
 
@@ -31,34 +31,26 @@ def Gershgorin(A):
     A_Herm = (A + A.T.conj())/2
     A_SkewHerm = (A - A.T.conj())/2
 
-    row_sum_real = np.zeros(np.shape(A)[0])
-    row_sum_imag = np.zeros(np.shape(A)[0])
-
-    for ii in range(len(row_sum_real)):
-        row_sum_real[ii] = np.sum(abs(A_Herm[ii, :]))
-        row_sum_imag[ii] = np.sum(abs(A_SkewHerm[ii, :]))
-
-    eig_real = - np.max(row_sum_real)       # Has to be NEGATIVE
-    eig_imag = np.max(row_sum_imag)
+    eig_real = - np.max(np.sum(abs(A_Herm), 1))       # Has to be NEGATIVE
+    eig_imag = np.max(np.sum(abs(A_SkewHerm), 1))
 
     return eig_real, eig_imag
-
 
 def Power_iteration(u, RHS_function):
     """
     Parameters
     ----------
     u                       : 1D vector u (input)
-    RHS_function	    : RHS function
+    RHS_function	        : RHS function
 
     Returns
     -------
-    largest_eigen_value     : Largest eigen value (within 10% accuracy)
+    largest_eigen_value     : Largest eigenvalue (within 10% accuracy)
     2*ii                    : # of RHS calls
 
     """
 
-    tol = 0.1                                   # 10% tolerance
+    tol = 0.01                                  # 1% tolerance
     niters = 1000                               # Max. # of iterations
     epsilon = 1e-7
     eigen_value = np.zeros(niters)              # Array of max. eigen value at each iteration
@@ -80,7 +72,9 @@ def Power_iteration(u, RHS_function):
 
         ### Eigenvalues converge faster than eigenvectors, check convergence of eigenvalues
         if (abs(eigen_value[ii] - eigen_value[ii - 1]) <= tol * eigen_value[ii]):
-            largest_eigen_value = - eigen_value[ii]           # Real eigenvalue has to be NEGATIVE
+            largest_eigen_value = eigen_value[ii]
             break
 
     return largest_eigen_value, 2*ii
+
+################################################################################################
