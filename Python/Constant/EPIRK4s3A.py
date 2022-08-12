@@ -24,6 +24,10 @@ def EPIRK4s3A(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     -------
     u_epirk4        : 1D vector u (output) after time dt (4th order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference: 
+        G. Rainwater, M. Tokman, A new approach to constructing efficient stiffly accurate EPIRK methods, J. Comput. Phys. 323 (2016) 283-309.
+        doi:10.1016/j.jcp.2016.07.026.
 
     """
 

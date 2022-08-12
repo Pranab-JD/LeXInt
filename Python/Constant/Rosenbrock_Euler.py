@@ -24,6 +24,10 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     -------
     u_roseu         : 1D vector u (output) after time dt (2nd order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference:
+        D. A. Pope, An exponential method of numerical integration of ordinary differential equations, Commun. ACM 6 (8) (1963) 491-493.
+        doi:10.1145/366707.367592.
 
     """
 

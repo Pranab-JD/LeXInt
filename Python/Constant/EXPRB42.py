@@ -24,6 +24,10 @@ def EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     -------
     u_exprb4        : 1D vector u (output) after time dt (4th order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference:
+        V. T. Luan, Fourth-order two-stage explicit exponential integrators for time-dependent PDEs, Appl. Numer. Math. 112 (2017) 91-103. 
+        doi:10.1016/j.apnum.2016.10.008.
 
     """
 

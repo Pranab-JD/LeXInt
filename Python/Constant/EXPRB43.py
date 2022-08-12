@@ -24,6 +24,10 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     -------
     u_exprb4        : 1D vector u (output) after time dt (4th order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference:
+        M. Hochbruck, A. Ostermann, Exponential Integrators, Acta Numer. 19 (2010) 209-286. 
+        doi:10.1017/S0962492910000048.
 
     """
 
