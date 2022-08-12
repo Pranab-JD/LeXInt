@@ -25,6 +25,10 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_epirk4        : 1D vector u (output) after time dt (4th order)
     u_epirk5        : 1D vector u (output) after time dt (5th order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference:
+        M. Tokman, J. Loffeld, P. Tranquilli, New Adaptive Exponential Propagation Iterative Methods of Runge-Kutta Type, SIAM J. Sci. Comput. 34 (5) (2012) A2650-A2669. 
+        doi:10.1137/110849961.
 
     """
 

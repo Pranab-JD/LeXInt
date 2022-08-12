@@ -25,6 +25,10 @@ def EXPRB53s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_exprb3        : 1D vector u (output) after time dt (3rd order)
     u_exprb5        : 1D vector u (output) after time dt (5th order)
     num_rhs_calls   : # of RHS calls
+    
+    Reference:
+        V. T. Luan, A. Ostermann, Exponential rosenbrock methods of order five — construction, analysis and numerical comparisons, J. Comput. Appl. Math. 255 (2014) 417-431. 
+        doi:10.1016/j.cam.2013.04.041.
 
     """
 

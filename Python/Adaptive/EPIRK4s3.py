@@ -25,6 +25,13 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     u_epirk3        : 1D vector u (output) after time dt (3rd order)
     u_epirk4        : 1D vector u (output) after time dt (4th order)
     num_rhs_calls   : # of RHS calls
+    
+    References:
+        1. D. L. Michels, V. T. Luan, M. Tokman, A stiffly accurate integrator for elastodynamic problems, ACM Trans. Graph. 36 (4) (2017). 
+        doi:10.1145/3072959.3073706.
+        2. G. Rainwater, M. Tokman, Designing efficient exponential integrators with EPIRK framework, in: International Conference of Numerical
+        Analysis and Applied Mathematics (ICNAAM 2016), Vol. 1863 of American Institute of Physics Conference Series, 2017, p. 020007.
+        doi:10.1063/1.4992153.
 
     """
 
