@@ -24,10 +24,10 @@ def imag_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
 
     """
     
-    ### Number of interpolations at one go
+    ### Number of interpolations in vertical
     num_interpolations = len(integrator_coeffs)
 
-    ### Phi function applied to 'interp_function' (scaled and shifted)
+    ### Phi function applied to 'interp_function' (scaled and shifted); c & Gamma (largest eigenvalue) scaled by dt
     phi_function_array = np.zeros((len(Leja_X), num_interpolations), dtype = "complex")
     
     for ij in range(0, num_interpolations):
