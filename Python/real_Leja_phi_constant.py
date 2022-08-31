@@ -38,7 +38,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
         ### Phi function applied to 'interp_function' (scaled and shifted); scaling down of c and Gamma (i.e. largest and smallest eigenvalue) by dt
         phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * dt * (c + Gamma*Leja_X))
         
-        ### Compute the polynomial coefficients
+        ### Compute first 50 polynomial coefficients
         poly_coeffs[0:50, ij] = Divided_Difference(Leja_X[0:50], phi_function_array[0:50, ij]) 
         
         ### p_0 term
@@ -48,6 +48,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     ### p_1, p_2, ...., p_n terms; iterate until converges
     for ii in range(1, max_Leja_pts):
         
+        ### Compute next 50 polynomial coefficients (if needed)
         if ii%50 == 0:
             poly_coeffs[ii:ii+50, ij] = Divided_Difference(Leja_X[ii:ii+50], phi_function_array[ii:ii+50, ij]) 
         
