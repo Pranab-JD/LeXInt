@@ -19,71 +19,56 @@ def real_Leja_phi(u, dt, RHS_function, interp_function, integrator_coeffs, c, Ga
     ----------
     polynomial_array        : Polynomial interpolation of 'interp_function' 
                               multiplied by 'phi_function' at real Leja points
-    ii + 1                  : # of RHS calls
-    convergence             : 0 -> did not converge, 1-> converged
+    2*ii                    : # of RHS calls
 
     """
-    
-    ### Number of interpolations in vertical
-    num_interpolations = len(integrator_coeffs)
 
-    ### Phi function applied to 'interp_function' (scaled and shifted); c & Gamma (largest eigenvalue) scaled by dt
-    phi_function_array = np.zeros((len(Leja_X), num_interpolations))
-    
-    for ij in range(0, num_interpolations):
-        phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * dt * (c + Gamma*Leja_X))
-
-    ### Compute the polynomial coefficients
-    poly_coeffs = np.zeros((len(Leja_X), num_interpolations))
-    
-    for ij in range(0, num_interpolations):
-        poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij]) 
-
-    ### ------------------------------------------------------------------- ###
-    
-    ### Compute the polynomial
-    polynomial_array = np.zeros((len(interp_function), num_interpolations))
-
-    ### p_0 term
-    for ij in range(0, num_interpolations):
-        polynomial_array[:, ij] = interp_function * poly_coeffs[0, ij]
-
-    ### p_1, p_2, ...., p_n terms
+    ### Initialize paramters and arrays
     epsilon = 1e-7
-    convergence = 0                                         # 0 -> did not converge, 1-> converged
-    max_Leja_pts = 100                                      # Max number of Leja points    
-    y = interp_function.copy()                              # To avoid changing 'interp_function'
+    convergence = 0                                                             # 0 -> did not converge, 1 -> converged
+    num_interpolations = len(integrator_coeffs)                                 # Number of interpolations in vertical
+    max_Leja_pts = len(Leja_X)                                                  # Max number of Leja points  
+    phi_function_array = np.zeros((len(Leja_X), num_interpolations))            # Phi function applied to 'interp_function'
+    poly_coeffs = np.zeros((len(Leja_X), num_interpolations))                   # Polynomial coefficients
+    polynomial_array = np.zeros((len(interp_function), num_interpolations))     # Polynomial array
+    poly_error = np.zeros(max_Leja_pts)                                         # Error estimate
+    y = interp_function.copy()                                                  # To avoid changing 'interp_function'
     
-    ### Iterate until converges
+    for ij in range(0, num_interpolations):
+        
+        ### Phi function applied to 'interp_function' (scaled and shifted); scaling down of c and Gamma (i.e. largest and smallest eigenvalue) by dt
+        phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * dt * (c + Gamma*Leja_X))
+        
+        ### Compute the polynomial coefficients
+        poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij]) 
+        
+        ### p_0 term
+        polynomial_array[:, ij] = interp_function * poly_coeffs[0, ij]
+    
+    
+    ### p_1, p_2, ...., p_n terms; iterate until converges
     for ii in range(1, max_Leja_pts):
         
         ### Compute numerical Jacobian
         Jacobian_function = (RHS_function(u + (epsilon * y)) - RHS_function(u - (epsilon * y)))/(2*epsilon)
 
-        ### Re-scale and re-shift
-        y = y * (-c/Gamma - Leja_X[ii - 1])
-        y = y + (Jacobian_function/Gamma)
+        ### y = y * ((z - c)/Gamma - Leja_X)
+        y = (Jacobian_function/Gamma) + (y * (-c/Gamma - Leja_X[ii - 1]))
 
         ### Error estimate
-        poly_error = np.mean(abs(y)) * abs(poly_coeffs[ii, np.argmax(integrator_coeffs)])     
+        poly_error[ii] = np.linalg.norm(y) * abs(poly_coeffs[ii, np.argmax(integrator_coeffs)])
         
-        ########### -------------------------------------- ###########
-
         ### Keep adding terms to the polynomial
         for ij in range(0, num_interpolations):
-            
-            ### To prevent diverging, restart simulations with smaller dt
-            if poly_error > 1e2 or ii == max_Leja_pts - 1:
-                convergence = 0
-                polynomial_array[:, ij] = interp_function
-                return polynomial_array, 2*ii, convergence
-            
+
             ### Add the new term to the polynomial
             polynomial_array[:, ij] = polynomial_array[:, ij] + (poly_coeffs[ii, ij] * y)
             
         ### If new term to be added < tol, break loop; safety factor = 0.1
-        if  poly_error < 0.1*tol:
+        if  poly_error[ii] < 0.1*tol:
             convergence = 1
+            print("# Leja points: ", ii)
+            print("=============================================================")
             break
 
     return polynomial_array, 2*ii, convergence
