@@ -27,7 +27,7 @@ from Eigenvalues import *
 ### Initialize parameters
 N = 256
 eta = 10
-tmax = 0.1
+tmax = 0.01
 
 ## Periodic boundaries
 X = np.linspace(0, 1, N, endpoint = False)
@@ -117,7 +117,7 @@ def solve(N_cfl):
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
     
-    tol = 1e-12                                         # Desired accuracy
+    tol = 1e-7                                          # Desired accuracy
         
     ############## --------------------- ##############
     
@@ -131,7 +131,7 @@ def solve(N_cfl):
     print("N x dt(CFL): ", N_cfl)
     
     ### Read Leja points
-    Leja_X = np.loadtxt("Leja_1000.txt")
+    Leja_X = np.loadtxt("../Leja_10000.txt")
     Leja_X = Leja_X[0:100]
     
     ############## --------------------- ##############
@@ -158,25 +158,25 @@ def solve(N_cfl):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    path = os.path.expanduser("./Test_data/Constant/Burgers/N_64_eta_200/EPIRK4s3A/N_cfl_" + str(ncfl))
-    if os.path.exists(path):
-        shutil.rmtree(path)                     # remove previous directory with same name
-    os.makedirs(path, 0o777)                    # create directory with access rights
+    # path = os.path.expanduser("./Test_data/Constant/Burgers/N_64_eta_200/EPIRK4s3A/N_cfl_" + str(ncfl))
+    # if os.path.exists(path):
+    #     shutil.rmtree(path)                     # remove previous directory with same name
+    # os.makedirs(path, 0o777)                    # create directory with access rights
     
-    ### Write final data to file
-    final_data = open(path + "/Final_data.txt", 'w+')
-    final_data.write(' '.join(map(str, u)) % u)
-    final_data.close()
+    # ### Write final data to file
+    # final_data = open(path + "/Final_data.txt", 'w+')
+    # final_data.write(' '.join(map(str, u)) % u)
+    # final_data.close()
     
-    ### Write simulation results to file
-    file_res = open(path + "/Results.txt", "w+")
-    file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
-    file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
-    file_res.write("Step sizes" + "\n")
-    file_res.write(str(N_cfl * dt_cfl) + "\n")
-    file_res.write("Time steps" + "\n")
-    file_res.write(str(time_step) + "\n")
-    file_res.close()
+    # ### Write simulation results to file
+    # file_res = open(path + "/Results.txt", "w+")
+    # file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
+    # file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
+    # file_res.write("Step sizes" + "\n")
+    # file_res.write(str(N_cfl * dt_cfl) + "\n")
+    # file_res.write("Time steps" + "\n")
+    # file_res.write(str(time_step) + "\n")
+    # file_res.close()
 
     print("Time elapsed: ", tol_time)
     print("Total RHS Calls: ", count_mv)
@@ -186,7 +186,7 @@ def solve(N_cfl):
                 
 ### Call the function
 
-N_cfl = [0.1, 0.25, 0.5, 0.75, 1]
+N_cfl = [1]
 
 for cfl in N_cfl:
     solve(cfl)
