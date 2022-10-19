@@ -2,8 +2,8 @@ import sys
 sys.path.insert(1, "../")
 
 from Phi_functions import *
-from real_Leja_phi_constant import *
-from imag_Leja_phi_constant import *
+from real_Leja_phi import *
+from imag_Leja_phi import *
 
 ################################################################################################
 
@@ -40,7 +40,10 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
         print("Error!! Choose 0 for real or 1 for imaginary Leja points.")
 
     ### Stage 1; interpolation of RHS_function(u) at 1
-    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+
+    if convergence == 0:
+        print("Error! Step size too large!!")
 
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_roseu = u + u_flux[:, 0]
