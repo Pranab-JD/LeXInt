@@ -3,7 +3,8 @@ from Divided_Difference import Divided_Difference
 
 def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamma, Leja_X, phi_function, tol):
     """
-    Computes the polynomial interpolation of 'phi_function' applied to 'interp_vector' at real Leja points.
+    To be used for computing "phi_function" applied to "interp_vector" (at real Leja points) for
+    exponential integrators that computes the Jacobian at every time step.
 
 
         Parameters
@@ -54,7 +55,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
     for ij in range(0, num_interpolations):
         
         ### Phi function applied to 'interp_vector' (scaled and shifted)
-        phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * (c + Gamma*Leja_X))
+        phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * dt * (c + Gamma*Leja_X))
         
         ### Compute polynomial coefficients
         poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij]) 
@@ -69,7 +70,7 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
         Jacobian_function = (RHS_function(u + (epsilon * y)) - rhs_u)/epsilon
 
         ### y = y * ((z - c)/Gamma - Leja_X)
-        y = (Jacobian_function * dt/Gamma) + (y * (-c/Gamma - Leja_X[ii - 1]))
+        y = (Jacobian_function/Gamma) + (y * (-c/Gamma - Leja_X[ii - 1]))
 
         ### Error estimate
         poly_error = np.linalg.norm(y) * abs(poly_coeffs[ii, np.argmax(integrator_coeffs)])
