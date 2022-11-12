@@ -71,9 +71,6 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Vertical interpolation of f_u at g11, g21, and g31
     u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [g11, g21, g31], c, Gamma, Leja_X, phi_1, tol)
 
-    if convergence == 0:
-        print("Error! Step size too large!!")
-
     ############## --------------------- ##############
 
     ### Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt
@@ -88,7 +85,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Vertical interpolation of R_a at g32 and g22
-    u_nl_1, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [g32, g22], c, Gamma, Leja_X, phi_1, tol)
+    u_nl_1, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [g32, g22], c, Gamma, Leja_X, phi_1, tol)
 
     ### b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R_a dt
     b = u + (a21 * u_flux[:, 1]) + (a22 * u_nl_1[:, 1])
@@ -101,7 +98,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Vertical interpolation of (-2*R_a + R_b) at g33
-    u_nl_2, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (-2*R_a + R_b)*dt, [g33], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_2, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (-2*R_a + R_b)*dt, [g33], c, Gamma, Leja_X, phi_3, tol)
  
     u_epirk5 = u + u_flux[:, 2] + (b2 * u_nl_1[:, 0]) + (b3 * u_nl_2[:, 0])
 

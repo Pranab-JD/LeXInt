@@ -42,9 +42,6 @@ def Rosenbrock_Euler(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Stage 1; interpolation of RHS_function(u) at 1
     u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
-    if convergence == 0:
-        print("Error! Step size too large!!")
-
     ### 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_roseu = u + u_flux[:, 0]
 

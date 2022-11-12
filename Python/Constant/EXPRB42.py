@@ -57,9 +57,6 @@ def EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ### Vertical interpolation of RHS_function(u) at 3/4 and 1
     u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [3/4, 1], c, Gamma, Leja_X, phi_1, tol)
 
-    if convergence == 0:
-        print("Error! Step size too large!!")
-
     ### Internal stage 1; a = u + 3/4 phi_1(3/4 J(u) dt) f(u) dt
     a = u + (3/4 * u_flux[:, 0])
 
@@ -69,7 +66,7 @@ def EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Final nonlinear stage
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_3, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
     
     ### 3rd order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + 32/9 phi_3(J(u) dt) R(a) dt
     u_exprb4 = u + u_flux[:, 1] + (32/9 * u_nl_3[:, 0])

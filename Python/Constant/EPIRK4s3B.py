@@ -55,10 +55,7 @@ def EPIRK4s3B(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
 	### Vertical interpolation of RHS_function(u) at 1/2 and 3/4
-    u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/2, 3/4], c, Gamma, Leja_X, phi_2, tol)
-
-    if convergence == 0:
-        print("Error! Step size too large!!")
+    u_flux, rhs_calls_1 = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/2, 3/4], c, Gamma, Leja_X, phi_2, tol)
 
     ### Internal stage 1; a = u + 2/3 phi_2(1/2 J(u) dt) f(u) dt
     a = u + (2/3 * u_flux[:, 0])
@@ -79,9 +76,9 @@ def EPIRK4s3B(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final stages
-    u_1, rhs_calls_2, convergence    = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
-    u_nl_3, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (54*R_a - 16*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (-324*R_a + 144*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_1, rhs_calls_2    = Leja_phi(u, dt, RHS_function, f_u*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    u_nl_3, rhs_calls_3 = Leja_phi(u, dt, RHS_function, (54*R_a - 16*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_4 = Leja_phi(u, dt, RHS_function, (-324*R_a + 144*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
  
     ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (54R(a) - 16R(b)) dt + phi_4(J(u) dt) (-324R(a) + 144R(b)) dt
     u_epirk4 = u + u_1[:, 0] + u_nl_3[:, 0] + u_nl_4[:, 0]

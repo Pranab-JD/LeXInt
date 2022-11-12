@@ -57,9 +57,6 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
 	### Vertical interpolation of RHS_function(u) at 1/2 and 1
     u_flux, rhs_calls_1, convergence = Leja_phi(u, dt, RHS_function, RHS_function(u)*dt, [1/2, 1], c, Gamma, Leja_X, phi_1, tol)
 
-    if convergence == 0:
-        print("Error! Step size too large!!")
-
     ### Internal stage 1; a = u + 1/2 phi_1(1/2 J(u) dt) f(u) dt
     a = u + (1/2 * u_flux[:, 0])
     
@@ -76,7 +73,7 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Internal stage 2
-    b_n_nl, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    b_n_nl, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### b = u + phi_1(J(u) dt) f(u) dt + phi_1(J(u) dt) R(a) dt
     b = u + u_flux[:, 1] + b_n_nl[:, 0]
@@ -89,8 +86,8 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (16*R_a - 2*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (-48*R_a + 12*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (16*R_a - 2*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_4, _ = Leja_phi(u, dt, RHS_function, (-48*R_a + 12*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (16R(a) - 2R(b)) dt + phi_4(J(u) dt) (-48R(a) + 12R(b)) dt
     u_exprb4 = u + u_flux[:, 1] + u_nl_3[:, 0] + u_nl_4[:, 0]
