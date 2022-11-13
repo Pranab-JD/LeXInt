@@ -227,7 +227,7 @@ def solve(problem, integrator, order, tol):
                 
 ### Call the function
 
-### solve(problem, integrator, error estimate order(predetermined), tol)
+### solve(problem, integrator, order of error-estimate (depends on the integrator), tol)
 solve("Burgers", EXPRB43, 3, 1e-8)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)
