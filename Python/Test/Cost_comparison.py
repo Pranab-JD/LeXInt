@@ -11,20 +11,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ### Select integrators
-integrator_1 = "EXPRB53s3"
+integrator_1 = "EXPRB32"
 integrator_2 = "EXPRB54s4"
 integrator_3 = "EPIRK4s3"
-integrator_4 = "EPIRK5P1"
+integrator_4 = "EPIRK4s3A"
 
 ### Given Data Sets
-path_A = "Test_data/Adaptive/AC/N_256/" + str(integrator_1) + "/"
-path_B = "Test_data/Adaptive/AC/N_256/" + str(integrator_2) + "/"
+path_A = "Test_data/Adaptive/AC/N_64/" + str(integrator_1) + "/"
+path_B = "Test_data/Adaptive/AC/N_64/" + str(integrator_2) + "/"
 
-path_C = "Test_data/Adaptive/AC/N_256/" + str(integrator_3) + "/"
-path_D = "Test_data/Adaptive/AC/N_256/" + str(integrator_4) + "/"
+path_C = "Test_data/Adaptive/AC/N_64/" + str(integrator_3) + "/"
+path_D = "Test_data/Adaptive/AC/N_64/" + str(integrator_4) + "/"
 
 ### Reference data
-file_ref = "Test_data/Adaptive/AC/N_256/EXPRB32/tol_1.0e-11/Final_data.txt"
+file_ref = "Test_data/Adaptive/AC/N_64/EXPRB32/tol_1.0e-11/Final_data.txt"
 data_set_ref = np.loadtxt(file_ref)
 
 ##############################################################################
@@ -122,6 +122,8 @@ tol = np.logspace(-2, -8, 7)
 
 fig = plt.figure(figsize = (14, 6), dpi = 100)
 
+print(error_D)
+
 plt.subplot(1, 2, 1)
 plt.loglog(time_A, tol, 'rd:', label = str(integrator_1), markersize = 12)
 plt.loglog(time_B, tol, 'bH:', label = str(integrator_2), markersize = 12)
@@ -154,6 +156,6 @@ plt.legend(prop = {'size': 18}, ncol = 1)
 
 plt.tight_layout()
 
-plt.savefig("./Test_data/Adaptive/AC/Cost_N_256.eps")
+plt.savefig("./Test_data/Adaptive/AC/Cost_N_64_test.eps")
 
 ##############################################################################

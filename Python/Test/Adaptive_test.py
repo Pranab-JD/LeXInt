@@ -1,5 +1,5 @@
 """
-Created on Sat Aug 14 11:31:19 2021
+Created on Sat Aug 14 11:31:19 2022
 
 @author: Pranab JD
 
@@ -25,13 +25,13 @@ from Eigenvalues import *
 ##############################################################################
 
 ### Initialize parameters
-N = 256
-eta = 10
-tmax = 0.1
+N = 256              # Number of grid points
+eta = 10            # Peclet number
+tmax = 0.1          # Final simulation time
 
 ## Periodic boundaries
 X = np.linspace(0, 1, N, endpoint = False)
-dx = X[2] - X[1]
+dx = X[2] - X[1]    # Grid spacing
 
 ### CFL conditions
 adv_cfl = dx/eta
@@ -72,14 +72,6 @@ def Burgers():
     u = u0.copy()
     
     return u
-    
-def Allen_Cahn():
-    
-    ### Initial condition
-    u0 = 0.1*(1 + np.cos(2*np.pi*X))
-    u = u0.copy()
-    
-    return u
 
 def Burgers_RHS_function(u):
 
@@ -87,6 +79,14 @@ def Burgers_RHS_function(u):
     flux_u = A_dif.dot(u) + (0.5*A_adv.dot(u**2))
 
     return flux_u
+
+def Allen_Cahn():
+    
+    ### Initial condition
+    u0 = 0.1*(1 + np.cos(2*np.pi*X))
+    u = u0.copy()
+    
+    return u
 
 def AC_RHS_function(u):
 
@@ -108,11 +108,23 @@ Gamma = 0.25 * (eigen_min_dif - eigen_max_dif)
 
 ### ------------------------------------------------------ ###
     
-def solve(tol):
+def solve(problem, integrator, order, tol):
+    
+    ### Choose proper initial condition and RHS function
+    if problem == "Allen_Cahn":
+        u = Allen_Cahn()
+        RHS_function = AC_RHS_function
+    elif problem == "Burgers":
+        u = Burgers()
+        RHS_function = Burgers_RHS_function
+    else:
+        print("Problem not defined!")
+
+    print("Problem: ", problem)
+    print("Integrator: ", integrator.__name__)
     
     ### Parameters
     dt = 10*dt_cfl
-    
     time = 0                                            # Time
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
@@ -121,28 +133,23 @@ def solve(tol):
     time_arr = []                                       # Array - time elapsed after each time step
     
     ############## --------------------- ##############
-    
-    ### Solve the given equation
-    
-    ### Choose proper initial condition
-    u = Allen_Cahn()
-    
-    ### Choose integrator and its order
-    Method_order = 3
-    method = EXPRB53s3
-    print("Integrator used: ", str(method))
 
     ### Choose tolerance
     emax = '{:5.1e}'.format(tol)
     print("Tolerance: ", "{:e}".format(tol))
     
     ### Read Leja points
-    Leja_X = np.loadtxt("Leja_1000.txt")
-    Leja_X = Leja_X[0:100]
+    Leja_X = np.loadtxt("../Leja_10000.txt")
+    
+    ### Computing divided differences may take a while. This is why we start
+    ### with 100 - 500 Leja points. If you get the warning 
+    ### "Warning!! Max. # of Leja points reached without convergence!!",
+    ### increase the number of Leja points or comment out the following line.
+    Leja_X = Leja_X[0:500]     
     
     ############## --------------------- ##############
     
-    ### Start timer
+    ### Solve the given equation; start timer
     tolTime = datetime.now()
     
     while time < tmax:
@@ -152,7 +159,7 @@ def solve(tol):
             dt = tmax - time
             
         ### Solve
-        u_low, u_high, rhs_calls_1 = method(u, dt, AC_RHS_function, c, Gamma, Leja_X, tol, 0)
+        u_low, u_high, rhs_calls_1 = integrator(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
         
         ### Error
         error = np.mean(abs(u_low - u_high))
@@ -161,11 +168,11 @@ def solve(tol):
             
             while error > tol:
             
-                new_dt = dt * (tol/error)**(1/(Method_order + 1))
+                new_dt = dt * (tol/error)**(1/(order + 1))
                 dt = 0.9 * new_dt                       # Safety factor
                 
                 ### Solve (with smaller value of dt)
-                u_low, u_high, rhs_calls_2 = method(u, dt, AC_RHS_function, c, Gamma, Leja_X, tol, 0)
+                u_low, u_high, rhs_calls_2 = integrator(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
             
                 error = np.mean(abs(u_low - u_high))
             
@@ -183,7 +190,7 @@ def solve(tol):
         time_arr.append(time)
         
         ### dt for next time step
-        new_dt = dt * (tol/error)**(1/(Method_order + 1))
+        new_dt = dt * (tol/error)**(1/(order + 1))
         dt = 0.9 * new_dt                       # Safety factor
         
     ############## --------------------- ##############
@@ -192,7 +199,8 @@ def solve(tol):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    path = os.path.expanduser("./Test_data/Adaptive/AC/N_256/EXPRB53s3/tol_" + str(emax))
+    path = os.path.expanduser("./Test_data/Adaptive/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
+                              + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/tol_" + str(emax))
     if os.path.exists(path):
         shutil.rmtree(path)                     # remove previous directory with same name
     os.makedirs(path, 0o777)                    # create directory with access rights
@@ -210,7 +218,7 @@ def solve(tol):
     file.write(' '.join(map(str, time_arr)) % time_arr)
     file.close()
 
-    print("Time elapsed: ", tol_time)
+    print("\nTime elapsed: ", tol_time)
     print("Total RHS Calls: ", count_mv)
     print("Number of time steps: ", time_step)
     print("\n========================================================\n")
@@ -219,12 +227,7 @@ def solve(tol):
                 
 ### Call the function
 
-tol_list = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8]
-
-# tol_list = [1e-11]
-
-for tol in tol_list:
-    solve(tol)
-
+### solve(problem, integrator, error estimate order(predetermined), tol)
+solve("Burgers", EXPRB43, 3, 1e-8)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)

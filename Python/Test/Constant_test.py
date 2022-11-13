@@ -1,5 +1,5 @@
 """
-Created on Sat Aug 14 11:31:19 2021
+Created on Sat Aug 14 11:31:19 2022
 
 @author: Pranab JD
 
@@ -129,7 +129,7 @@ def solve(problem, integrator, N_cfl):
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
     
-    tol = 1e-7                                          # Desired accuracy
+    tol = 1e-8                                          # Desired accuracy
 
     ### Choose step size (dt)
     ncfl = '{:1.2f}'.format(N_cfl)
@@ -137,7 +137,12 @@ def solve(problem, integrator, N_cfl):
     
     ### Read Leja points
     Leja_X = np.loadtxt("../Leja_10000.txt")
-    Leja_X = Leja_X[0:100]                      ### Comment this line if more # of Leja points are needed for convergence
+    
+    ### Computing divided differences may take a while. This is why we start
+    ### with 100 - 500 Leja points. If you get the warning 
+    ### "Warning!! Max. # of Leja points reached without convergence!!",
+    ### increase the number of Leja points or comment out the following line.
+    Leja_X = Leja_X[0:500]  
     
     ############## --------------------- ##############
     
