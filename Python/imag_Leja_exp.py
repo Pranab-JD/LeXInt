@@ -67,7 +67,7 @@ def imag_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
 
         ### Warning flags
         if ii == max_Leja_pts - 1:
-            print("Warning!! Max. # of Leja points reached without convergence!!")
+            print("Warning!! Max. # of Leja points reached without convergence!! Try increasing the number of Leja points. Max available: 10000.")
             break
 
     return np.real(polynomial), ii

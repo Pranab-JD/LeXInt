@@ -64,7 +64,7 @@ def Power_iteration(u, RHS_function):
         ### Max of eigenvector = eigenvalue
         eigen_value[ii] = np.max(abs(eigen_vector))
         
-        ### Normalize eigenvector to eigen value
+        ### Normalize eigenvector to eigenvalue
         eigen_vector = eigen_vector/eigen_value[ii]
         
         ### New estimate of eigenvector
