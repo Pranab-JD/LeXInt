@@ -76,7 +76,7 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Internal stage 2
-    b_n_nl, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_1, tol)
+    b_n_nl, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_1, tol)
 
     ### b = u + phi_1(J(u) dt) f(u) dt + phi_1(J(u) dt) R(a) dt
     b = u + u_flux[:, 1] + b_n_nl[:, 0]
@@ -89,8 +89,8 @@ def EXPRB43(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (16*R_a - 2*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (-48*R_a + 12*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (16*R_a - 2*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_4, _ = Leja_phi(u, dt, RHS_function, (-48*R_a + 12*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (16R(a) - 2R(b)) dt
     u_exprb3 = u + u_flux[:, 1] + u_nl_3[:, 0]

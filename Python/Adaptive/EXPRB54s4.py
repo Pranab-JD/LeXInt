@@ -78,7 +78,7 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Internal stage 2; interpolation of (N(a) - N(u)) at 1
-    b_n_nl, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1/2], c, Gamma, Leja_X, phi_3, tol)
+    b_n_nl, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1/2], c, Gamma, Leja_X, phi_3, tol)
 
     ### b = u + (1/2) phi_1(1/2 J(u) dt) f(u) dt + 4 phi_3(1/2 J(u) dt) R(a) dt
     b_n = u + (1/2 * u_flux[:, 1]) + (4 * b_n_nl[:, 0])
@@ -91,7 +91,7 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Internal stage 3; interpolation of (N(b) - N(u)) at 1
-    c_n_nl, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, R_b*dt, [9/10], c, Gamma, Leja_X, phi_3, tol)
+    c_n_nl, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, R_b*dt, [9/10], c, Gamma, Leja_X, phi_3, tol)
 
     ### c = u + (9/10) phi_1(9/10 J(u) dt) f(u) dt + (729/125) phi_3(9/10 J(u) dt) R(b) dt
     c_n = u + (9/10 * u_flux[:, 2]) + (729/125 * c_n_nl[:, 0])
@@ -104,10 +104,10 @@ def EXPRB54s4(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_4_3, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (64*R_a - 8*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4_4, rhs_calls_5, convergence = Leja_phi(u, dt, RHS_function, (-60*R_a - (285/8)*R_b + (125/8)*R_c)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
-    u_nl_5_3, rhs_calls_6, convergence = Leja_phi(u, dt, RHS_function, (18*R_b - (250/81)*R_c)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_5_4, rhs_calls_7, convergence = Leja_phi(u, dt, RHS_function, (-60*R_b + (500/27)*R_c)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_4_3, rhs_calls_4, _ = Leja_phi(u, dt, RHS_function, (64*R_a - 8*R_b)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4_4, rhs_calls_5, _ = Leja_phi(u, dt, RHS_function, (-60*R_a - (285/8)*R_b + (125/8)*R_c)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_5_3, rhs_calls_6, _ = Leja_phi(u, dt, RHS_function, (18*R_b - (250/81)*R_c)*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_5_4, rhs_calls_7, _ = Leja_phi(u, dt, RHS_function, (-60*R_b + (500/27)*R_c)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (64R(a) - 8R(b)) dt + phi_4(J(u) dt) (-60R(a) - (285/8)R(b) + (125/8)R(c)) dt
     u_exprb4 = u + u_flux[:, 3] + u_nl_4_3[:, 0] + u_nl_4_4[:, 0]

@@ -78,7 +78,7 @@ def EXPRB53s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
 
     ### Vertical interpolation of R(a) at 1/2 and 9/10
-    b_n_nl, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1/2, 9/10], c, Gamma, Leja_X, phi_3, tol)
+    b_n_nl, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1/2, 9/10], c, Gamma, Leja_X, phi_3, tol)
 
     ### b = u + 9/10 phi_1(9/10 J(u) dt) f(u) dt + (27/25 phi_3(1/2 J(u) dt) + 729/125 phi_3(9/10 J(u) dt)) R(a) dt
     b = u + (9/10 * u_flux[:, 1]) + (27/25 * b_n_nl[:, 0]) + (729/125 * b_n_nl[:, 1])
@@ -91,9 +91,9 @@ def EXPRB53s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_4_3, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (2*R_a + (150/81)*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_5_3, rhs_calls_4, convergence = Leja_phi(u, dt, RHS_function, (18*R_a - (250/81)*R_b)*dt,  [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_5_4, rhs_calls_5, convergence = Leja_phi(u, dt, RHS_function, (-60*R_a + (500/27)*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_4_3, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (2*R_a + (150/81)*R_b)*dt,   [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_5_3, rhs_calls_4, _ = Leja_phi(u, dt, RHS_function, (18*R_a - (250/81)*R_b)*dt,  [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_5_4, rhs_calls_5, _ = Leja_phi(u, dt, RHS_function, (-60*R_a + (500/27)*R_b)*dt, [1], c, Gamma, Leja_X, phi_4, tol)
 
     ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (2R(a) + (150/81)R(b)) dt
     u_exprb3 = u + u_flux[:, 2] + u_nl_4_3[:, 0]

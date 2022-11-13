@@ -84,8 +84,8 @@ def EPIRK4s3(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Final nonlinear stages
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b - 2*R_a))*dt, [1], c, Gamma, Leja_X, phi_3, tol)
-    u_nl_4, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b - 2*R_a))*dt, [1], c, Gamma, Leja_X, phi_4, tol)
+    u_nl_3, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, (1892*R_a + 1458*(R_b - 2*R_a))*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_4, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (-42336*R_a - 34992*(R_b - 2*R_a))*dt, [1], c, Gamma, Leja_X, phi_4, tol)
  
     ### 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (-1024R(a) + 1458R(b)) dt
     u_epirk3 = u + u_flux[:, 2] + u_nl_3[:, 0]

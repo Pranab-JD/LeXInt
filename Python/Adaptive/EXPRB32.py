@@ -71,7 +71,7 @@ def EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Final nonlinear stage
-    u_nl_3, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_3, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [1], c, Gamma, Leja_X, phi_3, tol)
     
     ### 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
     u_exprb3 = u_exprb2 + (2*u_nl_3[:, 0])

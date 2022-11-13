@@ -94,7 +94,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############## --------------------- ##############
 
     ### Vertical interpolation of R_a at g32_4, g32, and g22
-    u_nl_1, rhs_calls_2, convergence = Leja_phi(u, dt, RHS_function, R_a*dt, [g32_4, g32, g22], c, Gamma, Leja_X, phi_1, tol)
+    u_nl_1, rhs_calls_2, _ = Leja_phi(u, dt, RHS_function, R_a*dt, [g32_4, g32, g22], c, Gamma, Leja_X, phi_1, tol)
 
     ### b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R_a dt
     b = u + (a21 * u_flux[:, 1]) + (a22 * u_nl_1[:, 2])
@@ -107,7 +107,7 @@ def EPIRK5P1(u, dt, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ############# --------------------- ##############
     
     ### Vertical interpolation of (-2*R_a + R_b) at g33 and g33_4
-    u_nl_2, rhs_calls_3, convergence = Leja_phi(u, dt, RHS_function, (-2*R_a + R_b)*dt, [g33, g33_4], c, Gamma, Leja_X, phi_3, tol)
+    u_nl_2, rhs_calls_3, _ = Leja_phi(u, dt, RHS_function, (-2*R_a + R_b)*dt, [g33, g33_4], c, Gamma, Leja_X, phi_3, tol)
 
     ### If it does not converge, return (try with smaller dt)
     if convergence == 0:
