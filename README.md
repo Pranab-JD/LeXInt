@@ -1,7 +1,5 @@
 #  [LeXInt](#)
 
-![](https://raw.githubusercontent.com/ExoplanetPy/ExoplanetPy/master/images/logo_400.png "ExoplanetPy logo")
-
 [**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package exponential integrators using the method of polynomial interpolation at Leja points.
 
 Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) methods use the Leja interpolation method to compute the $\varphi_l(z)$ functions. For homogenous linear PDEs, one can get the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``.
