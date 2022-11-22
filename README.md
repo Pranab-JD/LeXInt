@@ -1,6 +1,6 @@
 #  [LeXInt](#)
 
-![alt text](http://url/to/img.png)
+![](https://raw.githubusercontent.com/ExoplanetPy/ExoplanetPy/master/images/logo_400.png "ExoplanetPy logo")
 
 [**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package exponential integrators using the method of polynomial interpolation at Leja points.
 
