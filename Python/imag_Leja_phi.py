@@ -87,8 +87,8 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
             ### Add the new term to the polynomial
             polynomial_array[:, ij] = polynomial_array[:, ij] + (poly_coeffs[ii, ij] * y)
             
-        ### If new term to be added < tol, break loop; safety factor = 0.1
-        if  poly_error < 0.1*tol:
+        ### If new term to be added < tol, break loop; safety factor = 0.25
+        if  poly_error < 0.25*tol*np.linalg.norm(polynomial):
             convergence = 1
             # print("Leja points used: ", ii)
             break
