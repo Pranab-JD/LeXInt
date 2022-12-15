@@ -30,7 +30,7 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
 
         Returns
         ----------
-        polynomial_array        : numpy array(s)
+        polynomial              : numpy array(s)
                                     Polynomial interpolation of 'interp_vector' 
                                     multiplied by 'phi_function' at real Leja points
         ii+1                    : int
@@ -47,7 +47,7 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
     max_Leja_pts = len(Leja_X)                                                                  # Max number of Leja points
     phi_function_array = np.zeros((len(Leja_X), num_interpolations), dtype = "complex")         # Phi function applied to 'interp_vector'
     poly_coeffs = np.zeros((len(Leja_X), num_interpolations), dtype = "complex")                # Polynomial coefficients
-    polynomial_array = np.zeros((len(interp_vector), num_interpolations), dtype = "complex")    # Polynomial array
+    polynomial = np.zeros((len(interp_vector), num_interpolations), dtype = "complex")          # Polynomial array
     rhs_u = RHS_function(u)                                                                     # RHS evaluated at 'u'
     y = interp_vector.copy() + 0*1j                                                             # To avoid changing 'interp_vector'
     
@@ -61,7 +61,7 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
         poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij]) 
 
         ### p_0 term
-        polynomial_array[:, ij] = interp_vector * poly_coeffs[0, ij] + 0*1j
+        polynomial[:, ij] = interp_vector * poly_coeffs[0, ij] + 0*1j
 
     ### p_1, p_2, ...., p_n terms; iterate until converges
     for ii in range(1, max_Leja_pts):
@@ -81,11 +81,11 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
             ### To prevent diverging, restart simulations with smaller dt
             if poly_error > 1e17:
                 convergence = 0
-                polynomial_array[:, ij] = u
-                return np.real(polynomial_array), ii+1, convergence
+                polynomial[:, ij] = u
+                return np.real(polynomial), ii+1, convergence
             
             ### Add the new term to the polynomial
-            polynomial_array[:, ij] = polynomial_array[:, ij] + (poly_coeffs[ii, ij] * y)
+            polynomial[:, ij] = polynomial[:, ij] + (poly_coeffs[ii, ij] * y)
             
         ### If new term to be added < tol, break loop; safety factor = 0.25
         if  poly_error < 0.25*tol*np.linalg.norm(polynomial):
@@ -98,4 +98,4 @@ def imag_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
             print("Warning!! Max. # of Leja points reached without convergence!! Try increasing the number of Leja points. Max available: 10000.")
             break
 
-    return np.real(polynomial_array), ii+1, convergence
+    return np.real(polynomial), ii+1, convergence

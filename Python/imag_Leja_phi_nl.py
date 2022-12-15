@@ -31,7 +31,7 @@ def imag_Leja_phi_nl(u, dt, RHS_function, interp_function, c, Gamma, Leja_X, phi
 
         Returns
         ----------
-        polynomial_array        : numpy array(s)
+        polynomial              : numpy array(s)
                                     Polynomial interpolation of 'interp_vector' 
                                     multiplied by 'phi_function' at real Leja points
         ii                      : int
