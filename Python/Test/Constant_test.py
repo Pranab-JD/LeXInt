@@ -197,6 +197,6 @@ def solve(problem, integrator, N_cfl):
                 
 ### Call the function
 ### solve(problem, integrator, N_CFL)
-solve("Burgers", EXPRB43, 10)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
+solve("Allen_Cahn", EXPRB43, 10)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)

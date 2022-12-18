@@ -25,7 +25,7 @@ from Eigenvalues import *
 ##############################################################################
 
 ### Initialize parameters
-N = 256              # Number of grid points
+N = 128             # Number of grid points
 eta = 10            # Peclet number
 tmax = 0.1          # Final simulation time
 
@@ -228,6 +228,6 @@ def solve(problem, integrator, order, tol):
 ### Call the function
 
 ### solve(problem, integrator, order of error-estimate (depends on the integrator), tol)
-solve("Burgers", EXPRB43, 3, 1e-5)
+solve("Burgers", EXPRB43, 3, 1e-7)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)
