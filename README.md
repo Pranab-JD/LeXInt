@@ -16,17 +16,21 @@ Test examples for constant and adaptive (or variable) step size implementation f
 ## Literature
 The publication associated with this code:
 
-Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, arXiv:[2208.08269](
-https://doi.org/10.48550/arXiv.2208.08269)
+Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX (accepted)
+arXiv:[2208.08269](https://doi.org/10.48550/arXiv.2208.08269)
 
 Other references:
-- Caliari et al. (2014), *Comparison of software for computing the action of the matrix exponential*, [BIT Numer. Math., 54, 113](https://doi.org/10.1007/s10543-013-0446-0)
+- Caliari et al. (2014), *Comparison of software for computing the action of the matrix exponential*, BIT Numer. Math., 54, 113 
+[DOI](https://doi.org/10.1007/s10543-013-0446-0)
 
-- Deka \& Einkemmer (2022), *Efficient adaptive step size control for exponential integrators*, [Comput. Math. Appl., 123, 59](https://doi.org/10.1016/j.camwa.2022.07.011)
+- Deka \& Einkemmer (2022), *Efficient adaptive step size control for exponential integrators*, Comput. Math. Appl., 123, 59 
+[DOI](https://doi.org/10.1016/j.camwa.2022.07.011) [arXiv:2102.02524](https://doi.org/10.48550/arXiv.2102.02524)
 
-- Deka \& Einkemmer (2022), *Exponential Integrators for Resistive Magnetohydrodynamics: Matrix-free Leja Interpolation and Efficient Adaptive Time Stepping*, [ApJS, 259, 57](https://doi.org/10.3847/1538-4365/ac5177)
+- Deka \& Einkemmer (2022), *Exponential Integrators for Resistive Magnetohydrodynamics: Matrix-free Leja Interpolation and Efficient Adaptive Time Stepping*, ApJS, 259, 57
+[DOI](https://doi.org/10.3847/1538-4365/ac5177) [arXiv:2108.13622](https://doi.org/10.48550/arXiv.2108.13622)
 
-- Hochbruck \& Ostermann (2010), *Exponential integrators*, [Acta Numer., 19, 209](https://doi.org/10.1017/S0962492910000048)
+- Hochbruck \& Ostermann (2010), *Exponential integrators*, Acta Numer., 19, 209 
+[DOI](https://doi.org/10.1017/S0962492910000048)
 
 ## Contact
 Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
