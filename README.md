@@ -32,6 +32,9 @@ Other references:
 - Hochbruck \& Ostermann (2010), *Exponential integrators*, Acta Numer., 19, 209 <br />
 [[DOI]](https://doi.org/10.1017/S0962492910000048)
 
+## Future Prospects
+We are developing a GPU (NVIDIA CUDA) implmentation of the Leja method for exponential integrators.
+
 ## Contact
 Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
 Lukas Einkemmer (<lukas.einkemmer@uibk.ac.at>) <br />
