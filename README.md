@@ -3,6 +3,7 @@
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425h.svg)](https://www.python.org/)
 <a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/ascl-2208.009-blue.svg?colorY=262255" alt="ascl:2208.009" /></a>
+[![HitCount](https://img.shields.io/endpoint?url=https%3A%2F%2Fhits.dwyl.com%2FPranabJD%2FLeXInt.json%3Fcolor%3Dred)](http://hits.dwyl.com/PranabJD/LeXInt)
 
 [**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package for exponential integrators using the method of polynomial interpolation at Leja points.
 
