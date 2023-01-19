@@ -17,8 +17,8 @@ Test examples for constant and adaptive (or variable) step size implementation f
 ## Literature
 The publication associated with this code:
 
-Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX (accepted) <br />
-[[arXiv:2208.08269]](https://doi.org/10.48550/arXiv.2208.08269)
+Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX, 21, 101302 <br />
+[[DOI]](https://doi.org/10.1016/j.softx.2022.101302) [[arXiv:2208.08269]](https://doi.org/10.48550/arXiv.2208.08269)
 
 Other references:
 - Caliari et al. (2014), *Comparison of software for computing the action of the matrix exponential*, BIT Numer. Math., 54, 113 <br />
