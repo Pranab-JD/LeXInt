@@ -48,19 +48,10 @@ state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, vector<double> int
     
     int max_Leja_pts = Leja_X.size();                   //? Max. # of Leja points
     double poly_error;                                  //? Error incurred at every iteration
-    int num_interps = interp_coeffs.size();      		//? Number of interpolations in vertical
+    int num_interpolations = interp_coeffs.size();      //? Number of interpolations in vertical
     state Jacobian_function(N);                         //? Jacobian-vector product
+    state polynomial(N);                                //? Initialise the polynomial
     state y(interp_vector);                             //? To avoid changing 'u'
-    
-    vector<vector<double>> phi_function_array(num_interps);
-    vector<vector<double>> coeffs(num_interps);
-    vector<state> polynomial(num_interps);              //? Initialise the polynomial
-    for (int ii = 0; ii < num_interp; ii++)
-    {
-    	phi_function_array[ii].resize(max_Leja_pts);
-    	coeffs[ii].resize(max_Leja_pts);
-    	polynomial[ii].resize(N);
-    }
 
     //* Matrix exponential (scaled and shifted)
     vector<double> phi_function_array(max_Leja_pts);
@@ -77,7 +68,6 @@ state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, vector<double> int
     //* Form the polynomial: p_0 term
     for (int ii = 0; ii < N; ii++)
     {
-    	//! include nun_interp
         polynomial[ii] = coeffs[0] * y[ii];
     }
 
