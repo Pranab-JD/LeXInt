@@ -1,4 +1,6 @@
-# Exponential Integrators (Leja Interpolation)
+# Python
+
+Test examples for constant and adaptive (or variable) step size implementation for the Leja-based exponential integrators can be found in *Python &rarr; Test &rarr; Constant_test.py* or *Adaptive_test.py*. Problems considered include the Burgers' equation and the Allen-Cahn equation. To run scripts, use the following commands: `python3 Constant_test.py` or `python3 Adaptive_test.py`. To add other problems, simply define the relevant *RHS_function* and the initial condition(s). Please refer to *Python &rarr; Technical_details.md* for further details on technical aspects.
 
 Remarks:
 1. It is expected that the rhs function is defined in the following way:
