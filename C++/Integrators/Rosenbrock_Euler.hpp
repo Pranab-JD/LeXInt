@@ -17,25 +17,6 @@ state Ros_Eu(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double
 {
     //* -------------------------------------------------------------------------
 
-    //* Computes the polynomial interpolation of matrix exponential applied to 'u' at real Leja points.
-    //*
-    //*    Parameters
-    //*    ----------
-    //*
-    //*    Leja_X                  : vector <double>
-    //*                                Set of Leja points
-    //*
-    //*    c                       : double
-    //*                                Shifting factor
-    //*
-    //*    Gamma                   : double
-    //*                                Scaling factor
-    //*
-    //*    tol                     : double
-    //*                                Accuracy of the polynomial so formed
-    //*
-    //*    dt                      : double
-    //*                                Step size
     //*
     //*    Returns
     //*    ----------
@@ -45,7 +26,7 @@ state Ros_Eu(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double
     //*
     //*    Reference:
     //*         D. A. Pope, An exponential method of numerical integration of ordinary differential equations, Commun. ACM 6 (8) (1963) 491-493.
-    //*         doi:10.1145/366707.367592.
+    //*         doi:10.1145/366707.367592
 
     //* -------------------------------------------------------------------------
 
@@ -54,10 +35,10 @@ state Ros_Eu(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double
     rhs_u = axpby(dt, rhs_u, N);
 
     //? Internal stage 1; interpolation of RHS(u) at 1
-    state u_flux = real_Leja_phi(RHS, u, rhs_u, {1.0}, N, phi_1, Leja_X, c, Gamma, tol, dt);
+    vector<state> u_flux = real_Leja_phi(RHS, u, rhs_u, {1.0}, N, phi_1, Leja_X, c, Gamma, tol, dt);
 
     //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
-    state u_exprb2 = axpby(1.0, u, 1.0, u_flux, N);
+    state u_exprb2 = axpby(1.0, u, 1.0, u_flux[0], N);
 
     return u_exprb2;
 }
