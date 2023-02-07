@@ -9,6 +9,6 @@ Embedded error estimates have been included for most integrators. These solvers 
 
 2. To compute the **exact** solution of a homogenous linear problem, choose `real_Leja_exp`, whilst for non-homogenous problems, choose `real_Leja_phi_nl`.
 
-3. For homogenous or non-honogenous linear problems, one may choose to go up to 10,000 Leja points. However, one should be careful that the coefficients of the polynomial does not dip below the machine precision,, i.e. $10^{-13} - 10^{-16}$ for most CPUs.
+3. For homogenous or non-honogenous linear problems, one may choose to go up to 10,000 Leja points. However, one should be careful that the coefficients of the polynomial does not dip below the machine precision, i.e. $10^{-13} - 10^{-16}$ for most CPUs.
 
 4. For nonlinear problems, at most 100 - 150 Leja points should suffice.
