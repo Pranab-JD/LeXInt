@@ -1,6 +1,8 @@
 # C++
 
-A C++ implementation of a bunch of exponential integrators where the $\varphi_l$ functions are approximated using the Leja interpoaltion scheme.
+A C++ implementation of a bunch of exponential integrators where the $\varphi_l$ functions are approximated using the Leja interpolation scheme. 
+
+Embedded error estimates have been included for most integrators. These solver return both the higher- and lower-order solutions, the difference of which can be used for estimating the stepsize (dt) for the next time step. Some intergators do not possess an embedded error (see `Leja.hpp`). One may use Richardson extrapolation to compute the error estimate in these cases. 
 
 ## Remarks:
 1. A sample definition of the RHS function can be found in *Test &rarr; Burgers.hpp*. Any user-defined problem can be described in a similar way. 
