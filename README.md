@@ -38,3 +38,5 @@ We are developing a GPU (NVIDIA CUDA) implementation of the Leja method for expo
 Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
 Lukas Einkemmer (<lukas.einkemmer@uibk.ac.at>) <br />
 Mayya Tokman  (<mtokman@ucmerced.edu>)
+
+In case of technical issues, please contact Pranab J. Deka.
