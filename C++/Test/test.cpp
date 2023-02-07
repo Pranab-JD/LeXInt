@@ -8,6 +8,7 @@
 #include <string>
 #include <typeinfo>
 #include <algorithm>
+#include <numeric>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -64,7 +65,7 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int N = 100;                                    // # grid points
+    int N = 200;                                    // # grid points
     double xmin = -1.0;                             // Left boundary (limit)
     double xmax =  1.0;                             // Right boundary (limit)
     vec X(N);                                       // Array of grid points
@@ -104,15 +105,19 @@ int main()
     double c = eigen_dif/2.0;
     double Gamma = -eigen_dif/4.0;
 
+    cout << "Eigenvalue Diffusion: " << eigen_dif << endl;
+
     //* Set of Leja points
     vec Leja_X = Leja_Points();
 
-    cout << "Eigenvalue Diffusion: " << eigen_dif << endl;
-
-    vec error_vec;
-    double error;
+    //? Timer
+    struct timespec total_start, total_finish, total_elapsed;
+    struct timespec leja_start, leja_finish, leja_elapsed;
+    vec time_leja;
 
     //! Time Loop
+    clock_gettime(CLOCK_REALTIME, &total_start);
+
     while (time < t_final)
     {
         //* Final time step
@@ -121,22 +126,43 @@ int main()
             dt = t_final - time;
         }
 
-        //? Largest eigenvalue of the Jacobian, for nonlinear equations, changes at every time step
-        eigen_power = -1.2*Power_iterations(RHS, u, N); 
-        cout << "Eigenvalue PowerIters : " << eigen_power << endl;
-
         //* Solve (choose required integrator)
+
+        //? ---------------------------------------------------------------- ?//
+
+        //? RK2, RK4
+
         // u_sol = RK2(RHS, u, N, dt);
+
+        //? ---------------------------------------------------------------- ?//
+
+        //? Linear equations
 
         // u_sol = real_Leja_exp(RHS, u, N, Leja_X, c, Gamma, 1e-8, dt);
 
+        //? ---------------------------------------------------------------- ?//
+
+        //? Embedded integrators
+
+        clock_gettime(CLOCK_REALTIME, &leja_start);
+
+        //? Largest eigenvalue of the Jacobian, for nonlinear equations, changes at every time step
+        eigen_power = -1.2*Power_iterations(RHS, u, N); 
+        // cout << "Eigenvalue PowerIters : " << eigen_power << endl;
+
         // u_sol = EPIRK4s3B(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
 
-        u_sol_embed = EXPRB32(RHS, u, N, Leja_X, c, Gamma, 1e-8, dt, 0);
+        u_sol_embed = EXPRB32(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
+        // vec error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
+        // cout << "Embedded error: " << *max_element(begin(error_vec), end(error_vec)) << endl << endl;
 
-        error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
-        
-        cout << "Embedded error: " << *max_element(begin(error_vec), end(error_vec)) << endl << endl;
+
+        clock_gettime(CLOCK_REALTIME, &leja_finish);
+        sub_timespec(leja_start, leja_finish, &leja_elapsed);
+        double leja_time = (int)leja_elapsed.tv_sec + (pow(10, -9) * leja_elapsed.tv_nsec);
+        time_leja.push_back(leja_time);
+
+        //? ---------------------------------------------------------------- ?//
 
         //* Update variables
         time = time + dt;
@@ -145,11 +171,19 @@ int main()
         time_steps = time_steps + 1;
     }
 
-    cout << setprecision(16) << l2norm(u, N) << endl;
+    //? Timers
+    clock_gettime(CLOCK_REALTIME, &total_finish);
+    sub_timespec(total_start, total_finish, &total_elapsed);
+    double total_time = (int)total_elapsed.tv_sec + (pow(10, -9) * total_elapsed.tv_nsec);
+
+    double leja_cost = accumulate(time_leja.begin(), time_leja.end(), 0.0f);
+
 
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
-    cout << "Total # of time steps: " << time_steps << endl;
+    cout << "Total number of time steps: " << time_steps << endl;
+    cout << "Total time elapsed (s): " << total_time << endl;
+    cout << "Time elapsed for Leja method (s): " << leja_cost << endl;
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
