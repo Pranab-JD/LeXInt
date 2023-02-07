@@ -9,8 +9,6 @@
 
 Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) methods use the Leja interpolation method to compute the $\varphi_l(z)$ functions for nonlinear differential equations. For homogenous linear PDEs, one can get the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
 
-Test examples for constant and adaptive (or variable) step size implementation for the Leja-based exponential integrators can be found in *Python &rarr; Test &rarr; Constant_test.py* or *Adaptive_test.py*. Problems considered include the Burgers' equation and the Allen-Cahn equation. To run scripts, use the following commands: `python3 Constant_test.py` or `python3 Adaptive_test.py`. To add other problems, simply define the relevant *RHS_function* and the initial condition(s). Please refer to *Python &rarr; Technical_details.md* for further details on technical aspects.
-
 ## Requirements
 - Python 3.10 (or later)
 
