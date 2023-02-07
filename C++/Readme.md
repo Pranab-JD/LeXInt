@@ -1,3 +1,12 @@
 # C++
 
-A C++ implmentation of a bunch of exponential integrators where the $\varphi_l$ functions are approximated using the Leja interpoaltion scheme.
+A C++ implementation of a bunch of exponential integrators where the $\varphi_l$ functions are approximated using the Leja interpoaltion scheme.
+
+## Remarks:
+1. A sample definition of the RHS function can be found in *Test &rarr; Burgers.hpp*. Any user-defined problem can be described in a similar way. 
+
+2. To compute the **exact** solution of a homogenous linear problem, choose `real_Leja_exp`, whilst for non-homogenous problems, choose `real_Leja_phi_nl`.
+
+3. For homogenous or non-honogenous linear problems, one may choose to go up to 10000 Leja points. However, one should be careful that the coefficients of the polynomial does not go below $10^{-15}$.
+
+4. For nonlinear problems, at most 100 - 150 Leja points should suffice.
