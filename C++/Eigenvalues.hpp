@@ -80,7 +80,6 @@ double Power_iterations(rhs& RHS,       //? RHS function
         //? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
         if (abs(eigenvalue[ii] - eigenvalue[ii - 1]) <= tol * eigenvalue[ii])
         {
-            cout << ii << endl;
             largest_eigenvalue = eigenvalue[ii];
             break;
         }
@@ -88,7 +87,6 @@ double Power_iterations(rhs& RHS,       //? RHS function
 
     //! Returns the largest eigenvalue in magnitude (needs to multiplied to a safety factor)
     return largest_eigenvalue;
-
 }
 
 //! ======================================================================================== !//

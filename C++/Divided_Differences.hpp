@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-vector<double> Divided_Differences(vector<double> X, vector<double> diffs)
+vector<double> Divided_Differences(const vector<double>& X, vector<double> coeffs)
 {
     //* -------------------------------------------------------------------------
     //* Compute the coefficients for polynomial interpolation.
@@ -11,7 +11,7 @@ vector<double> Divided_Differences(vector<double> X, vector<double> diffs)
     //* X                     : vector <double>
     //*                           Set of Leja points
     //* 
-    //* diffs                 : vector <double>
+    //* coeffs                 : vector <double>
     //*                           Vector of which coeffs are to be computed
     //*
     //* Returns
@@ -20,11 +20,8 @@ vector<double> Divided_Differences(vector<double> X, vector<double> diffs)
     //*                           Coefficients
     //* -------------------------------------------------------------------------
 
-    //* # of interpolation (Leja) points
+    //* Number of interpolation (Leja) points
     int N = X.size();
-
-    //* Return coefficients of the vector 'diffs'
-    vector<double> coeffs(diffs);
 
     //* Compute the divided differences
     for (int ii = 1; ii < N; ii++)
