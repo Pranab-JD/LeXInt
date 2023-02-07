@@ -12,63 +12,65 @@
 
 using namespace std;
 
-//? Phi functions interpolated on real Leja points
+//? Phi function interpolated on real Leja points
 template <typename state, typename rhs>
-state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, vector<double> interp_coeffs, int N,  double (* phi_function) (double), vector<double>& Leja_X, double c, double Gamma, double tol, double dt)
+vector<state> real_Leja_phi(rhs& RHS,                           //? RHS function
+                            state& u,                           //? State variable(s)
+                            state& interp_vector,               //? Vector multiplied to phi function
+                            vector<double> integrator_coeffs,   //? Coefficients of the integrator
+                            int N,                              //? Number of grid points
+                            double (* phi_function) (double),   //? Phi function (typically phi_1)
+                            vector<double>& Leja_X,             //? Array of Leja points
+                            double c,                           //? Shifting factor
+                            double Gamma,                       //? Scaling factor
+                            double tol,                         //? Tolerance (normalised desired accuracy)
+                            double dt                           //? Step size
+                            )
 {
     //* -------------------------------------------------------------------------
-
-    //* Computes the polynomial interpolation of matrix exponential applied to 'u' at real Leja points.
     //*
-    //*    Parameters
-    //*    ----------
-    //*
-    //*    Leja_X                  : vector <double>
-    //*                                Set of Leja points
-    //*
-    //*    c                       : double
-    //*                                Shifting factor
-    //*
-    //*    Gamma                   : double
-    //*                                Scaling factor
-    //*
-    //*    tol                     : double
-    //*                                Accuracy of the polynomial so formed
-    //*
-    //*    dt                      : double
-    //*                                Step size
+    //* Computes the polynomial interpolation of phi function applied to 'interp_vector' at real Leja points.
     //*
     //*    Returns
     //*    ----------
-    //*    polynomial              : 
-    //*                                Polynomial interpolation of 'u' multiplied 
-    //*                                by the matrix exponential at real Leja points
-
+    //*    polynomial              : vector<state>
+    //*                                 Polynomial interpolation of 'interp_vector', applied to
+    //*                                 phi function, at real Leja points
+    //*
     //* -------------------------------------------------------------------------
     
-    int max_Leja_pts = Leja_X.size();                   //? Max. # of Leja points
-    double poly_error;                                  //? Error incurred at every iteration
-    int num_interpolations = interp_coeffs.size();      //? Number of interpolations in vertical
-    state Jacobian_function(N);                         //? Jacobian-vector product
-    state polynomial(N);                                //? Initialise the polynomial
-    state y(interp_vector);                             //? To avoid changing 'u'
-
-    //* Matrix exponential (scaled and shifted)
-    vector<double> phi_function_array(max_Leja_pts);
-
-    for (int ii = 0; ii < max_Leja_pts; ii++)
+    int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
+    double poly_error;                                              //? Error incurred at every iteration
+    int num_interpolations = integrator_coeffs.size();              //? Number of interpolations in vertical
+    
+    state Jacobian_function(N);                                     //? Jacobian-vector product
+    state y(interp_vector);                                         //? To avoid changing 'interp_vector'
+    
+    vector<vector<double>> phi_function_array(num_interpolations);  //? Phi function applied to 'interp_vector'
+    vector<vector<double>> coeffs(num_interpolations);              //? Polynomial coefficients
+    vector<state> polynomial(num_interpolations);                   //? Polynomial array
+    
+    for (int ij = 0; ij < num_interpolations; ij++)
     {
-        //? Call phi function
-        phi_function_array[ii] = phi_function(interp_coeffs[0] * dt * (c + (Gamma * Leja_X[ii])));
+    	phi_function_array[ij].resize(max_Leja_pts);
+    	coeffs[ij].resize(max_Leja_pts);
+    	polynomial[ij].resize(N);
     }
 
-    //* Compute polynomial coefficients
-    vector<double> coeffs = Divided_Differences(Leja_X, phi_function_array);
-
-    //* Form the polynomial: p_0 term
-    for (int ii = 0; ii < N; ii++)
+    //* Loop for vertical implementation
+    for (int ij = 0; ij < num_interpolations; ij++)
     {
-        polynomial[ii] = coeffs[0] * y[ii];
+        for (int ii = 0; ii < max_Leja_pts; ii++)
+        {
+            //? Phi function applied to 'interp_vector' (scaled and shifted)
+            phi_function_array[ij][ii] = phi_function(integrator_coeffs[ij] * dt * (c + (Gamma * Leja_X[ii])));
+        }
+
+        //? Compute polynomial coefficients
+        coeffs[ij] = Divided_Differences(Leja_X, phi_function_array[ij]);
+
+        //? Form the polynomial (first term): polynomial = coeffs[0] * y
+        polynomial[ij] = axpby(coeffs[ij][0], y, N);
     }
 
     //? Iterate until converges
@@ -78,22 +80,20 @@ state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, vector<double> int
         Jacobian_function = Jacobian_vector(RHS, u, y, N);
 
         //* y = y * ((z - c)/Gamma - Leja_X)
-        for (int ii = 0; ii < N; ii++)
-        {
-            y[ii] = Jacobian_function[ii]/Gamma + (y[ii] * (-c/Gamma - Leja_X[nn - 1]));
-        }
+        y = axpby(1.0/Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), y, N);
 
-        //* Error estimate
-        poly_error = abs(coeffs[nn]) * l2norm(y, N);
+        //* Error estimate; poly_error = |coeffs[nn]| ||y||
+        poly_error = abs(coeffs[num_interpolations - 1][nn]) * l2norm(y, N);
 
         //* Add the new term to the polynomial
-        for (int ii = 0; ii < N; ii++)
+        for (int ij = 0; ij < num_interpolations; ij++)
         {
-            polynomial[ii] = polynomial[ii] + (coeffs[nn] * y[ii]);
+            //? polynomial = polynomial + coeffs[nn] * y
+            polynomial[ij] = axpby(1.0, polynomial[ij], coeffs[ij][nn], y, N);
         }
 
         //? If new term to be added < tol, break loop
-        if (poly_error < tol*l2norm(polynomial, N) + tol)
+        if (poly_error < tol*l2norm(polynomial[num_interpolations - 1], N) + tol)
         {
             // cout << "Converged: " << nn << endl;
             break;

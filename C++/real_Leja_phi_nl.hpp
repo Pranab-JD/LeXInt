@@ -12,52 +12,44 @@
 
 using namespace std;
 
-//? Phi functions interpolated on real Leja points
+//? Phi function interpolated on real Leja points
 template <typename state, typename rhs>
-state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, int N,  double (* phi_function) (double), vector<double>& Leja_X, double c, double Gamma, double tol, double dt)
+state real_Leja_phi_nl(rhs& RHS,                           //? RHS function
+                       state& u,                           //? State variable(s)
+                       state& interp_vector,               //? Vector multiplied to phi function
+                       int N,                              //? Number of grid points
+                       double (* phi_function) (double),   //? Phi function (typically phi_1)
+                       vector<double>& Leja_X,             //? Array of Leja points
+                       double c,                           //? Shifting factor
+                       double Gamma,                       //? Scaling factor
+                       double tol,                         //? Tolerance (normalised desired accuracy)
+                       double dt                           //? Step size
+                       )
 {
     //* -------------------------------------------------------------------------
-
-    //* Computes the polynomial interpolation of matrix exponential applied to 'u' at real Leja points.
     //*
-    //*    Parameters
-    //*    ----------
-    //*
-    //*    Leja_X                  : vector <double>
-    //*                                Set of Leja points
-    //*
-    //*    c                       : double
-    //*                                Shifting factor
-    //*
-    //*    Gamma                   : double
-    //*                                Scaling factor
-    //*
-    //*    tol                     : double
-    //*                                Accuracy of the polynomial so formed
-    //*
-    //*    dt                      : double
-    //*                                Step size
+    //* Computes the polynomial interpolation of phi function applied to 'interp_vector' at real Leja points.
     //*
     //*    Returns
     //*    ----------
-    //*    polynomial              : 
-    //*                                Polynomial interpolation of 'u' multiplied 
-    //*                                by the matrix exponential at real Leja points
-
+    //*    polynomial              : state
+    //*                                 Polynomial interpolation of 'interp_vector', applied to
+    //*                                 phi function, at real Leja points
+    //*
     //* -------------------------------------------------------------------------
-    
+
     int max_Leja_pts = Leja_X.size();                   //? Max. # of Leja points
     double poly_error;                                  //? Error incurred at every iteration
-    state y(interp_vector);                             //? To avoid changing 'u'
+
+    state y(u);                                         //? To avoid changing 'u'
     state Jacobian_function(N);                         //? Jacobian-vector product
     state polynomial(N);                                //? Initialise the polynomial
-
+    
     //* Matrix exponential (scaled and shifted)
     vector<double> phi_function_array(max_Leja_pts);
 
     for (int ii = 0; ii < max_Leja_pts; ii++)
     {
-        //? Call phi function
         phi_function_array[ii] = phi_function(dt * (c + (Gamma * Leja_X[ii])));
     }
 
@@ -65,31 +57,22 @@ state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, int N,  double (* 
     vector<double> coeffs = Divided_Differences(Leja_X, phi_function_array);
 
     //* Form the polynomial: p_0 term
-    for (int ii = 0; ii < N; ii++)
-    {
-        polynomial[ii] = coeffs[0] * y[ii];
-    }
+    polynomial = axpby(coeffs[0], y, N);
 
     //? Iterate until converges
     for (int nn = 1; nn < max_Leja_pts - 1; nn++)
     {
         //* Compute numerical Jacobian
-        Jacobian_function = Jacobian_vector(RHS, u, y, N);
+        Jacobian_function = RHS(y);
 
         //* y = y * ((z - c)/Gamma - Leja_X)
-        for (int ii = 0; ii < N; ii++)
-        {
-            y[ii] = Jacobian_function[ii]/Gamma + (y[ii] * (-c/Gamma - Leja_X[nn - 1]));
-        }
+        y = axpby(1.0/Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), y, N);
 
-        //* Error estimate
+        //* Error estimate; poly_error = |coeffs[nn]| ||y||
         poly_error = abs(coeffs[nn]) * l2norm(y, N);
 
         //* Add the new term to the polynomial
-        for (int ii = 0; ii < N; ii++)
-        {
-            polynomial[ii] = polynomial[ii] + (coeffs[nn] * y[ii]);
-        }
+        polynomial = axpby(1.0, polynomial, coeffs[nn], y, N);
 
         //? If new term to be added < tol, break loop
         if (poly_error < tol*l2norm(polynomial, N) + tol)
@@ -100,7 +83,8 @@ state real_Leja_phi(rhs& RHS, state& u, state& interp_vector, int N,  double (* 
         //! Warning flags
         if (nn == max_Leja_pts - 2)
         {
-            cout << "Warning!! Max. # of Leja points reached without convergence!! Reduce dt. " << endl;
+            cout << "Warning!! Max. # of Leja points reached without convergence!! Max. Leja points currently set to " << max_Leja_pts << endl;
+            cout << "Try increasing the number of Leja points. Max available: 10000." << endl;
             break;
         }
     }

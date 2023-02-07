@@ -26,7 +26,6 @@ void sub_timespec(struct timespec t1, struct timespec t2, struct timespec *td)
 {
     td->tv_nsec = t2.tv_nsec - t1.tv_nsec;
     td->tv_sec  = t2.tv_sec - t1.tv_sec;
-
     if (td->tv_sec > 0 && td->tv_nsec < 0)
     {
         td->tv_nsec += NS_PER_SECOND;
@@ -151,7 +150,7 @@ T Jacobian_vector(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
     //? RHS(u - epsilon*y)
     T rhs_u_eps_2 = RHS(vector_x_eps_2);
 
-    //? J(u) * y = (RHS(u + epsilon*y) - RHS(u))/epsilon
+    //? J(u) * y = (RHS(u + epsilon*y) - RHS(u - epsilon*y))/epsilon
     T Jac_vec = axpby(1.0/(2.0*epsilon), rhs_u_eps_1, -1.0/(2.0*epsilon), rhs_u_eps_2, N);
 
     return Jac_vec;

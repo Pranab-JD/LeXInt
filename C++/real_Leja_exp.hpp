@@ -13,44 +13,35 @@ using namespace std;
 
 //? Matrix exponential interpolated on real Leja points
 template <typename state, typename rhs>
-state real_Leja_exp(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double Gamma, double tol, double dt)
+state real_Leja_exp(rhs& RHS,                       //? RHS function
+                    state& u,                       //? State variable(s)
+                    int N,                          //? Number of grid points
+                    vector<double>& Leja_X,         //? Array of Leja points
+                    double c,                       //? Shifting factor
+                    double Gamma,                   //? Scaling factor
+                    double tol,                     //? Tolerance (normalised desired accuracy)
+                    double dt                       //? Step size
+                    )
 {
     //* -------------------------------------------------------------------------
-
+    //*
     //* Computes the polynomial interpolation of matrix exponential applied to 'u' at real Leja points.
-    //*
-    //*    Parameters
-    //*    ----------
-    //*
-    //*    Leja_X                  : vector <double>
-    //*                                Set of Leja points
-    //*
-    //*    c                       : double
-    //*                                Shifting factor
-    //*
-    //*    Gamma                   : double
-    //*                                Scaling factor
-    //*
-    //*    tol                     : double
-    //*                                Accuracy of the polynomial so formed
-    //*
-    //*    dt                      : double
-    //*                                Step size
     //*
     //*    Returns
     //*    ----------
-    //*    polynomial              : 
-    //*                                Polynomial interpolation of 'u' multiplied 
-    //*                                by the matrix exponential at real Leja points
-
+    //*    polynomial              : state
+    //*                                 Polynomial interpolation of 'u', applied to
+    //*                                 matrix exponential, at real Leja points
+    //*
     //* -------------------------------------------------------------------------
     
-    int max_Leja_pts = Leja_X.size();               //? Max. # of Leja points
+    int max_Leja_pts = Leja_X.size();                   //? Max. # of Leja points
+    double poly_error;                                  //? Error incurred at every iteration
+
     state y(u);                                         //? To avoid changing 'u'
     state Jacobian_function(N);                         //? Jacobian-vector product
     state polynomial(N);                                //? Initialise the polynomial
-    double poly_error;                              //? Error incurred at every iteration
-
+    
     //* Matrix exponential (scaled and shifted)
     vector<double> matrix_exponential(max_Leja_pts);
 
@@ -63,10 +54,7 @@ state real_Leja_exp(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c,
     vector<double> coeffs = Divided_Differences(Leja_X, matrix_exponential);
 
     //* Form the polynomial: p_0 term
-    for (int ii = 0; ii < N; ii++)
-    {
-        polynomial[ii] = coeffs[0] * y[ii];
-    }
+    polynomial = axpby(coeffs[0], y, N);
 
     //? Iterate until converges
     for (int nn = 1; nn < max_Leja_pts - 1; nn++)
@@ -75,22 +63,16 @@ state real_Leja_exp(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c,
         Jacobian_function = RHS(y);
 
         //* y = y * ((z - c)/Gamma - Leja_X)
-        for (int ii = 0; ii < N; ii++)
-        {
-            y[ii] = Jacobian_function[ii]/Gamma + (y[ii] * (-c/Gamma - Leja_X[nn - 1]));
-        }
+        y = axpby(1.0/Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), y, N);
 
         //* Error estimate
         poly_error = abs(coeffs[nn]) * l2norm(y, N);
 
         //* Add the new term to the polynomial
-        for (int ii = 0; ii < N; ii++)
-        {
-            polynomial[ii] = polynomial[ii] + (coeffs[nn] * y[ii]);
-        }
+        polynomial = axpby(1.0, polynomial, coeffs[nn], y, N);
 
-        //? If new term to be added < tol, break loop; safety factor = 0.25
-        if (poly_error < 0.25*tol*l2norm(polynomial, N))
+        //? If new term to be added < tol, break loop; safety factor = 0.1
+        if (poly_error < 0.1*tol*l2norm(polynomial, N) + tol)
         {
             cout << "Converged! Iterations: " << nn << endl;
             break;
