@@ -1,16 +1,3 @@
-// ┌──────────────────────────────────────────────────────────────────────────────┐
-// │  Created on Mon Aug 02 17:00:32 2021                                         |
-// |                                                                              |
-// |  @author: Pranab JD                                                          |
-// |                                                                              |
-// |  Description: -                                                              | 
-// |          CUDA kernels for GPU implementation                                 |
-// |                                                                              |
-// |          x, y, & z ---> Vectors                                              |
-// |          a, b, & c ---> Scalars                                              |
-// |                                                                              │
-// └──────────────────────────────────────────────────────────────────────────────┘
-
 #ifndef KERNEL_CUH_
 #define KERNEL_CUH_
 
