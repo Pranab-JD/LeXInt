@@ -14,15 +14,21 @@ struct RHS_Burgers:public Problems
     vec operator()(const vec& z)
     {
         //* Return vector, v
-        vec v(N);
+        vec v(N, 0.0);
 
-        //! (A_adv + A_dif).u
-        for (int jj = 0; jj < N; jj++)
+        //! (A_adv/2.0 + A_dif).u^2
+        for (int ii = 0; ii < N; ii++)
         {
-            for (int ii = 0; ii < N; ii++)
-            {
-                v[ii] = v[ii] + (A_dif[ii][jj]*z[jj]) + (A_adv[ii][jj]*z[jj]*z[jj])/2.0;
-            }
+            //? Diffusion
+            v[ii] =   1.0/(dx*dx) * z[(ii + 1) % N]
+                    - 2.0/(dx*dx) * z[ii]
+                    + 1.0/(dx*dx) * z[(ii + N - 1) % N];
+            
+            //? Advection
+            v[ii] = v[ii] - 2.0/6.0*velocity/dx * z[(ii + N - 1)%N] * z[(ii + N - 1)%N]/2.0
+                          - 3.0/6.0*velocity/dx * z[ii] * z[ii]/2.0
+                          + 6.0/6.0*velocity/dx * z[(ii + 1)%N] * z[(ii + 1)%N]/2.0
+                          - 1.0/6.0*velocity/dx * z[(ii + 2)%N] * z[(ii + 2)%N]/2.0;
         }
 
         return v;

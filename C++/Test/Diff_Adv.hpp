@@ -14,15 +14,21 @@ struct RHS_Dif_Adv:public Problems
     vec operator()(const vec& z)
     {
         //* Return vector, v
-        vec v(N);
+        vec v(N, 0.0);
 
         //! (A_adv + A_dif).u
-        for (int jj = 0; jj < N; jj++)
+        for (int ii = 0; ii < N; ii++)
         {
-            for (int ii = 0; ii < N; ii++)
-            {
-                v[ii] = v[ii] + (A_dif[ii][jj] + A_adv[ii][jj])*z[jj];
-            }
+            //? Diffusion
+            v[ii] =   1.0/(dx*dx) * z[(ii + 1) % N] 
+                    - 2.0/(dx*dx) * z[ii] 
+                    + 1.0/(dx*dx) * z[(ii + N - 1) % N];
+            
+            //? Advection
+            v[ii] = v[ii] - 2.0/6.0*velocity/dx*z[(ii + N - 1)%N]
+                          - 3.0/6.0*velocity/dx*z[ii]
+                          + 6.0/6.0*velocity/dx*z[(ii + 1)%N]
+                          - 1.0/6.0*velocity/dx*z[(ii + 2)%N];
         }
 
         return v;
