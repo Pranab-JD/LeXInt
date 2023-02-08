@@ -45,7 +45,7 @@ state real_Leja_phi_nl(rhs& RHS,                           //? RHS function
     state Jacobian_function(N);                         //? Jacobian-vector product
     state polynomial(N);                                //? Initialise the polynomial
     
-    //* Matrix exponential (scaled and shifted)
+    //* Phi function applied to 'interp_vector' (scaled and shifted)
     vector<double> phi_function_array(max_Leja_pts);
 
     for (int ii = 0; ii < max_Leja_pts; ii++)
