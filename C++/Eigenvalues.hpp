@@ -52,7 +52,7 @@ double Power_iterations(rhs& RHS,       //? RHS function
                         int N           //? Number of grid points
                         )
 {
-    double tol = 0.1;                                   //? 10% tolerance
+    double tol = 0.01;                                  //? 1% tolerance
     int niters = 1000;                                  //? Max. number of iterations
     double eigen_max, eigen_min;
     double largest_eigenvalue;                          //? Largest eigenvalue
