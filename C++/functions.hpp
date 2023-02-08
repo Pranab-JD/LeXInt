@@ -79,6 +79,7 @@ double factorial(int number)
 
 //! Return typename T !//
 
+//? y = ax
 template <typename T>
 T axpby(double a, const T& vector_x, size_t N)
 {
@@ -92,8 +93,10 @@ T axpby(double a, const T& vector_x, size_t N)
     return vector_z;
 }
 
+//? z = ax + by
 template <typename T>
-T axpby(double a, const T& vector_x, double b, const T& vector_y, size_t N)
+T axpby(double a, const T& vector_x, 
+        double b, const T& vector_y, size_t N)
 {
     T vector_z(N);
 
@@ -105,8 +108,11 @@ T axpby(double a, const T& vector_x, double b, const T& vector_y, size_t N)
     return vector_z;
 }
 
+//? w = ax + by + cz
 template <typename T>
-T axpby(double a, const T& vector_x, double b, const T& vector_y, double c, const T& vector_z, size_t N)
+T axpby(double a, const T& vector_x, 
+        double b, const T& vector_y, 
+        double c, const T& vector_z, size_t N)
 {
     T vector_w(N);
 
@@ -118,8 +124,12 @@ T axpby(double a, const T& vector_x, double b, const T& vector_y, double c, cons
     return vector_w;
 }
 
+//? v = ax + by + cz + dw
 template <typename T>
-T axpby(double a, const T& vector_x, double b, const T& vector_y, double c, const T& vector_z, double d, const T& vector_w, size_t N)
+T axpby(double a, const T& vector_x, 
+        double b, const T& vector_y, 
+        double c, const T& vector_z, 
+        double d, const T& vector_w, size_t N)
 {
     T vector_v(N);
 
@@ -131,6 +141,7 @@ T axpby(double a, const T& vector_x, double b, const T& vector_y, double c, cons
     return vector_v;
 }
 
+//? Jacobian_vector = (RHS(x + epsilon*y) - RHS(x - epsilon*y))/(2*epsilon)
 template <typename rhs, typename T>
 T Jacobian_vector(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
 {
@@ -138,24 +149,25 @@ T Jacobian_vector(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
     T rhs_u = RHS(vector_x); 
     double epsilon = 1e-7*l2norm(rhs_u, N);
     
-    //? u_eps1 = u + epsilon*y
+    //? x_eps1 = x + epsilon*y
     T vector_x_eps_1 = axpby(1.0, vector_x, epsilon, vector_y, N); 
 
-    //? u_eps2 = u - epsilon*y
+    //? x_eps2 = x - epsilon*y
     T vector_x_eps_2 = axpby(1.0, vector_x, -epsilon, vector_y, N); 
 
-    //? RHS(u + epsilon*y)
+    //? RHS(x + epsilon*y)
     T rhs_u_eps_1 = RHS(vector_x_eps_1);
 
-    //? RHS(u - epsilon*y)
+    //? RHS(x - epsilon*y)
     T rhs_u_eps_2 = RHS(vector_x_eps_2);
 
-    //? J(u) * y = (RHS(u + epsilon*y) - RHS(u - epsilon*y))/epsilon
+    //? J(u) * y = (RHS(x + epsilon*y) - RHS(x - epsilon*y))/(2*epsilon)
     T Jac_vec = axpby(1.0/(2.0*epsilon), rhs_u_eps_1, -1.0/(2.0*epsilon), rhs_u_eps_2, N);
 
     return Jac_vec;
 }
 
+//? F(y) = f(y) - (J(u) * y)
 template <typename rhs, typename T>
 T Nonlinear_remainder(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
 {
@@ -182,3 +194,4 @@ struct embedded_solutions
 };
 
 //! ======================================================================================== !//
+
