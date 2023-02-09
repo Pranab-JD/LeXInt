@@ -52,13 +52,14 @@ double Power_iterations(rhs& RHS,       //? RHS function
                         int N           //? Number of grid points
                         )
 {
-    double tol = 0.01;                                  //? 1% tolerance
+    double tol = 0.02;                                  //? 2% tolerance
     int niters = 1000;                                  //? Max. number of iterations
     double eigen_max, eigen_min;
     double largest_eigenvalue;                          //? Largest eigenvalue
     
-    vector<double> eigenvalue(niters);                  //? Array of largest eigenvalue at each iteration
-    vector<double> init_vector(N); init_vector[5] = 1;  //? Initial estimate of eigenvector
+    double eigenvalue_ii = 0.0;                         //? Eigenvalues at ii
+    double eigenvalue_ii_1 = 0.0;                       //? Eigenvalues at ii-1
+    vector<double> init_vector(N, 1.0);                 //? Initial estimate of eigenvector
     vector<double> eigenvector(N);                      //? Iniliatise eigenvector
 
     for (int ii = 0; ii < niters; ii++)
@@ -67,22 +68,20 @@ double Power_iterations(rhs& RHS,       //? RHS function
         eigenvector = Jacobian_vector(RHS, u, init_vector, N);
 
         //? Max of eigenvector = eigenvalue
-        eigen_max = *max_element(begin(eigenvector), end(eigenvector));
-        eigen_min = *min_element(begin(eigenvector), end(eigenvector));
-        eigenvalue[ii] = max(eigen_min, eigen_max);
+        eigenvalue_ii = l2norm(eigenvector, N);
 
-        //? Normalize eigenvector to eigenvalue
-        eigenvector = axpby(1.0/eigenvalue[ii], eigenvector, N);
-
-        //? New estimate of eigenvector
-        init_vector = axpby(1.0, eigenvector, N);
+        //? Normalize eigenvector to eigenvalue; new estimate of eigenvector
+        init_vector = axpby(1.0/eigenvalue_ii, eigenvector, N);
 
         //? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
-        if (abs(eigenvalue[ii] - eigenvalue[ii - 1]) <= tol * eigenvalue[ii])
+        if (abs(eigenvalue_ii - eigenvalue_ii_1) <= tol * eigenvalue_ii)
         {
-            largest_eigenvalue = eigenvalue[ii];
+            largest_eigenvalue = eigenvalue_ii;
             break;
         }
+
+        //? This value becomes the previous one
+        eigenvalue_ii_1 = eigenvalue_ii;
     }
 
     //! Returns the largest eigenvalue in magnitude (needs to multiplied to a safety factor)
