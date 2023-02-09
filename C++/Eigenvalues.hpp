@@ -53,12 +53,11 @@ double Power_iterations(rhs& RHS,       //? RHS function
                         )
 {
     double tol = 0.02;                                  //? 2% tolerance
-    int niters = 1000;                                  //? Max. number of iterations
-    double eigen_max, eigen_min;
+    double eigenvalue_ii = 0.0;                         //? Eigenvalue at ii
+    double eigenvalue_ii_1 = 0.0;                       //? Eigenvalue at ii-1
     double largest_eigenvalue;                          //? Largest eigenvalue
-    
-    double eigenvalue_ii = 0.0;                         //? Eigenvalues at ii
-    double eigenvalue_ii_1 = 0.0;                       //? Eigenvalues at ii-1
+    int niters = 1000;                                  //? Max. number of iterations
+  
     vector<double> init_vector(N, 1.0);                 //? Initial estimate of eigenvector
     vector<double> eigenvector(N);                      //? Iniliatise eigenvector
 
