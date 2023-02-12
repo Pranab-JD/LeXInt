@@ -16,3 +16,4 @@
 #include "./Integrators/EPIRK4s3.hpp"               //! 3rd and 4th order
 #include "./Integrators/EPIRK4s3A.hpp"              //! 3rd and 4th order
 #include "./Integrators/EPIRK4s3B.hpp"              //! 4th order; no embedded error estimate
+#include "./Integrators/EPIRK5P1.hpp"               //! 4th and 5th order
