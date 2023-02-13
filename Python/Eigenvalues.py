@@ -12,7 +12,11 @@ Description: -
         choose power iterations.
 """
 
+import sys
 import numpy as np
+
+sys.path.insert(1, "./LeXInt/Python/")
+from Jacobian import Jacobian
 
 def Gershgorin(A):
     """
@@ -27,7 +31,7 @@ def Gershgorin(A):
 
     """
 
-    ### Divide matrix 'A' into Hermitian and skew-Hermitian
+    ###? Divide matrix 'A' into Hermitian and skew-Hermitian
     A_Herm = (A + A.T.conj())/2
     A_SkewHerm = (A - A.T.conj())/2
 
@@ -40,39 +44,38 @@ def Power_iteration(u, RHS_function):
     """
     Parameters
     ----------
-    u                       : 1D vector u (input)
+    u                       : Input state variable(s)
     RHS_function	        : RHS function
 
     Returns
     -------
-    largest_eigen_value     : Largest eigenvalue (within 10% accuracy)
-    2*ii                    : # of RHS calls
+    largest_eigen_value     : Largest eigenvalue (within 2% accuracy)
+    3*ii                    : Number of RHS calls
 
     """
 
-    tol = 0.01                                  # 1% tolerance
-    niters = 1000                               # Max. # of iterations
-    epsilon = 1e-7
-    eigen_value = np.zeros(niters)              # Array of max. eigen value at each iteration
-    vector = np.zeros(len(u)); vector[0] = 1    # Initial estimate of eigen vector
+    tol = 0.02                                  #? 2% tolerance
+    niters = 1000                               #? Max. number of iterations                    
+    eigenvalue_ii_1 = 0                         #? Eigenvalue at ii-1
+    vector = np.ones(np.size(u))                #? Initial estimate of eigenvector
 
     for ii in range(niters):
 
-        ### Compute new eigenvector
-        eigen_vector = (RHS_function(u + (epsilon * vector)) - RHS_function(u - (epsilon * vector)))/(2*epsilon)
+        ###? Compute new eigenvector
+        eigenvector = Jacobian(RHS_function, u, vector)
 
-        ### Max of eigenvector = eigenvalue
-        eigen_value[ii] = np.max(abs(eigen_vector))
+        ###? Norm of eigenvector = eigenvalue
+        eigenvalue = np.linalg.norm(eigenvector)
         
-        ### Normalize eigenvector to eigenvalue
-        eigen_vector = eigen_vector/eigen_value[ii]
-        
-        ### New estimate of eigenvector
-        vector = eigen_vector.copy()
+        ###? Normalize eigenvector to eigenvalue; new estimate of eigenvector
+        vector = eigenvector/eigenvalue
 
-        ### Eigenvalues converge faster than eigenvectors, check convergence of eigenvalues
-        if (abs(eigen_value[ii] - eigen_value[ii - 1]) <= tol * eigen_value[ii]):
-            largest_eigen_value = eigen_value[ii]
+        ###? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
+        if (abs(eigenvalue - eigenvalue_ii_1) <= tol * eigenvalue):
+            largest_eigen_value = eigenvalue
             break
+        
+        ###? This value becomes the previous one
+        eigenvalue_ii_1 = eigenvalue
 
-    return largest_eigen_value, 2*ii
+    return largest_eigen_value, 3*ii
