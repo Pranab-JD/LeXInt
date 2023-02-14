@@ -46,4 +46,4 @@ Mayya Tokman  (<mtokman@ucmerced.edu>)
 In case of technical issues, please contact Pranab J. Deka.
 
 ## Acknowledgements
-Alexander Morrigl contributed to the development of the CUDA and C++ versions.
+Alexander Moriggl contributed to the development of the CUDA and C++ versions.
