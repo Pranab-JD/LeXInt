@@ -57,7 +57,7 @@ def Power_iteration(u, RHS_function):
     tol = 0.02                                  #? 2% tolerance
     niters = 1000                               #? Max. number of iterations                    
     eigenvalue_ii_1 = 0                         #? Eigenvalue at ii-1
-    vector = np.ones(np.size(u))                #? Initial estimate of eigenvector
+    vector = np.ones(np.shape(u))               #? Initial estimate of eigenvector
 
     for ii in range(niters):
 
