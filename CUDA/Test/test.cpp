@@ -21,6 +21,7 @@
 //? CUDA
 #include "../Leja.hpp"
 #include "../Leja_GPU.hpp"
+#include "../Integrators/integrators.hpp"
 
 //! ---------------------------------------------------------------------------
 
@@ -138,7 +139,8 @@ int main()
     //! Time Loop
     clock_gettime(CLOCK_REALTIME, &total_start);
 
-    // Ros_Eu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
+    //! Choose required integrator
+    integrator<RHS_Burgers> solver{N, "Rosenbrock_Euler"};
 
     while (time < t_final)
     {
@@ -172,7 +174,7 @@ int main()
 
         //* -------------------------------- *//
 
-        Ros_Eu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
+        solver(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
 
         // u_sol_embed = EPIRK5P1(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
         // vec error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
@@ -191,8 +193,6 @@ int main()
         // u = u_sol_embed.higher_order_solution;
         device_u = device_u_sol;
         time_steps = time_steps + 1;
-
-        // break;
     }
 
     //? Timers
