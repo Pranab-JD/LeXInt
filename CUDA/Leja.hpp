@@ -2,11 +2,11 @@
 
 //? Include Leja interpolation functions
 #include "real_Leja_exp.hpp"
-// #include "real_Leja_phi.hpp"
+#include "real_Leja_phi.hpp"
 #include "real_Leja_phi_nl.hpp"
 
 //? Include all solvers
-// #include "./Integrators/Rosenbrock_Euler.hpp"       //! 2nd order; no embedded error estimate
+#include "./Integrators/Rosenbrock_Euler.hpp"       //! 2nd order; no embedded error estimate
 // #include "./Integrators/EXPRB32.hpp"                //! 2nd and 3rd order
 // #include "./Integrators/EXPRB42.hpp"                //! 2nd and 4th order
 // #include "./Integrators/EXPRB43.hpp"                //! 3rd and 4th order

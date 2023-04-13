@@ -6,7 +6,6 @@
 #include <cmath>
 #include <functional>
 
-// #include "functions.hpp"
 #include "Divided_Differences.hpp"
 
 //? CUDA 
@@ -17,16 +16,16 @@
 using namespace std;
 
 //? Matrix exponential interpolated on real Leja points
-template <typename state, typename rhs>
-void Leja_GPU<state, rhs> :: real_Leja_exp(rhs& RHS,                       //? RHS function
-                                            double* u,                       //? State variable(s)
-                                            double* u_output,
-                                            vector<double>& Leja_X,         //? Array of Leja points
-                                            double c,                       //? Shifting factor
-                                            double Gamma,                   //? Scaling factor
-                                            double tol,                     //? Tolerance (normalised desired accuracy)
-                                            double dt                       //? Step size
-                                            )
+template <typename rhs>
+void Leja_GPU<rhs> :: real_Leja_exp(rhs& RHS,                       //? RHS function
+                                    double* device_u,               //? Input state variable(s)
+                                    double* device_polynomial,      //? Output state variable(s)
+                                    vector<double>& Leja_X,         //? Array of Leja points
+                                    double c,                       //? Shifting factor
+                                    double Gamma,                   //? Scaling factor
+                                    double tol,                     //? Tolerance (normalised desired accuracy)
+                                    double dt                       //? Step size
+                                    )
 {
     //* -------------------------------------------------------------------------
 
@@ -34,16 +33,16 @@ void Leja_GPU<state, rhs> :: real_Leja_exp(rhs& RHS,                       //? R
     //*
     //*    Returns
     //*    ----------
-    //*    polynomial              : state
-    //*                                Polynomial interpolation of 'u' multiplied 
-    //*                                by the matrix exponential at real Leja points
+    //*    device_polynomial        : double*
+    //*                                     Polynomial interpolation of 'u' multiplied 
+    //*                                     by the matrix exponential at real Leja points
 
     //* -------------------------------------------------------------------------
     
     double y_error;
-    double poly_norm;                                   //? Norm of the polynomial
-    int max_Leja_pts = Leja_X.size();                   //? Max. # of Leja points
-    cudaMemcpy(device_y, u, N_size, cudaMemcpyDefault); //? To avoid changing 'u'
+    double poly_norm;                                               //? Norm of the polynomial
+    int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
+    cudaMemcpy(device_y, device_u, N_size, cudaMemcpyDefault);      //? To avoid changing 'u'
 
     //* Matrix exponential (scaled and shifted)
     vector<double> matrix_exponential(max_Leja_pts);
@@ -73,10 +72,10 @@ void Leja_GPU<state, rhs> :: real_Leja_exp(rhs& RHS,                       //? R
         y_error = abs(coeffs[nn]) * y_error;
 
         //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[nn] * y))
-        axpby<<<blocks_per_grid, threads_per_block>>>(coeffs[nn], device_y, 1.0, u_output, u_output, N);
+        axpby<<<blocks_per_grid, threads_per_block>>>(coeffs[nn], device_y, 1.0, device_polynomial, device_polynomial, N);
 
         //* Compute norm of the polynomial
-        cublasDnrm2(cublas_handle, N, u_output, 1, &poly_norm);
+        cublasDnrm2(cublas_handle, N, device_polynomial, 1, &poly_norm);
 
         //? If new term to be added < tol, break loop; safety factor = 0.1
         if (y_error < (0.1*tol*poly_norm) + tol)

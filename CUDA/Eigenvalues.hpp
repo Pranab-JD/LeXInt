@@ -47,17 +47,17 @@ double Gershgorin(T A,      //? N x N matrix A
 
 //! Power Iterations
 template <typename rhs>
-void Power_iterations(rhs& RHS,       //? RHS function
-                      double* u,            //? State variable(s)
-                                 size_t N,           //? Number of grid points
-                                 double& largest_eigenvalue,
-                                 cublasHandle_t &cublas_handle
-                                 )
+void Power_iterations(rhs& RHS,                     //? RHS function
+                      double* u,                    //? State variable(s)
+                      size_t N,                     //? Number of grid points
+                      double& largest_eigenvalue,   //? Largest eigenvalue (output)
+                      cublasHandle_t &cublas_handle
+                      )
 {
-    double tol = 0.02;                                  //? 2% tolerance
-    double eigenvalue_ii = 0.0;                         //? Eigenvalue at ii
-    double eigenvalue_ii_1 = 0.0;                       //? Eigenvalue at ii-1
-    int niters = 1000;                                  //? Max. number of iterations
+    double tol = 0.02;                              //? 2% tolerance
+    double eigenvalue_ii = 0.0;                     //? Eigenvalue at ii
+    double eigenvalue_ii_1 = 0.0;                   //? Eigenvalue at ii-1
+    int niters = 1000;                              //? Max. number of iterations
 
     double* device_init_vector; cudaMalloc(&device_init_vector, N * sizeof(double));
     double* device_eigenvector; cudaMalloc(&device_eigenvector, N * sizeof(double));
