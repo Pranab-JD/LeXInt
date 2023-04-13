@@ -19,6 +19,7 @@
 #include "../functions.hpp"
 
 //? CUDA
+#include "../Leja.hpp"
 #include "../Leja_GPU.hpp"
 
 //! ---------------------------------------------------------------------------
@@ -80,10 +81,10 @@ int main()
 
     //* Initialise additional parameters
     double dx = X[2] - X[1];                        // Grid spacing
-    double velocity = 10;                           // Advection speed
+    double velocity = 20;                           // Advection speed
     double dif_cfl = dx*dx;                         // Diffusion CFL
     double adv_cfl = dx/velocity;                   // Advection CFL
-    double dt = 10*min(dif_cfl, adv_cfl);         // Step size
+    double dt = 0.1*min(dif_cfl, adv_cfl);         // Step size
     stringstream step_size;
     step_size << fixed << scientific << setprecision(1) << dt;
     cout << "Step size: " << dt << endl;
@@ -102,22 +103,23 @@ int main()
     // int blocks_per_grid = (N/threads_per_block) + 1;
 
     //? Define problems
-    RHS_Dif_Adv RHS = RHS_Dif_Adv(N, dx, velocity);
-    // RHS_Burgers RHS = RHS_Burgers(N, dx, velocity);
+    // RHS_Dif_Adv RHS = RHS_Dif_Adv(N, dx, velocity);
+    //TODO: pass X as function argument
+    // RHS_Dif_Source RHS = RHS_Dif_Source(N, X, dx, velocity);
+    RHS_Burgers RHS = RHS_Burgers(N, dx, velocity);
     
     //* Temporal parameters
     double time = 0;                                // Simulation time
-    double t_final = 0.05;                          // Final simulation time
+    double t_final = 0.01;                          // Final simulation time
     int time_steps = 0;                             // # time steps
 
     //? Shifting and scaling parameters
-    double eigen_dif = 0.0;
-    Power_iterations(RHS, device_u, N, eigen_dif, cublas_handle);         // Real eigenvalue has to be negative
-    eigen_dif = -1.2*eigen_dif;
-    double c = eigen_dif/2.0;
-    double Gamma = -eigen_dif/4.0;
+    double eigenvalue = 0.0;
+    Power_iterations(RHS, device_u, N, eigenvalue, cublas_handle);         // Real eigenvalue has to be negative
+    eigenvalue = -1.2*eigenvalue;
+    double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
 
-    cout << "Eigenvalue Diffusion: " << eigen_dif << endl;
+    cout << "Largest eigenvalue: " << eigenvalue << endl;
 
     //* Set of Leja points
     vec Leja_X = Leja_Points();
@@ -131,10 +133,12 @@ int main()
     cudaMemcpy(device_u, &u[0], N_size, cudaMemcpyHostToDevice);
 
     //! Construct Leja_GPU
-    Leja_GPU<vec, RHS_Dif_Adv> leja_gpu{N, cublas_handle};
+    Leja_GPU<RHS_Burgers> leja_gpu{N, cublas_handle};
 
     //! Time Loop
     clock_gettime(CLOCK_REALTIME, &total_start);
+
+    // Ros_Eu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
 
     while (time < t_final)
     {
@@ -151,21 +155,28 @@ int main()
 
         //? Linear equations
 
-        leja_gpu.real_Leja_exp(RHS, device_u, device_u_sol, Leja_X, c, Gamma, 1e-8, dt);
+        // leja_gpu.real_Leja_exp(RHS, device_u, device_u_sol, Leja_X, c, Gamma, 1e-8, dt);
 
         //? ---------------------------------------------------------------- ?//
 
         //? Embedded integrators
 
-        // //? Largest eigenvalue of the Jacobian, for nonlinear equations, changes at every time step
-        // double eigen_power = -1.2*Power_iterations(RHS, u, N); 
-        // // cout << "Eigenvalue PowerIters : " << eigen_power << endl;
+        //* -------------------------------- *//
 
-        // // u_sol = EPIRK4s3B(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
+        //? Largest eigenvalue of the Jacobian, for nonlinear equations, changes at every time step
+        Power_iterations(RHS, device_u, N, eigenvalue, cublas_handle);         // Real eigenvalue has to be negative
+        eigenvalue = -1.2*eigenvalue;
+        c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
+
+        cout << "Largest eigenvalue: " << eigenvalue << endl;
+
+        //* -------------------------------- *//
+
+        Ros_Eu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
 
         // u_sol_embed = EPIRK5P1(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
-        // // vec error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
-        // // cout << "Embedded error: " << *max_element(begin(error_vec), end(error_vec)) << endl << endl;
+        // vec error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
+        // cout << "Embedded error: " << *max_element(begin(error_vec), end(error_vec)) << endl << endl;
 
 
         clock_gettime(CLOCK_REALTIME, &leja_finish);
@@ -178,7 +189,7 @@ int main()
         //* Update variables
         time = time + dt;
         // u = u_sol_embed.higher_order_solution;
-        u = u_sol;
+        device_u = device_u_sol;
         time_steps = time_steps + 1;
 
         // break;

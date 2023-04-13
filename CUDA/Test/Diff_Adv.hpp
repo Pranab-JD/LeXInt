@@ -27,7 +27,6 @@ __global__ void Dif_Adv(int N, double dx, double velocity, double* z, double* v)
 
 struct RHS_Dif_Adv:public Problems
 {
-
     //! Constructor
     RHS_Dif_Adv(int _N, double _dx, double _velocity) : Problems(_N, _dx, _velocity) {}
 

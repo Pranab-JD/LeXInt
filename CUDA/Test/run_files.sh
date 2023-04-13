@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -p tv
+#SBATCH -p gtx
 #SBATCH -o job.out
 #SBATCH -N 1
 #SBATCH -n 1
