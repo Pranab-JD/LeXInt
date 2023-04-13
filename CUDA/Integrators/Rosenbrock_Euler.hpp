@@ -9,19 +9,34 @@
 #include "../Phi_functions.hpp"
 #include "../real_Leja_phi.hpp"
 
+//? CUDA 
+#include <cublas_v2.h>
+#include "../error_check.hpp"
+#include "../Leja_GPU.hpp"
+
 using namespace std;
 
 //? Phi functions interpolated on real Leja points
-template <typename state, typename rhs>
-state Ros_Eu(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double Gamma, double tol, double dt, int Real_Imag)
+template <typename rhs>
+void Ros_Eu(rhs& RHS, 
+            double* device_u, 
+            double* device_u_exprb2, 
+            int N, 
+            vector<double>& Leja_X, 
+            double c,
+            double Gamma,
+            double tol,
+            double dt,
+            struct Leja_GPU<rhs> leja_gpu
+            )
 {
     //* -------------------------------------------------------------------------
 
     //*
     //*    Returns
     //*    ----------
-    //*     u_exprb2                : state
-    //*                                 2nd order solution after time dt
+    //*     u_exprb2                : double*
+    //*                                     2nd order solution after time dt
     //*
     //*
     //*    Reference:
@@ -31,14 +46,17 @@ state Ros_Eu(rhs& RHS, state& u, int N, vector<double>& Leja_X, double c, double
     //* -------------------------------------------------------------------------
 
     //? RHS evaluated at 'u' multiplied by 'dt'
-    state rhs_u = RHS(u);                               
-    rhs_u = axpby(dt, rhs_u, N);
+    double* device_rhs_u; cudaMalloc(&device_rhs_u, N * sizeof(double));
+    RHS(device_u, device_rhs_u);
+    axpby<<<(N/128) + 1, 128>>>(dt, device_rhs_u, device_rhs_u, N);
 
     //? Internal stage 1; interpolation of RHS(u) at 1
-    vector<state> u_flux = real_Leja_phi(RHS, u, rhs_u, {1.0}, N, phi_1, Leja_X, c, Gamma, tol, dt);
+    double* device_u_flux; cudaMalloc(&device_u_flux, N * sizeof(double));
+    leja_gpu.real_Leja_phi(RHS, device_u, device_rhs_u, device_u_flux, {1.0}, phi_1, Leja_X, c, Gamma, tol, dt);
 
     //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
-    state u_exprb2 = axpby(1.0, u, 1.0, u_flux[0], N);
+    axpby<<<(N/128) + 1, 128>>>(1.0, device_u, 1.0, device_u_flux, device_u_exprb2, N);
 
-    return u_exprb2;
+    cudaFree(device_rhs_u);
+    cudaFree(device_u_flux);
 }
