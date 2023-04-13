@@ -27,7 +27,8 @@ void Ros_Eu(rhs& RHS,
             double Gamma,
             double tol,
             double dt,
-            struct Leja_GPU<rhs> leja_gpu
+            struct Leja_GPU<rhs> leja_gpu,
+            double* device_auxillary
             )
 {
     //* -------------------------------------------------------------------------
@@ -46,17 +47,14 @@ void Ros_Eu(rhs& RHS,
     //* -------------------------------------------------------------------------
 
     //? RHS evaluated at 'u' multiplied by 'dt'
-    double* device_rhs_u; cudaMalloc(&device_rhs_u, N * sizeof(double));
+    double* device_rhs_u = &device_auxillary[0];
     RHS(device_u, device_rhs_u);
     axpby<<<(N/128) + 1, 128>>>(dt, device_rhs_u, device_rhs_u, N);
 
     //? Internal stage 1; interpolation of RHS(u) at 1
-    double* device_u_flux; cudaMalloc(&device_u_flux, N * sizeof(double));
+    double* device_u_flux = &device_auxillary[N];
     leja_gpu.real_Leja_phi(RHS, device_u, device_rhs_u, device_u_flux, {1.0}, phi_1, Leja_X, c, Gamma, tol, dt);
 
     //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     axpby<<<(N/128) + 1, 128>>>(1.0, device_u, 1.0, device_u_flux, device_u_exprb2, N);
-
-    cudaFree(device_rhs_u);
-    cudaFree(device_u_flux);
 }
