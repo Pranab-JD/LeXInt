@@ -10,24 +10,21 @@
 #include <algorithm>
 #include <numeric>
 
+#include "../Timer.hpp"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
 //? Problems
 #include "Diff_Adv.hpp"
 #include "Burgers.hpp"
-#include "../functions.hpp"
-
-//? CUDA
-#include "../Leja.hpp"
-#include "../Leja_GPU.hpp"
-#include "../Integrators/integrators.hpp"
 
 //! ---------------------------------------------------------------------------
 
 //! Include Exponential Integrators and Leja functions 
 //! (This has to be included to use Leja and/or exponential integrators)
 #include "../Leja.hpp"
+#include "../Leja_GPU.hpp"
 
 //! Functions to compute the largest eigenvalue (in magnitude)
 #include "../Eigenvalues.hpp"
@@ -60,24 +57,24 @@ vector<double> Leja_Points()
     return Leja_X;
 }
 
+
 //? ====================================================================================== ?//
 
 int main()
 {
     //* Initialise parameters
-    int N = 100;                                    // # grid points
-    double xmin = -1.0;                             // Left boundary (limit)
-    double xmax =  1.0;                             // Right boundary (limit)
+    int N = 1e7;                                    // # grid points
+    double xmin = -100.0;                           // Left boundary (limit)
+    double xmax =  100.0;                           // Right boundary (limit)
     vec X(N);                                       // Array of grid points
-    vec u(N);                                       // Initial condition
+    vec u_init(N);                                       // Initial condition
     vec u_sol(N);                                   // Solution vector
-    embedded_solutions<vec> u_sol_embed;
 
     //* Set up X array and initial condition
     for (int ii = 0; ii < N; ii++)
     {
         X[ii] = xmin + ii*(xmax - xmin)/N;
-        u[ii] = sin(X[ii]);
+        u_init[ii] = sin(X[ii]);
     }
 
     //* Initialise additional parameters
@@ -85,23 +82,23 @@ int main()
     double velocity = 20;                           // Advection speed
     double dif_cfl = dx*dx;                         // Diffusion CFL
     double adv_cfl = dx/velocity;                   // Advection CFL
-    double dt = 0.1*min(dif_cfl, adv_cfl);         // Step size
+    double dt = 1*min(dif_cfl, adv_cfl);         // Step size
     stringstream step_size;
     step_size << fixed << scientific << setprecision(1) << dt;
     cout << "Step size: " << dt << endl;
 
-    //! Transfer to GPU
-    size_t N_size = N * sizeof(double);
-    double *device_u; cudaMalloc(&device_u, N_size);
-    double *device_u_sol; cudaMalloc(&device_u_sol, N_size);
-    cudaMemcpy(device_u, &u[0], N_size, cudaMemcpyHostToDevice);
-        
-    //? Cublas Handle
-    cublasHandle_t cublas_handle;
-    cublasCreate_v2(&cublas_handle);
+    //! Set GPU spport to false
+    bool GPU_access = false;
 
-    // int threads_per_block = 128;
-    // int blocks_per_grid = (N/threads_per_block) + 1;
+    //! Allocate memory on CPU
+    size_t N_size = N * sizeof(double);
+    double *u = (double*)malloc(N_size);
+    double *u_low = (double*)malloc(N_size);
+    double *u_high = (double*)malloc(N_size);
+    double *error = (double*)malloc(N_size);
+    double *auxillary_Jv = (double*)malloc(7*N_size);
+    copy(u_init.begin(), u_init.end(), u);
+
 
     //? Define problems
     // RHS_Dif_Adv RHS = RHS_Dif_Adv(N, dx, velocity);
@@ -111,36 +108,29 @@ int main()
     
     //* Temporal parameters
     double time = 0;                                // Simulation time
-    double t_final = 0.01;                          // Final simulation time
+    double t_final = 0.05;                          // Final simulation time
     int time_steps = 0;                             // # time steps
 
     //? Shifting and scaling parameters
-    double eigenvalue = 0.0;
-    Power_iterations(RHS, device_u, N, eigenvalue, cublas_handle);         // Real eigenvalue has to be negative
-    eigenvalue = -1.2*eigenvalue;
-    double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+    // double eigen_power = -1.2*Power_iterations(RHS, u, N);        // Real eigenvalue has to be negative
+    double eigen_power = -1.2*1e10;        // Real eigenvalue has to be negative
+    double c = eigen_power/2.0;
+    double Gamma = -eigen_power/4.0;
 
-    cout << "Largest eigenvalue: " << eigenvalue << endl;
+    // cout << "Largest eigenvalue: " << eigenvalue << endl;
 
     //* Set of Leja points
     vec Leja_X = Leja_Points();
 
-    //? Timer
-    struct timespec total_start, total_finish, total_elapsed;
-    struct timespec leja_start, leja_finish, leja_elapsed;
-    vec time_leja;
-
-    //! Copy state variable to device
-    cudaMemcpy(device_u, &u[0], N_size, cudaMemcpyHostToDevice);
-
     //! Construct Leja_GPU
-    Leja_GPU<RHS_Burgers> leja_gpu{N, cublas_handle};
+    string integrator = "EXPRB53s3";
+    Leja_GPU<RHS_Burgers> leja_gpu{N, integrator};
 
     //! Time Loop
-    clock_gettime(CLOCK_REALTIME, &total_start);
+    timer time_loop;
+    time_loop.start();
 
-    //! Choose required integrator
-    integrator<RHS_Burgers> solver{N, "Rosenbrock_Euler"};
+    GPU_handle cublas_h;
 
     while (time < t_final)
     {
@@ -150,68 +140,56 @@ int main()
             dt = t_final - time;
         }
 
-        //* Timer
-        clock_gettime(CLOCK_REALTIME, &leja_start);
+        //* Solve (choose required integrator)
 
         //? ---------------------------------------------------------------- ?//
 
         //? Linear equations
 
-        // leja_gpu.real_Leja_exp(RHS, device_u, device_u_sol, Leja_X, c, Gamma, 1e-8, dt);
+        // u_sol = real_Leja_exp(RHS, u, N, Leja_X, c, Gamma, 1e-8, dt);
 
         //? ---------------------------------------------------------------- ?//
 
         //? Embedded integrators
 
-        //* -------------------------------- *//
-
         //? Largest eigenvalue of the Jacobian, for nonlinear equations, changes at every time step
-        Power_iterations(RHS, device_u, N, eigenvalue, cublas_handle);         // Real eigenvalue has to be negative
-        eigenvalue = -1.2*eigenvalue;
-        c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
+        if (integrator == "EXPRB32" or integrator == "EXPRB42" or integrator == "EXPRB43" or integrator == "EXPRB53s3" 
+        or integrator == "EPIRK4s3" or integrator == "EPIRK4s3A")
+        {
+            //? Embedded integrators
+            leja_gpu(RHS, u, u_low, u_high, N, Leja_X, c, Gamma, 1e-8, dt, GPU_access);
+            
+            axpby(1.0, u_low, -1.0, u_high, error, N, GPU_access);
+            double error_norm = l2norm(error, N, GPU_access, cublas_h);
+            cout << "Embedded error: " << error_norm << endl;
+        }
+        else
+        {
+            cout << "ERROR: Please choose an available integator. See 'Leja.hpp'." << endl;
+        }
 
-        cout << "Largest eigenvalue: " << eigenvalue << endl;
-
-        //* -------------------------------- *//
-
-        solver(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, 1e-8, dt, leja_gpu);
-
-        // u_sol_embed = EPIRK5P1(RHS, u, N, Leja_X, c, Gamma, 1e-10, dt, 0);
-        // vec error_vec = axpby(1.0, u_sol_embed.higher_order_solution, -1.0, u_sol_embed.lower_order_solution, N);
-        // cout << "Embedded error: " << *max_element(begin(error_vec), end(error_vec)) << endl << endl;
-
-
-        clock_gettime(CLOCK_REALTIME, &leja_finish);
-        sub_timespec(leja_start, leja_finish, &leja_elapsed);
-        double leja_time = (int)leja_elapsed.tv_sec + (pow(10, -9) * leja_elapsed.tv_nsec);
-        time_leja.push_back(leja_time);
 
         //? ---------------------------------------------------------------- ?//
 
         //* Update variables
         time = time + dt;
-        // u = u_sol_embed.higher_order_solution;
-        device_u = device_u_sol;
+        swap(u, u_high);
         time_steps = time_steps + 1;
+        cout << endl << endl;
+
+        if (time_steps == 10)
+            break;
     }
 
-    //? Timers
-    clock_gettime(CLOCK_REALTIME, &total_finish);
-    sub_timespec(total_start, total_finish, &total_elapsed);
-    double total_time = (int)total_elapsed.tv_sec + (pow(10, -9) * total_elapsed.tv_nsec);
-
-    double leja_cost = accumulate(time_leja.begin(), time_leja.end(), 0.0f);
-
-    // cout << setprecision(16) << "Norm of u (test.cpp): " << l2norm(u, N) << endl;
+    time_loop.stop();
 
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
     cout << "Total number of time steps: " << time_steps << endl;
-    cout << "Total time elapsed (s): " << total_time << endl;
-    cout << "Time elapsed for Leja method (s): " << leja_cost << endl;
+    cout << "Total time elapsed (s): " << time_loop.total() << endl;
     cout << "==================================================" << endl << endl;
 
-    //! Create nested directories
+    // //! Create nested directories
     // system(("mkdir -p ../../LeXInt_Test/Cpp/Burgers/EPIRK5P1_5/dt_" + step_size.str()).c_str());
 
     // // Write data to files
@@ -221,8 +199,6 @@ int main()
     //     outfile << setprecision(16) << u[ii] << endl;
     // }
     // outfile.close();
-    
-    cublasDestroy_v2(cublas_handle);
 
     return 0;
 }
