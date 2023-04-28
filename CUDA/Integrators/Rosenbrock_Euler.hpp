@@ -27,8 +27,9 @@ void Ros_Eu(rhs& RHS,
             double Gamma,
             double tol,
             double dt,
-            struct Leja_GPU<rhs> leja_gpu,
-            double* device_auxillary
+            double* device_auxillary,
+            cublasHandle_t &cublas_handle
+            // Leja_GPU<rhs> leja_gpu             //? Struct consisiting of Leja interp functions 
             )
 {
     //* -------------------------------------------------------------------------
