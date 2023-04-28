@@ -1,9 +1,10 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
+#ifdef __CUDACC__
+// #include <iostream>
+// #include <iomanip>
+// #include "cuda_runtime.h"
 
-#include "cuda_runtime.h"
 
 using namespace std;
 
@@ -19,3 +20,5 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
       if (abort) exit(code);
    }
 }
+
+#endif

@@ -17,39 +17,31 @@ using namespace std;
 
 //! ======================================================================================== !//
 
-//! Return void !//
-
-//* Function to compute precise time
-enum { NS_PER_SECOND = 1000000000 };
-
-void sub_timespec(struct timespec t1, struct timespec t2, struct timespec *td)
-{
-    td->tv_nsec = t2.tv_nsec - t1.tv_nsec;
-    td->tv_sec  = t2.tv_sec - t1.tv_sec;
-    if (td->tv_sec > 0 && td->tv_nsec < 0)
-    {
-        td->tv_nsec += NS_PER_SECOND;
-        td->tv_sec--;
-    }
-    else if (td->tv_sec < 0 && td->tv_nsec > 0)
-    {
-        td->tv_nsec -= NS_PER_SECOND;
-        td->tv_sec++;
-    }
-}
-
-//! ======================================================================================== !//
-
 //! Return double !//
 
-template <typename T>
-double l2norm(T vector_1, size_t N)
+double l1norm_Cpp(double* vector, size_t N)
 {
+
     double norm = 0.0;
 
+    #pragma omp parallel for reduction(+:norm)
     for (int ii = 0; ii < N; ii++)
     {
-        norm = norm + (vector_1[ii] * vector_1[ii]);
+        norm = norm + abs(vector[ii]);
+    }
+
+    return norm;
+}
+
+double l2norm_Cpp(double* vector, size_t N)
+{
+
+    double norm = 0.0;
+
+    #pragma omp parallel for reduction(+:norm)
+    for (int ii = 0; ii < N; ii++)
+    {
+        norm = norm + (vector[ii] * vector[ii]);
     }
 
     return sqrt(norm);
@@ -80,117 +72,53 @@ double factorial(int number)
 //! Return typename T !//
 
 //? y = ax
-template <typename T>
-T axpby(double a, const T& vector_x, size_t N)
+void axpby_Cpp(double a, double *x, 
+                         double *y, size_t N)                    
 {
-    T vector_z(N);
-
+    #pragma omp parallel for
     for (int ii = 0; ii < N; ii++)
     {
-        vector_z[ii] = a * vector_x[ii];
+        y[ii] = (a * x[ii]);
     }
-
-    return vector_z;
 }
 
 //? z = ax + by
-template <typename T>
-T axpby(double a, const T& vector_x, 
-        double b, const T& vector_y, size_t N)
+void axpby_Cpp(double a, double *x, 
+               double b, double *y, 
+                         double *z, size_t N)
 {
-    T vector_z(N);
-
+    #pragma omp parallel for
     for (int ii = 0; ii < N; ii++)
     {
-        vector_z[ii] = (a * vector_x[ii]) + (b * vector_y[ii]);
+        z[ii] = (a * x[ii]) + (b * y[ii]);
     }
 
-    return vector_z;
 }
 
 //? w = ax + by + cz
-template <typename T>
-T axpby(double a, const T& vector_x, 
-        double b, const T& vector_y, 
-        double c, const T& vector_z, size_t N)
+void axpby_Cpp(double a, double *x,
+               double b, double *y,
+               double c, double *z, 
+                         double *w, size_t N)
 {
-    T vector_w(N);
-
+    #pragma omp parallel for
     for (int ii = 0; ii < N; ii++)
     {
-        vector_w[ii] = (a * vector_x[ii]) + (b * vector_y[ii]) + (c * vector_z[ii]);
+        w[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]);
     }
-
-    return vector_w;
 }
 
 //? v = ax + by + cz + dw
-template <typename T>
-T axpby(double a, const T& vector_x, 
-        double b, const T& vector_y, 
-        double c, const T& vector_z, 
-        double d, const T& vector_w, size_t N)
+void axpby_Cpp(double a, double *x,
+               double b, double *y,
+               double c, double *z,
+               double d, double *w,
+                         double *v, size_t N)
 {
-    T vector_v(N);
-
+    #pragma omp parallel for
     for (int ii = 0; ii < N; ii++)
     {
-        vector_v[ii] = (a * vector_x[ii]) + (b * vector_y[ii]) + (c * vector_z[ii]) + (d * vector_w[ii]);
+        v[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]) + (d * w[ii]);
     }
-
-    return vector_v;
 }
 
-//? Jacobian_vector = (RHS(x + epsilon*y) - RHS(x - epsilon*y))/(2*epsilon)
-template <typename rhs, typename T>
-T Jacobian_vector(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
-{
-    //* epsilon has to be normalised to RHS(u)
-    T rhs_u = RHS(vector_x); 
-    double epsilon = 1e-7*l2norm(rhs_u, N);
-    
-    //? x_eps1 = x + epsilon*y
-    T vector_x_eps_1 = axpby(1.0, vector_x, epsilon, vector_y, N); 
-
-    //? x_eps2 = x - epsilon*y
-    T vector_x_eps_2 = axpby(1.0, vector_x, -epsilon, vector_y, N); 
-
-    //? RHS(x + epsilon*y)
-    T rhs_u_eps_1 = RHS(vector_x_eps_1);
-
-    //? RHS(x - epsilon*y)
-    T rhs_u_eps_2 = RHS(vector_x_eps_2);
-
-    //? J(u) * y = (RHS(x + epsilon*y) - RHS(x - epsilon*y))/(2*epsilon)
-    T Jac_vec = axpby(1.0/(2.0*epsilon), rhs_u_eps_1, -1.0/(2.0*epsilon), rhs_u_eps_2, N);
-
-    return Jac_vec;
-}
-
-// //? F(y) = f(y) - (J(u) * y)
-// template <typename rhs, typename T>
-// T Nonlinear_remainder(rhs& RHS, const T& vector_x, const T& vector_y, size_t N)
-// {
-//     //? J(u) * y = (RHS(u + epsilon*y) - RHS(u))/epsilon
-//     T Linear_y = Jacobian_vector(RHS, vector_x, vector_y, N);
-
-//     //? F(y) = f(y) - (J(u) * y)
-//     T rhs_y = RHS(vector_y);
-//     T Nonlinear_y = axpby(1.0, rhs_y, -1.0, Linear_y, N);
-
-//     return Nonlinear_y;
-// }
-
-//! ======================================================================================== !//
-
-//! Structs !//
-
-template<typename T>
-struct embedded_solutions
-{
-
-    T lower_order_solution;
-    T higher_order_solution;
-};
-
-//! ======================================================================================== !//

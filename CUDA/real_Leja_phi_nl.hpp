@@ -18,7 +18,7 @@ using namespace std;
 
 //? Phi function interpolated on real Leja points
 template <typename rhs>
-void Leja_GPU<rhs> ::  real_Leja_phi_nl(rhs& RHS,                           //? RHS function
+real_Leja_phi_nl(rhs& RHS,                           //? RHS function
                                                double* device_interp_vector,       //? Input vector multiplied to phi function
                                                double* device_polynomial,          //? Output vector multiplied to phi function
                                                double (* phi_function) (double),   //? Phi function (typically phi_1)

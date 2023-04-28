@@ -17,7 +17,7 @@ using namespace std;
 
 //? Matrix exponential interpolated on real Leja points
 template <typename rhs>
-void Leja_GPU<rhs> :: real_Leja_exp(rhs& RHS,                       //? RHS function
+real_Leja_exp(rhs& RHS,                       //? RHS function
                                     double* device_u,               //? Input state variable(s)
                                     double* device_polynomial,      //? Output state variable(s)
                                     vector<double>& Leja_X,         //? Array of Leja points

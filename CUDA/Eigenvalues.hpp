@@ -3,7 +3,8 @@
 #include <iostream>
 #include <vector>
 
-#include "functions.hpp"
+#include "Kernels_CUDA_Cpp.hpp"
+#include "Jacobian_vector.hpp"
 
 using namespace std;
 
@@ -51,7 +52,9 @@ void Power_iterations(rhs& RHS,                     //? RHS function
                       double* u,                    //? State variable(s)
                       size_t N,                     //? Number of grid points
                       double& largest_eigenvalue,   //? Largest eigenvalue (output)
-                      cublasHandle_t &cublas_handle
+                      double* device_auxillary,
+                      bool GPU,
+                      GPU_handle& cublas_handle
                       )
 {
     double tol = 0.02;                              //? 2% tolerance
@@ -59,19 +62,20 @@ void Power_iterations(rhs& RHS,                     //? RHS function
     double eigenvalue_ii_1 = 0.0;                   //? Eigenvalue at ii-1
     int niters = 1000;                              //? Max. number of iterations
 
-    double* device_init_vector; cudaMalloc(&device_init_vector, N * sizeof(double));
-    double* device_eigenvector; cudaMalloc(&device_eigenvector, N * sizeof(double));
+    double* device_init_vector = &device_auxillary[0];
+    double* device_eigenvector = &device_auxillary[N];
+    double* device_auxillary_Jv = &device_auxillary[2*N];
 
     for (int ii = 0; ii < niters; ii++)
     {
         //? Compute new eigenvector
-        Jacobian_vector(RHS, u, device_init_vector, device_eigenvector, N, cublas_handle);
+        Jacobian_vector(RHS, u, device_init_vector, device_eigenvector, device_auxillary_Jv, N, GPU, cublas_handle);
 
         //? Norm of eigenvector = eigenvalue
-        cublasDnrm2(cublas_handle, N, device_eigenvector, 1, &eigenvalue_ii);
+        eigenvalue_ii = l2norm(device_eigenvector, N, GPU, cublas_handle);
 
         //? Normalize eigenvector to eigenvalue; new estimate of eigenvector
-        axpby<<<(N/128) + 1, 128>>>(1.0/eigenvalue_ii, device_eigenvector, device_init_vector, N);
+        axpby(1.0/eigenvalue_ii, device_eigenvector, device_init_vector, N, GPU);
 
         //? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
         if (abs(eigenvalue_ii - eigenvalue_ii_1) <= tol * eigenvalue_ii)
@@ -84,9 +88,6 @@ void Power_iterations(rhs& RHS,                     //? RHS function
         //? This value becomes the previous one
         eigenvalue_ii_1 = eigenvalue_ii;
     }
-
-    cudaFree(device_init_vector);
-    cudaFree(device_eigenvector);
 }
 
 //! ======================================================================================== !//
