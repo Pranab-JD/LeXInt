@@ -1,13 +1,19 @@
 #pragma once
 
-#include <math.h>
-#include "error_check.hpp"
+//? ----------------------------------------------------------
+//?
+//? Description:
+//?     A pleothera of kernels are defined here that
+//?     are used throughout the code.
+//?
+//? ----------------------------------------------------------
 
+
+#include "error_check.hpp"
 #include "Timer.hpp"
 
 #ifdef __CUDACC__
     #include "cublas_v2.h"
-    #include <cub/cub.cuh>
     #include "cuda_runtime.h"
 #endif
 
@@ -34,6 +40,17 @@ struct GPU_handle
 
 
 #ifdef __CUDACC__
+
+//? ones(y) = (y[0:N] =) 1.0
+__global__ void ones_CUDA(double *x, size_t N)                    
+{
+    int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(ii < N)
+    {
+        x[ii] = 1.0;
+    }
+}
 
 //? y = ax
 __global__ void axpby_CUDA(double a, double *x, 
@@ -89,4 +106,12 @@ __global__ void axpby_CUDA(double a, double *x,
     }
 }
 
+//? Boundary conditions
+__global__ void boundary_1D()
+{
+
+}
+
 #endif
+
+//TODO: Implement kernel for boundary conditions

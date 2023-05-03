@@ -1,10 +1,6 @@
 #pragma once
 
 #ifdef __CUDACC__
-// #include <iostream>
-// #include <iomanip>
-// #include "cuda_runtime.h"
-
 
 using namespace std;
 

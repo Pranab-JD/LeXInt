@@ -1,15 +1,9 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-#include <functional>
-
 #include "Divided_Differences.hpp"
+#include "Timer.hpp"
 
-//? CUDA 
-#include "cublas_v2.h"
+//? CUDA
 #include "error_check.hpp"
 #include "Leja_GPU.hpp"
 
@@ -17,15 +11,19 @@ using namespace std;
 
 //? Matrix exponential interpolated on real Leja points
 template <typename rhs>
-real_Leja_exp(rhs& RHS,                       //? RHS function
-                                    double* device_u,               //? Input state variable(s)
-                                    double* device_polynomial,      //? Output state variable(s)
-                                    vector<double>& Leja_X,         //? Array of Leja points
-                                    double c,                       //? Shifting factor
-                                    double Gamma,                   //? Scaling factor
-                                    double tol,                     //? Tolerance (normalised desired accuracy)
-                                    double dt                       //? Step size
-                                    )
+void real_Leja_exp(rhs& RHS,                       //? RHS function
+                   double* u,                      //? Input state variable(s)
+                   double* polynomial,             //? Output matrix exponential multiplied by 'u'
+                   double* auxillary_Leja,         //? Internal auxillary variables (Leja)
+                   size_t N,                       //? Number of grid points
+                   vector<double>& Leja_X,         //? Array of Leja points
+                   double c,                       //? Shifting factor
+                   double Gamma,                   //? Scaling factor
+                   double tol,                     //? Tolerance (normalised desired accuracy)
+                   double dt,                      //? Step size
+                   bool GPU,                       //? false (0) --> CPU; true (1) --> GPU
+                   GPU_handle& cublas_handle       //? CuBLAS handle
+                   )
 {
     //* -------------------------------------------------------------------------
 
@@ -33,16 +31,14 @@ real_Leja_exp(rhs& RHS,                       //? RHS function
     //*
     //*    Returns
     //*    ----------
-    //*    device_polynomial        : double*
-    //*                                     Polynomial interpolation of 'u' multiplied 
-    //*                                     by the matrix exponential at real Leja points
+    //*    polynomial        : double*
+    //*                             Polynomial interpolation of 'u' multiplied 
+    //*                             by the matrix exponential at real Leja points
 
     //* -------------------------------------------------------------------------
     
-    double y_error;
-    double poly_norm;                                               //? Norm of the polynomial
     int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
-    cudaMemcpy(device_y, device_u, N_size, cudaMemcpyDefault);      //? To avoid changing 'u'
+    double* Jacobian_function = &auxillary_Leja[0];                 //? Auxillary variable for Jacobian-vector product
 
     //* Matrix exponential (scaled and shifted)
     vector<double> matrix_exponential(max_Leja_pts);
@@ -55,30 +51,27 @@ real_Leja_exp(rhs& RHS,                       //? RHS function
     //* Compute polynomial coefficients
     vector<double> coeffs = Divided_Differences(Leja_X, matrix_exponential);
 
-    //* Form the polynomial (first term): polynomial = coeffs[0] * y
-    axpby<<<blocks_per_grid, threads_per_block>>>(coeffs[0], device_y, device_polynomial, N);
+    //* Form the polynomial (first term): polynomial = coeffs[0] * u
+    axpby(coeffs[0], u, polynomial, N, GPU);
 
     //? Iterate until converges
     for (int nn = 1; nn < max_Leja_pts - 1; nn++)
     {
         //* Compute numerical Jacobian (for linear eqs., this is the RHS evaluation at y)
-        RHS(device_y, device_Jacobian_function);
+        RHS(u, Jacobian_function);
 
-        //* y = y * ((z - c)/Gamma - Leja_X)
-        axpby<<<blocks_per_grid, threads_per_block>>>(1./Gamma, device_Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), device_y, device_y, N);
+        //* u = u * ((z - c)/Gamma - Leja_X)
+        axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), u, u, N, GPU);
 
-        //* Error estimate for 'y': y_error = |coeffs[nn]| ||y||
-        cublasDnrm2(cublas_handle, N, device_y, 1, &y_error);
-        y_error = abs(coeffs[nn]) * y_error;
+        //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[nn] * u))
+        axpby(coeffs[nn], u, 1.0, polynomial, polynomial, N, GPU);
 
-        //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[nn] * y))
-        axpby<<<blocks_per_grid, threads_per_block>>>(coeffs[nn], device_y, 1.0, device_polynomial, device_polynomial, N);
+        //* Error estimate: poly_error = |coeffs[nn]| ||u|| at every iteration
+        double poly_error = l2norm(u, N, GPU, cublas_handle);
+        poly_error = abs(coeffs[nn]) * poly_error;
 
-        //* Compute norm of the polynomial
-        cublasDnrm2(cublas_handle, N, device_polynomial, 1, &poly_norm);
-
-        //? If new term to be added < tol, break loop; safety factor = 0.1
-        if (y_error < (0.1*tol*poly_norm) + tol)
+        //? If new term to be added < tol, break loop
+        if (poly_error < ((tol*poly_error) + tol))
         {
             cout << "Converged! Iterations: " << nn << endl;
             break;
@@ -87,7 +80,8 @@ real_Leja_exp(rhs& RHS,                       //? RHS function
         //! Warning flags
         if (nn == max_Leja_pts - 2)
         {
-            cout << "Warning!! Max. number of Leja points reached without convergence!! Max. Leja points currently set to " << max_Leja_pts << endl;
+            cout << "Warning!! Max. number of Leja points reached without convergence!!" << endl; 
+            cout << "Max. Leja points currently set to " << max_Leja_pts << endl;
             cout << "Try increasing the number of Leja points. Max available: 10000." << endl;
             break;
         }

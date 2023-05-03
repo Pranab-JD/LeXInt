@@ -1,12 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-
-using namespace std;
-
 //? ----------------------------------------------------------
 //?
 //? Description:
@@ -69,7 +62,17 @@ double factorial(int number)
 
 //! ======================================================================================== !//
 
-//! Return typename T !//
+//! Return double* !//
+
+//? ones(y) = (y[0:N] =) 1.0
+void ones_Cpp(double *x, size_t N)                    
+{
+    #pragma omp parallel for
+    for (int ii = 0; ii < N; ii++)
+    {
+        x[ii] = 1.0;
+    }
+}
 
 //? y = ax
 void axpby_Cpp(double a, double *x, 
@@ -122,3 +125,4 @@ void axpby_Cpp(double a, double *x,
     }
 }
 
+//! ======================================================================================== !//

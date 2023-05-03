@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 
 vector<double> Divided_Differences(const vector<double>& X, vector<double> coeffs)

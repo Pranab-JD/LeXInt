@@ -1,5 +1,13 @@
 #pragma once
 
+//? ----------------------------------------------------------
+//?
+//? Description:
+//?     Kernels and functions are "unified" for proper usage
+//?     depending on whether GPU support is activated or not. 
+//?
+//? ----------------------------------------------------------
+
 #include "Kernels.hpp"
 #include "functions.hpp"
 
@@ -27,6 +35,29 @@ double l2norm(double *x, size_t N, bool GPU, GPU_handle& cublas_handle)
 
     return norm;
 }
+
+//? ones(y) = (y[0:N] =) 1.0
+void ones(double *x, size_t N, bool GPU)
+{
+    if (GPU == true)
+    {
+        #ifdef __CUDACC__
+
+        //* CUDA
+        ones_CUDA<<<(N/128) + 1, 128>>>(x, N);
+
+        #else
+        cout << "Error. Compiled with gcc, not nvcc." << endl;
+        exit(1);
+        #endif
+    }
+    else
+    {
+        //* C++
+        ones_Cpp(x, N);
+    }
+}
+
 
 //? y = ax
 void axpby(double a, double *x, 

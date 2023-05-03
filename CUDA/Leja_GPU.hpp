@@ -1,17 +1,11 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-#include <functional>
-
 #include "Divided_Differences.hpp"
+#include "Jacobian_vector.hpp"
 
 //? CUDA 
 #include "Kernels_CUDA_Cpp.hpp"
 #include "error_check.hpp"
-#include "Jacobian_vector.hpp"
 
 using namespace std;
 
@@ -26,7 +20,7 @@ struct Leja_GPU
     //? Allocate memory
     //! These are device vectors if GPU support is activated
     double* auxillary_expint;       //? Internal vectors for an exponential integrator
-    double* auxillary_Leja;         //? Internal vectors for an Leja interpolation
+    double* auxillary_Leja;         //? Internal vectors for Leja interpolation
     double* auxillary_NL;           //? Internal vectors for computation of NL remainder
 
     //! Constructor
@@ -52,6 +46,10 @@ struct Leja_GPU
         {
             num_vectors = 19;
         }
+        else if (integrator_name == "EXPRB54s4")
+        {
+            num_vectors = 25;
+        }
         else if (integrator_name == "EPIRK4s3")
         {
             num_vectors = 15;
@@ -59,6 +57,22 @@ struct Leja_GPU
         else if (integrator_name == "EPIRK4s3A")
         {
             num_vectors = 15;
+        }
+        else if (integrator_name == "EPIRK4s3B")
+        {
+            num_vectors = 15;
+        }
+        else if (integrator_name == "EPIRK5P1")
+        {
+            num_vectors = 17;
+        }
+        else if (integrator_name == "Hom_Linear")
+        {
+            //? Homogeneous Linear Differential Equations 
+        }
+        else if (integrator_name == "NonHom_Linear")
+        {
+            //? Nonhomogeneous Linear Differential Equations 
         }
         else
         {
@@ -103,29 +117,38 @@ struct Leja_GPU
 
     //! ============ Functions for Exponential Integrators ============ !//
 
-    // //? Integrators without embedded error estimate
-    // void operator()(rhs& RHS, 
-    //                 double* device_u_input, 
-    //                 double* device_u_output, 
-    //                 int N, 
-    //                 vector<double>& Leja_X, 
-    //                 double c,
-    //                 double Gamma,
-    //                 double tol,
-    //                 double dt
-    //                 )
-    // {
-    //     //! Call the required integrator
-    //     if (integrator_name == "Rosenbrock_Euler")
-    //     {
-    //         Ros_Eu(RHS, device_u_input, device_u_output, N, Leja_X, c, Gamma, tol, dt, device_auxillary, cublas_handle);
-    //     }
-    //     else
-    //     {
-    //         cout << "ERROR: Only 1 output vector for Rosenbrock_Euler and EPIRK4s3B." << endl;
-    //         return;
-    //     }
-    // }
+    //? Integrators without embedded error estimate
+    void operator()(rhs& RHS, 
+                    double* u_input, 
+                    double* u_output, 
+                    int N, 
+                    vector<double>& Leja_X, 
+                    double c,
+                    double Gamma,
+                    double tol,
+                    double dt,
+                    bool GPU
+                    )
+    {
+        //! Call the required integrator
+        if (integrator_name == "Rosenbrock_Euler")
+        {
+            Ros_Eu(RHS, u_input, u_output,
+                   auxillary_expint, auxillary_Leja,
+                   N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
+        }
+        else if (integrator_name == "EPIRK4s3B")
+        {
+            EPIRK4s3B(RHS, u_input, u_output, 
+                      auxillary_expint, auxillary_Leja, auxillary_NL, 
+                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
+        }
+        else
+        {
+            cout << "ERROR: Only 1 output vector for Rosenbrock_Euler and EPIRK4s3B." << endl;
+            return;
+        }
+    }
 
     //? Embedded integrators
     void operator()(rhs& RHS, 
@@ -166,6 +189,12 @@ struct Leja_GPU
                       auxillary_expint, auxillary_Leja, auxillary_NL, 
                       N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
+        else if (integrator_name == "EXPRB54s4")
+        {
+            EXPRB54s4(RHS, u_input, u_output_low, u_output_high, 
+                      auxillary_expint, auxillary_Leja, auxillary_NL, 
+                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+        }
         else if (integrator_name == "EPIRK4s3")
         {
             EPIRK4s3(RHS, u_input, u_output_low, u_output_high, 
@@ -178,9 +207,15 @@ struct Leja_GPU
                       auxillary_expint, auxillary_Leja, auxillary_NL, 
                       N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
+        else if (integrator_name == "EPIRK5P1")
+        {
+            EPIRK5P1(RHS, u_input, u_output_low, u_output_high, 
+                     auxillary_expint, auxillary_Leja, auxillary_NL, 
+                     N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+        }
         else
         {
-            cout << "ERROR: 2 output vectors for EXPRB32, EXPRB43, EXPRB53s3, EXPRB54s4, EPIRK4s3, EPIRK4s3A, EPIRK5P1." << endl;
+            cout << "ERROR: 2 output vectors for EXPRB32, EXPRB43, EXPRB53s3, EXPRB54s4, EPIRK4s3, EPIRK4s3A, and EPIRK5P1." << endl;
             return;
         }
     }

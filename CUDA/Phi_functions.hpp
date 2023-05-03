@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include "functions.hpp"
 
 //? Phi Functions ('z' is assumed to a double)
