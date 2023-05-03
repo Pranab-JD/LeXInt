@@ -1,11 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-#include <functional>
-
 #include "../Phi_functions.hpp"
 #include "../real_Leja_phi.hpp"
 #include "../Timer.hpp"
@@ -44,10 +38,10 @@ void EXPRB42(rhs& RHS,                   //? RHS function
     //*
     //*    Returns
     //*    ----------
-    //*     u_exprb2                : state
+    //*     u_exprb2                : double*
     //*                                 2nd order solution after time dt
     //*     
-    //*     u_exprb4                : state 
+    //*     u_exprb4                : double* 
     //*                                 4th order solution after time dt
     //*
     //*

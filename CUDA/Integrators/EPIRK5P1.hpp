@@ -1,37 +1,46 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-#include <functional>
-
 #include "../Phi_functions.hpp"
 #include "../real_Leja_phi.hpp"
+#include "../Timer.hpp"
+
+//? CUDA 
+#include "../error_check.hpp"
+#include "../Leja_GPU.hpp"
+#include "../Kernels_CUDA_Cpp.hpp"
 
 using namespace std;
 
 //? Phi functions interpolated on real Leja points
-template <typename state, typename rhs>
-embedded_solutions<state> EPIRK5P1(rhs& RHS,                 //? RHS function
-                                   state& u,                 //? State variable(s)
-                                   int N,                    //? Number of grid points
-                                   vector<double>& Leja_X,   //? Array of Leja points
-                                   double c,                 //? Shifting factor
-                                   double Gamma,             //? Scaling factor
-                                   double tol,               //? Tolerance (normalised desired accuracy)
-                                   double dt,                //? Step size
-                                   int Real_Imag             //? 0 --> Real Leja, 1 --> Imaginary Leja
-                                   )
+template <typename rhs>
+void EPIRK5P1(rhs& RHS,                   //? RHS function
+              double* u,                  //? Input state variable(s)
+              double* u_epirk4,           //? Output state variable(s) (lower order)
+              double* u_epirk5,           //? Output state variable(s) (higher order)
+              double* auxillary_expint,   //? Internal auxillary variables (EPIRK5P1)
+              double* auxillary_Leja,     //? Internal auxillary variables (Leja)
+              double* auxillary_NL,       //? Internal auxillary variables (EPIRK5P1 NL)
+              size_t N,                   //? Number of grid points
+              vector<double>& Leja_X,     //? Array of Leja points
+              double c,                   //? Shifting factor
+              double Gamma,               //? Scaling factor
+              double tol,                 //? Tolerance (normalised desired accuracy)
+              double dt,                  //? Step size
+              bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
+              GPU_handle& cublas_handle   //? CuBLAS handle
+              )
 {
     //* -------------------------------------------------------------------------
 
+    //! u, u_epirk4, u_epirk5, auxillary_expint, auxillary_Leja, and auxillary_NL
+    //! are device vectors if GPU support is activated.
+
     //*    Returns
     //*    ----------
-    //*     u_epirk4                : state
+    //*     u_epirk4                : double*
     //*                                 4th order solution after time dt
     //*     
-    //*     u_epirk5                : state 
+    //*     u_epirk5                : double* 
     //*                                 5th order solution after time dt
     //*
     //*
@@ -62,41 +71,58 @@ embedded_solutions<state> EPIRK5P1(rhs& RHS,                 //? RHS function
     double g33_4 = 1.0;
 
     //? RHS evaluated at 'u' multiplied by 'dt'
-    state rhs_u = RHS(u);
-    rhs_u = axpby(dt, rhs_u, N);
+    double* rhs_u = &auxillary_expint[0];
+    RHS(u, rhs_u);
+    axpby(dt, rhs_u, rhs_u, N, GPU);
 
     //? Vertical interpolation of RHS(u) at g11, g21, and g31; phi_1({g11, g21, g31} J(u) dt) f(u) dt
-    vector<state> u_flux = real_Leja_phi(RHS, u, rhs_u, {g11, g21, g31}, N, phi_1, Leja_X, c, Gamma, tol, dt);
+    double* u_flux = &auxillary_expint[N];
+    real_Leja_phi(RHS, u, rhs_u, u_flux, auxillary_Leja, N, {g11, g21, g31}, 
+                    phi_1, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
 
     //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt
-    state a = axpby(1.0, u, a11, u_flux[0], N);
+    double* a = &auxillary_expint[4*N];
+    axpby(1.0, u, a11, &u_flux[0], a, N, GPU);
 
-    //? Nonlinear remainder at u and a
-    state NL_u = Nonlinear_remainder(RHS, u, u, N);
-    state NL_a = Nonlinear_remainder(RHS, u, a, N);
-    state R_a = axpby(dt, NL_a, -dt, NL_u, N);
+    //? Assign memory for nonlinear remainders
+    double* NL_u = &auxillary_expint[5*N];
+    double* NL_a = &auxillary_expint[6*N];
+    double* R_a = &auxillary_expint[7*N];
+
+    //? Difference of nonlinear remainders at a
+    Nonlinear_remainder(RHS, u, u, NL_u, auxillary_NL, N, GPU, cublas_handle);
+    Nonlinear_remainder(RHS, u, a, NL_a, auxillary_NL, N, GPU, cublas_handle);
+    axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
 
     //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
-    vector<state> u_nl_1 = real_Leja_phi(RHS, u, R_a, {g32_4, g32, g22}, N, phi_1, Leja_X, c, Gamma, tol, dt);
+    double* u_nl_1 = &auxillary_expint[8*N];
+    real_Leja_phi(RHS, u, R_a, u_nl_1, auxillary_Leja, N, {g32_4, g32, g22}, 
+                    phi_1, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
 
     //? Internal stage 2; b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
-    state b = axpby(1.0, u, a21, u_flux[1], a22, u_nl_1[2], N);
+    double* b = &auxillary_expint[11*N];
+    axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], b, N, GPU);
 
-    //? Nonlinear remainder at b
-    state NL_b = Nonlinear_remainder(RHS, u, b, N);
-    state R_b = axpby(dt, NL_b, -dt, NL_u, N);
+    //? Assign memory for nonlinear remainders
+    double* NL_b = &auxillary_expint[12*N];
+    double* R_b = &auxillary_expint[13*N];
+
+    //? Difference of nonlinear remainders at b
+    Nonlinear_remainder(RHS, u, b, NL_b, auxillary_NL, N, GPU, cublas_handle);
+    axpby(dt, NL_b, -dt, NL_u, R_b, N, GPU);
 
     //? (-2*R(a) + R(b))
-    state nl_2 = axpby(-2.0, R_a, 1.0, R_b, N);
+    double* nl_2 = &auxillary_expint[14*N];
+    axpby(-2.0, R_a, 1.0, R_b, nl_2, N, GPU);
 
     //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
-    vector<state> u_nl_2 = real_Leja_phi(RHS, u, nl_2, {g33, g33_4}, N, phi_3, Leja_X, c, Gamma, tol, dt);
+    double* u_nl_2 = &auxillary_expint[15*N];
+    real_Leja_phi(RHS, u, nl_2, u_nl_2, auxillary_Leja, N, {g33, g33_4}, 
+                    phi_3, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
 
-    //? 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32 J(u) dt) R(a) dt + b3 phi_3(g33 J(u) dt) (-2*R(a) + R(b)) dt
-    state u_epirk4 = axpby(1.0, u, 1.0, u_flux[2], b2, u_nl_1[0], b3, u_nl_2[1], N);
+    //? 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
+    axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[0], b3, &u_nl_2[N], u_epirk4, N, GPU);
 
-    //? 5th order solution; u_5 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
-    state u_epirk5 = axpby(1.0, u, 1.0, u_flux[2], b2, u_nl_1[1], b3, u_nl_2[0], N);
-
-    return {u_epirk4, u_epirk5};
+    //? 5th order solution; u_5 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32 J(u) dt) R(a) dt + b3 phi_3(g33 J(u) dt) (-2*R(a) + R(b)) dt
+    axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[N], b3, &u_nl_2[0], u_epirk5, N, GPU);
 }

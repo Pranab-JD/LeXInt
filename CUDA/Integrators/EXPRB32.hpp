@@ -1,11 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <cmath>
-#include <functional>
-
 #include "../Phi_functions.hpp"
 #include "../real_Leja_phi.hpp"
 #include "../Timer.hpp"
@@ -43,10 +37,10 @@ void EXPRB32(rhs& RHS,                   //? RHS function
 
     //*    Returns
     //*    ----------
-    //*     u_exprb2                : state
+    //*     u_exprb2                : double*
     //*                                 2nd order solution after time dt
     //*     
-    //*     u_exprb3                : state 
+    //*     u_exprb3                : double* 
     //*                                 3rd order solution after time dt
     //*
     //*
@@ -83,7 +77,7 @@ void EXPRB32(rhs& RHS,                   //? RHS function
     double* u_nl_3 = &auxillary_expint[5*N];
     real_Leja_phi(RHS, u, R_a, u_nl_3, auxillary_Leja, N, {1.0}, 
                     phi_3, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
-
+                    
     //? 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
     axpby(1.0, u_exprb2, 2.0, u_nl_3, u_exprb3, N, GPU);
 }
