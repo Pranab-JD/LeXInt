@@ -8,7 +8,7 @@
 
 //? Problems
 #include "Diff_Adv_2D.hpp"
-// #include "Burgers.hpp"
+#include "Burgers_2D.hpp"
 
 //! ---------------------------------------------------------------------------
 
@@ -52,202 +52,218 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int N = 100;                                            // # grid points
-    double xmin = -1;                       // Left boundary (limit)
-    double xmax =  1;                       // Right boundary (limit)
-    double ymin = -1;                       // Left boundary (limit)
-    double ymax =  1;                       // Right boundary (limit)
-    vector<double> X(N);                            // Array of grid points
-    vector<double> Y(N);                            // Array of grid points
-    vector<double> u(N*N);                          // Initial condition
+    int n = 256;                                    // # grid points
+    int N = n*n;                                    // # grid points
+    double xmin = -1;                               // Left boundary (limit)
+    double xmax =  1;                               // Right boundary (limit)
+    double ymin = -1;                               // Left boundary (limit)
+    double ymax =  1;                               // Right boundary (limit)
+    vector<double> X(n);                            // Array of grid points
+    vector<double> Y(n);                            // Array of grid points
+    vector<double> u(N);                            // Initial condition
 
     //* Set up X, Y arrays and initial condition
-    for (int ii = 0; ii < N; ii++)
+    for (int ii = 0; ii < n; ii++)
     {
-        X[ii] = xmin + ii*(xmax - xmin)/N;
-        Y[ii] = ymin + ii*(ymax - ymin)/N;
+        X[ii] = xmin + ii*(xmax - xmin)/n;
+        Y[ii] = ymin + ii*(ymax - ymin)/n;
     }
 
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 50;                                   // Advection speed
+    double velocity = 150;                                  // Advection speed
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = 0.4*min(dif_cfl, adv_cfl);                  // Step size
+    double dt = 1.2*min(dif_cfl, adv_cfl);                  // Step size
     stringstream step_size;
     step_size << fixed << scientific << setprecision(1) << dt;
     cout << "Step size: " << dt << endl;
 
     //* Temporal parameters
-    double time = 0;                                  // Simulation time elapsed
-    double t_final = 0.05;                            // Final simulation time
-    int time_steps = 0;                               // # time steps
+    double time = 0;                                        // Simulation time elapsed
+    double t_final = 0.01;                                  // Final simulation time
+    int time_steps = 0;                                     // # time steps
 
     //* Set of Leja points
     vector<double> Leja_X = Leja_Points();
 
     //? Choose problem and integrator
-    double tol = 1e-10;
-    string problem = "Diff_Adv_2D";
-    string integrator = "Hom_Linear";
+    double tol = 1e-7;
+    string problem = "Burgers_2D";
+    string integrator = "Rosenbrock_Euler";
 
-    RHS_Dif_Adv_2D RHS(N, dx, dy, velocity);                //* Default problem
+    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity);                //* Default problem
     Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};       //* Default problem
 
-    if (problem == "Diff_Adv")
+    if (problem == "Diff_Adv_2D")
     {
         //? Initial condition
-        for (int ii = 0; ii < N; ii++)
+        for (int ii = 0; ii < n; ii++)
         {
-            for (int jj = 0; jj< N; jj++)
+            for (int jj = 0; jj< n; jj++)
             {
-                u[N*ii + jj] = 1 + exp(-((X[ii] + 0.5)*(X[ii] + 0.5) + (Y[jj] + 0.5)*(Y[jj] + 0.5))/0.01);
+                u[n*ii + jj] = 1 + exp(-((X[ii] + 0.5)*(X[ii] + 0.5) + (Y[jj] + 0.5)*(Y[jj] + 0.5))/0.01);
             }
         }
     }
-    // else if (problem == "Burgers")
-    // {
-    //     RHS_Burgers RHS = RHS_Burgers(N, dx, velocity);
-    //     Leja_GPU<RHS_Burgers> leja_gpu{N, integrator};
+    else if (problem == "Burgers_2D")
+    {
+        RHS_Burgers_2D RHS = RHS_Burgers_2D(n, dx, dy, velocity);
+        Leja_GPU<RHS_Burgers_2D> leja_gpu{N, integrator};
 
-    //     //? Initial condition
-    //     for (int ii = 3; ii < N-3; ii++)
-    //     {
-    //         u[ii] = 4 + sin(X[ii]/10) + 2*sin(X[ii]/5 + 20) ;
-    //     }
-    // }
+        //? Initial condition
+        for (int ii = 0; ii < n; ii++)
+        {
+            for (int jj = 0; jj< n; jj++)
+            {
+                u[n*ii + jj] = 2 + 0.01*sin(2*M_PI*X[ii]) + 0.01*sin(8*M_PI*X[ii] + 0.3)
+                                 + 0.01*sin(2*M_PI*Y[jj]) + 0.01*sin(8*M_PI*Y[jj] + 0.3);
+            }
+        }
+    }
     else
     {
         cout << "Undefined problem!" << endl;
     } 
 
-    // //! Allocate memory on GPU
-    // size_t N_size = N * N * sizeof(double);
-    // double *device_u; cudaMalloc(&device_u, N_size);
-    // double *device_u_low; cudaMalloc(&device_u_low, N_size);
-    // double *device_u_sol; cudaMalloc(&device_u_sol, N_size);
-    // double *device_error; cudaMalloc(&device_error, N_size);
-    // double *device_auxillary_Leja; cudaMalloc(&device_auxillary_Leja, N_size);
-    // double *device_auxillary_Jv; cudaMalloc(&device_auxillary_Jv, 7*N_size);        //* To compute spectrum using power iterations
-    // cudaMemcpy(device_u, &u[0], N_size, cudaMemcpyHostToDevice);                    //* Copy state variable to device
+    //! Allocate memory on GPU
+    size_t N_size = N * sizeof(double);
+    double *device_u; cudaMalloc(&device_u, N_size);
+    double *device_u_low; cudaMalloc(&device_u_low, N_size);
+    double *device_u_sol; cudaMalloc(&device_u_sol, N_size);
+    double *device_error; cudaMalloc(&device_error, N_size);
+    double *device_auxillary_Leja; cudaMalloc(&device_auxillary_Leja, N_size);
+    double *device_auxillary_Jv; cudaMalloc(&device_auxillary_Jv, 7*N_size);        //* To compute spectrum using power iterations
+    cudaMemcpy(device_u, &u[0], N_size, cudaMemcpyHostToDevice);                    //* Copy state variable to device
 
-    // //! Set GPU spport to true
-    // bool GPU_access = true;
-    // GPU_handle cublas_h;
+    //! Set GPU spport to true
+    bool GPU_access = true;
+    GPU_handle cublas_h;
 
     //? Shifting and scaling parameters
-    // double eigenvalue = 0.0;
-    // LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-    // eigenvalue = -1.2*eigenvalue;
-    // double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
-    // cout << "Largest eigenvalue: " << eigenvalue << endl;
+    double eigenvalue = 0.0;
+    LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+    eigenvalue = -1.2*eigenvalue;
+    double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+    cout << "Largest eigenvalue: " << eigenvalue << endl;
+
+    //! Create nested directories (for movies)
+    int sys_value = system(("mkdir -p ../../LeXInt_Test/B_GPU/"));
+    string directory = "../../LeXInt_Test/B_GPU/";
 
     //! Time Loop
-    // LeXInt::timer time_loop;
-    // time_loop.start();
+    LeXInt::timer time_loop;
+    time_loop.start();
 
-    // while (time < t_final)
-    // {
-    //     //* Final time step
-    //     if (time + dt >= t_final)
-    //     {
-    //         dt = t_final - time;
-    //     }
+    while (time < t_final)
+    {
+        //* Final time step
+        if (time + dt >= t_final)
+        {
+            dt = t_final - time;
+        }
 
-    //     //? ---------------------------------------------------------------- ?//
+        //? ---------------------------------------------------------------- ?//
 
-    //     //? Homogenous Linear Equations
+        //? Homogenous Linear Equations
 
-    //     if (integrator == "Hom_Linear")
-    //     {
-    //         real_Leja_exp(RHS, device_u, device_u_sol, device_auxillary_Leja, N, Leja_X, c, Gamma, tol, dt, GPU_access, cublas_h);
-    //     }
+        if (integrator == "Hom_Linear")
+        {
+            LeXInt::real_Leja_exp(RHS, device_u, device_u_sol, device_auxillary_Leja, N, Leja_X, c, Gamma, tol, dt, GPU_access, cublas_h);
+        }
         
-    //     //? ---------------------------------------------------------------- ?//
+        //? ---------------------------------------------------------------- ?//
 
-    //     //? Nonlinear Equations
+        //? Nonlinear Equations
 
-    //     //* Non-embedded Intergators
-    //     else if (integrator == "Rosenbrock_Euler" or integrator == "EPIRK4s3B")
-    //     {
-    //         // * ----------- Eigenvalue (Spectrum) ----------- *//
-
-    //         //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-    //         Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-    //         eigenvalue = -1.2*eigenvalue;
-    //         c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
-    //         cout << "Largest eigenvalue: " << eigenvalue << endl;
-
-    //         //* ---------------------------------------------- *//
-
-    //         //? Embedded integrators
-    //         leja_gpu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, tol, dt, GPU_access);
-    //     }
-
-    //     //* Embedded Integrators 
-    //     else if (integrator == "EXPRB32" or integrator == "EXPRB42" or integrator == "EXPRB43" or integrator == "EXPRB53s3" 
-    //     or integrator == "EXPRB54s4" or integrator == "EPIRK4s3" or integrator == "EPIRK4s3A" or integrator == "EPIRK5P1")
-    //     {
+        //* Non-embedded Intergators
+        else if (integrator == "Rosenbrock_Euler" or integrator == "EPIRK4s3B")
+        {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-    //         //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-    //         Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-    //         eigenvalue = -1.2*eigenvalue;
-    //         c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
-    //         cout << "Largest eigenvalue: " << eigenvalue << endl;
+            if (time_steps % 100 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                eigenvalue = 0.0;
+                LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
 
-    //         //* ---------------------------------------------- *//
+            //* ---------------------------------------------- *//
 
-    //         //? Embedded integrators
-    //         leja_gpu(RHS, device_u, device_u_low, device_u_sol, N, Leja_X, c, Gamma, tol, dt, GPU_access);
+            //? Embedded integrators
+            leja_gpu(RHS, device_u, device_u_sol, N, Leja_X, c, Gamma, tol, dt, GPU_access);
+        }
+
+        //* Embedded Integrators 
+        else if (integrator == "EXPRB32" or integrator == "EXPRB42" or integrator == "EXPRB43" or integrator == "EXPRB53s3" 
+        or integrator == "EXPRB54s4" or integrator == "EPIRK4s3" or integrator == "EPIRK4s3A" or integrator == "EPIRK5P1")
+        {
+            // * ----------- Eigenvalue (Spectrum) ----------- *//
+
+            if (time_steps % 100 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                double eigenvalue = 0.0;
+                LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
+
+            //* ---------------------------------------------- *//
+
+            //? Embedded integrators
+            leja_gpu(RHS, device_u, device_u_low, device_u_sol, N, Leja_X, c, Gamma, tol, dt, GPU_access);
             
-    //         axpby(1.0, device_u_low, -1.0, device_u_sol, device_error, N, GPU_access);
-    //         double error = l2norm(device_error, N, GPU_access, cublas_h);
-    //         cout << "Embedded error: " << error << endl;
-    //     }
-    //     else
-    //     {
-    //         cout << "ERROR: Please choose an available integator. See 'Leja.hpp'." << endl;
-    //     }
+            LeXInt::axpby(1.0, device_u_low, -1.0, device_u_sol, device_error, N, GPU_access);
+            double error = LeXInt::l2norm(device_error, N, GPU_access, cublas_h);
+            cout << "Embedded error: " << error << endl;
+        }
+        else
+        {
+            cout << "ERROR: Please choose an available integator. See 'Leja.hpp'." << endl;
+        }
 
-    //     //? ---------------------------------------------------------------- ?//
+        //? ---------------------------------------------------------------- ?//
 
-    //     //* Update variables
-    //     time = time + dt;
-    //     swap(device_u, device_u_sol);
-        // time_steps = time_steps + 1;
+        //* Update variables
+        time = time + dt;
+        swap(device_u, device_u_sol);
+        time_steps = time_steps + 1;
 
-        // cout << "Time steps: " << time_steps << endl;
-        // cout << "Time elapsed: " << time << endl;
-        // cout << endl;
+        if (time_steps % 100 == 0)
+        {
+            cout << "Time steps: " << time_steps << endl;
+            cout << "Time elapsed: " << time << endl;
+            cout << endl;
+        }
 
-        // //! Create nested directories
-        // int sys_value = system(("mkdir -p ../../LeXInt_Test/DA_GPU/"));
-        // string directory = "../../LeXInt_Test/DA_GPU/";
+        //? Write data to files
+        string output_data = directory + "/" +  to_string(time_steps) + ".txt";
+        ofstream data;
+        data.open(output_data); 
+        cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);   
+        for(int ii = 0; ii < N; ii++)
+        {
+            data << setprecision(16) << u[ii] << endl;
+        }
+        data.close();
+    }
 
-        // //? Write data to files
-        // string output_data = directory + "/" +  to_string(time_steps) + ".txt";
-        // ofstream data;
-        // data.open(output_data); 
-        // for(int ii = 0; ii < N*N; ii++)
-        // {
-        //     data << setprecision(16) << u[ii] << endl;
-        // }
-        // data.close();
+    time_loop.stop();
 
-    // }
-
-    // time_loop.stop();
-
-    // //* Copy state variable from device to host
+    //* Copy state variable from device to host
     // cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);                
 
-    // cout << endl << "==================================================" << endl;
-    // cout << "Simulation time: " << time << endl;
-    // cout << "Total number of time steps: " << time_steps << endl;
-    // cout << "Total time elapsed (s): " << time_loop.total() << endl;
-    // cout << "==================================================" << endl << endl;
+    cout << endl << "==================================================" << endl;
+    cout << "Simulation time: " << time << endl;
+    cout << "Total number of time steps: " << time_steps << endl;
+    cout << "Total time elapsed (s): " << time_loop.total() << endl;
+    cout << "==================================================" << endl << endl;
 
     //! Create nested directories
     // system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/EXPRB32_3/dt_" + step_size.str()).c_str());

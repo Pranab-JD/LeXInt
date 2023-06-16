@@ -10,7 +10,7 @@
 
 //? Problems
 #include "Diff_Adv_1D.hpp"
-// #include "Burgers.hpp"
+#include "Burgers_1D.hpp"
 
 //! ---------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ using namespace std;
 //! Read Leja points from file
 vector<double> Leja_Points()
 {
-    int max_Leja_pts = 100;                         // Max. number of Leja points
+    int max_Leja_pts = 1000;                        // Max. number of Leja points
     vector<double> Leja_X(max_Leja_pts);            // Initialize static array
     int count = 0;                                  // Loop counter variable
 
@@ -55,8 +55,8 @@ int main()
 {
     //* Initialise parameters
     int N = 1e3;                                    // # grid points
-    double xmin = -10.0*M_PI;                       // Left boundary (limit)
-    double xmax =  10.0*M_PI;                       // Right boundary (limit)
+    double xmin = -1;                       // Left boundary (limit)
+    double xmax =  1;                       // Right boundary (limit)
     vector<double> X(N);                            // Array of grid points
     vector<double> u_init(N);                       // Initial condition
 
@@ -68,7 +68,7 @@ int main()
 
     //* Initialise additional parameters
     double dx = X[12] - X[11];                      // Grid spacing
-    double velocity = 80;                           // Advection speed
+    double velocity = 150;                          // Advection speed
     double dif_cfl = dx*dx;                         // Diffusion CFL
     double adv_cfl = dx/velocity;                   // Advection CFL
     double dt = 0.8*min(dif_cfl, adv_cfl);          // Step size
@@ -78,16 +78,16 @@ int main()
 
     //* Temporal parameters
     double time = 0;                                // Simulation time elapsed
-    double t_final = 0.5;                           // Final simulation time
+    double t_final = 0.1;                           // Final simulation time
     int time_steps = 0;                             // # time steps
 
     //* Set of Leja points
     vector<double>Leja_X = Leja_Points();
 
     //? Choose problem and integrator
-    double tol = 1e-10;
-    string problem = "Diff_Adv_1D";
-    string integrator = "Hom_Linear";
+    double tol = 1e-7;
+    string problem = "Burgers_1D";
+    string integrator = "EXPRB43";
 
     RHS_Dif_Adv_1D RHS(N, dx, velocity);                    //* Default problem
     Leja_GPU<RHS_Dif_Adv_1D> leja_gpu{N, integrator};       //* Default problem
@@ -100,17 +100,17 @@ int main()
             u_init[ii] = 1 + exp(-(X[ii] - 10.0)*(X[ii] - 10.0)/0.4);
         }
     }
-    // else if (problem == "Burgers")
-    // {
-    //     RHS_Burgers RHS = RHS_Burgers(N, dx, velocity);
-    //     Leja_GPU<RHS_Burgers> leja_gpu{N, integrator};
+    else if (problem == "Burgers_1D")
+    {
+        RHS_Burgers_1D RHS = RHS_Burgers_1D(N, dx, velocity);
+        Leja_GPU<RHS_Burgers_1D> leja_gpu{N, integrator};
 
-    //     //? Initial condition
-    //     for (int ii = 0; ii < N; ii++)
-    //     {
-    //         u_init[ii] = 2 + sin(X[ii]/10);
-    //     }
-    // }
+        //? Initial condition
+        for (int ii = 0; ii < N; ii++)
+        {
+            u_init[ii] = 2 + 0.01*sin(2*M_PI*X[ii]) + 0.01*sin(8*M_PI*X[ii] + 0.3);
+        }
+    }
     else
     {
         cout << "Undefined problem!" << endl;
@@ -167,11 +167,14 @@ int main()
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-            //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-            eigenvalue = -1.2*eigenvalue;
-            double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
-            cout << "Largest eigenvalue: " << eigenvalue << endl;
+            if (time_steps % 100 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
 
             //* ---------------------------------------------- *//
 
@@ -184,12 +187,15 @@ int main()
         or integrator == "EXPRB54s4" or integrator == "EPIRK4s3" or integrator == "EPIRK4s3A" or integrator == "EPIRK5P1")
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
-
-            //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-            eigenvalue = -1.2*eigenvalue;
-            double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
-            cout << "Largest eigenvalue: " << eigenvalue << endl;
+            
+            if (time_steps % 100 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
 
             //* ---------------------------------------------- *//
 
@@ -198,7 +204,7 @@ int main()
             
             LeXInt::axpby(1.0, u_low, -1.0, u_sol, u_error, N, GPU_access);
             double error = LeXInt::l2norm(u_error, N, GPU_access, cublas_h);
-            cout << "Embedded error: " << error << endl;
+            // cout << "Embedded error: " << error << endl;
         }
         else
         {
@@ -211,7 +217,27 @@ int main()
         time = time + dt;
         swap(u, u_sol);
         time_steps = time_steps + 1;
-        cout << endl;
+        
+        if (time_steps % 100 == 0)
+        {
+            cout << "Time steps: " << time_steps << endl;
+            cout << "Time elapsed: " << time << endl;
+            cout << endl;
+        }
+
+        //! Create nested directories
+        int sys_value = system(("mkdir -p ../../LeXInt_Test/B1/"));
+        string directory = "../../LeXInt_Test/B1/";
+
+        //? Write data to files
+        string output_data = directory + "/" +  to_string(time_steps) + ".txt";
+        ofstream data;
+        data.open(output_data); 
+        for(int ii = 0; ii < N; ii++)
+        {
+            data << setprecision(16) << u[ii] << endl;
+        }
+        data.close();
     }
 
     time_loop.stop();
@@ -223,28 +249,28 @@ int main()
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    int sys_value = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
-    string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
+    // int sys_value = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
+    // string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
 
-    //? Write data to files
-    string final_data = directory + "/1.txt";
-    ofstream data;
-    data.open(final_data);
-    for(int ii = 0; ii < N; ii++)
-    {
-        data << setprecision(16) << u[ii] << endl;
-    }
-    data.close();
+    // //? Write data to files
+    // string final_data = directory + "/1.txt";
+    // ofstream data;
+    // data.open(final_data);
+    // for(int ii = 0; ii < N; ii++)
+    // {
+    //     data << setprecision(16) << u[ii] << endl;
+    // }
+    // data.close();
 
-    string results = directory + "/Results.txt";
-    ofstream params;
-    params.open(results);
-    params << "Simulation time: " << time << endl;
-    params << "Total number of time steps: " << time_steps << endl;
-    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    params.close();
+    // string results = directory + "/Results.txt";
+    // ofstream params;
+    // params.open(results);
+    // params << "Simulation time: " << time << endl;
+    // params << "Total number of time steps: " << time_steps << endl;
+    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    // params.close();
 
-    cout << "Writing data to files complete!" << endl << endl;
+    // cout << "Writing data to files complete!" << endl << endl;
 
     return 0;
 }

@@ -51,15 +51,15 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int n = 50;                                    // # grid points
-    int N = n*n;                                   // # grid points
-    double xmin = -1;                       // Left boundary (limit)
-    double xmax =  1;                       // Right boundary (limit)
-    double ymin = -1;                       // Left boundary (limit)
-    double ymax =  1;                       // Right boundary (limit)
+    int n = 100;                                    // # grid points
+    int N = n*n;                                    // # grid points
+    double xmin = -1;                               // Left boundary (limit)
+    double xmax =  1;                               // Right boundary (limit)
+    double ymin = -1;                               // Left boundary (limit)
+    double ymax =  1;                               // Right boundary (limit)
     vector<double> X(n);                            // Array of grid points
     vector<double> Y(n);                            // Array of grid points
-    vector<double> u_init(N);                     // Initial condition
+    vector<double> u_init(N);                       // Initial condition
 
     //* Set up X, Y arrays and initial condition
     for (int ii = 0; ii < n; ii++)
@@ -71,17 +71,17 @@ int main()
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 50;                                   // Advection speed
+    double velocity = 150;                                  // Advection speed
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = 0.4*min(dif_cfl, adv_cfl);                  // Step size
+    double dt = 1.2*min(dif_cfl, adv_cfl);                  // Step size
     stringstream step_size;
     step_size << fixed << scientific << setprecision(1) << dt;
     cout << "Step size: " << dt << endl;
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 0.05;                                   // Final simulation time
+    double t_final = 0.1;                                   // Final simulation time
     int time_steps = 0;                                     // # time steps
 
     //* Set of Leja points
@@ -90,7 +90,7 @@ int main()
     //? Choose problem and integrator
     double tol = 1e-7;
     string problem = "Burgers_2D";
-    string integrator = "EXPRB32";
+    string integrator = "Rosenbrock_Euler";
 
     RHS_Dif_Adv_2D RHS(n, dx, dy, velocity);                //* Default problem
     Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};       //* Default problem
@@ -177,11 +177,14 @@ int main()
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-            //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-            eigenvalue = -1.2*eigenvalue;
-            double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
-            cout << "Largest eigenvalue: " << eigenvalue << endl;
+            if (time_steps % 50 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
 
             //* ---------------------------------------------- *//
 
@@ -195,11 +198,14 @@ int main()
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-            //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-            eigenvalue = -1.2*eigenvalue;
-            double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
-            cout << "Largest eigenvalue: " << eigenvalue << endl;
+            if (time_steps % 50 == 0)
+            {
+                //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
+                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+                eigenvalue = -1.2*eigenvalue;
+                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                cout << "Largest eigenvalue: " << eigenvalue << endl;
+            }
 
             //* ---------------------------------------------- *//
 
@@ -208,7 +214,7 @@ int main()
             
             LeXInt::axpby(1.0, u_low, -1.0, u_sol, u_error, N, GPU_access);
             double error = LeXInt::l2norm(u_error, N, GPU_access, cublas_h);
-            cout << "Embedded error: " << error << endl;
+            // cout << "Embedded error: " << error << endl;
         }
         else
         {
@@ -222,9 +228,12 @@ int main()
         swap(u, u_sol);
         time_steps = time_steps + 1;
 
-        cout << "Time steps: " << time_steps << endl;
-        cout << "Time elapsed: " << time << endl;
-        cout << endl;
+        if (time_steps % 50 == 0)
+        {
+            cout << "Time steps: " << time_steps << endl;
+            cout << "Time elapsed: " << time << endl;
+            cout << endl;
+        }
 
         //! Create nested directories
         int sys_value = system(("mkdir -p ../../LeXInt_Test/B/"));

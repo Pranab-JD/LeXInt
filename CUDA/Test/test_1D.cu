@@ -9,13 +9,11 @@
 //? Problems
 #include "Diff_Adv_1D.hpp"
 // #include "Burgers.hpp"
-// #include "Boundary.hpp" 
 
 //! ---------------------------------------------------------------------------
 
 //! Include Exponential Integrators and Leja functions 
 //! (This has to be included to use Leja and/or exponential integrators)
-#include "../Leja.hpp"
 #include "../Leja_GPU.hpp"
 
 //! Functions to compute the largest eigenvalue (in magnitude)
@@ -30,7 +28,7 @@ using namespace std;
 //! Read Leja points from file
 vector<double> Leja_Points()
 {
-    int max_Leja_pts = 1200;                         // Max. number of Leja points
+    int max_Leja_pts = 1000;                         // Max. number of Leja points
     vector<double> Leja_X(max_Leja_pts);            // Initialize static array
     int count = 0;                                  // Loop counter variable
 
@@ -55,8 +53,8 @@ int main()
 {
     //* Initialise parameters
     int N = 1e3;                                    // # grid points
-    double xmin = -10.0*M_PI;                       // Left boundary (limit)
-    double xmax =  10.0*M_PI;                       // Right boundary (limit)
+    double xmin = -1;                       // Left boundary (limit)
+    double xmax =  1;                       // Right boundary (limit)
     vector<double> X(N);                            // Array of grid points
     vector<double> u(N);                            // Initial condition
 
@@ -135,13 +133,13 @@ int main()
 
     //? Shifting and scaling parameters
     double eigenvalue = 0.0;
-    Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+    LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
     eigenvalue = -1.2*eigenvalue;
     double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
     //! Time Loop
-    timer time_loop;
+    LeXInt::timer time_loop;
     time_loop.start();
 
     while (time < t_final)
@@ -158,7 +156,7 @@ int main()
 
         if (integrator == "Hom_Linear")
         {
-            real_Leja_exp(RHS, device_u, device_u_sol, device_auxillary_Leja, N, Leja_X, c, Gamma, tol, dt, GPU_access, cublas_h);
+            LeXInt::real_Leja_exp(RHS, device_u, device_u_sol, device_auxillary_Leja, N, Leja_X, c, Gamma, tol, dt, GPU_access, cublas_h);
         }
         
         //? ---------------------------------------------------------------- ?//
@@ -171,7 +169,7 @@ int main()
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
             //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+            LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
             eigenvalue = -1.2*eigenvalue;
             c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
             cout << "Largest eigenvalue: " << eigenvalue << endl;
@@ -189,7 +187,7 @@ int main()
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
             //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-            Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
+            LeXInt::Power_iterations(RHS, device_u, N, eigenvalue, device_auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
             eigenvalue = -1.2*eigenvalue;
             c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
             cout << "Largest eigenvalue: " << eigenvalue << endl;
@@ -199,8 +197,8 @@ int main()
             //? Embedded integrators
             leja_gpu(RHS, device_u, device_u_low, device_u_sol, N, Leja_X, c, Gamma, tol, dt, GPU_access);
             
-            axpby(1.0, device_u_low, -1.0, device_u_sol, device_error, N, GPU_access);
-            double error = l2norm(device_error, N, GPU_access, cublas_h);
+            LeXInt::axpby(1.0, device_u_low, -1.0, device_u_sol, device_error, N, GPU_access);
+            double error = LeXInt::l2norm(device_error, N, GPU_access, cublas_h);
             cout << "Embedded error: " << error << endl;
         }
         else
@@ -216,21 +214,22 @@ int main()
         time_steps = time_steps + 1;
         cout << endl;
 
-        //! Create nested directories
-        system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/dt_" + step_size.str()).c_str());
-        string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/dt_" + step_size.str();
+        // //! Create nested directories
+        // system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/dt_" + step_size.str()).c_str());
+        // string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/dt_" + step_size.str();
 
-        //? Write data to files
-        string output_data = directory + "/" +  to_string(time_steps) + ".txt";
-        ofstream data;
-        data.open(output_data);
-        //* Copy state variable from device to host
-        cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);   
-        for(int ii = 0; ii < N; ii++)
-        {
-            data << setprecision(16) << u[ii] << endl;
-        }
-        data.close();
+        // //? Write data to files
+        // string output_data = directory + "/" +  to_string(time_steps) + ".txt";
+        // ofstream data;
+        // data.open(output_data);
+
+        // //* Copy state variable from device to host
+        // cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);   
+        // for(int ii = 0; ii < N; ii++)
+        // {
+        //     data << setprecision(16) << u[ii] << endl;
+        // }
+        // data.close();
     }
 
     time_loop.stop();

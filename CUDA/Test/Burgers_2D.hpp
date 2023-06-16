@@ -8,7 +8,7 @@ using namespace std;
 
 #ifdef __CUDACC__
 
-__global__ void Burgers_2D(int N, double dx, double velocity, double* input, double* output)
+__global__ void Burgers_2D(int N, double dx, double dy, double velocity, double* input, double* output)
 {
     int ii = blockDim.x * blockIdx.x + threadIdx.x;
     int jj = blockDim.y * blockIdx.y + threadIdx.y;
