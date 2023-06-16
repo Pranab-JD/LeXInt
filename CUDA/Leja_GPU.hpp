@@ -187,32 +187,32 @@ struct Leja_GPU
         else if (integrator_name == "EXPRB53s3")
         {
             LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, 
-                            auxillary_expint, auxillary_Leja, auxillary_NL, 
-                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+                              auxillary_expint, auxillary_Leja, auxillary_NL, 
+                              N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB54s4")
         {
             LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, 
-                            auxillary_expint, auxillary_Leja, auxillary_NL, 
-                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+                              auxillary_expint, auxillary_Leja, auxillary_NL, 
+                              N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EPIRK4s3")
         {
             LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, 
-                    auxillary_expint, auxillary_Leja, auxillary_NL, 
-                    N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+                             auxillary_expint, auxillary_Leja, auxillary_NL, 
+                             N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK4s3A")
         {
             LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, 
-                            auxillary_expint, auxillary_Leja, auxillary_NL, 
-                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+                             auxillary_expint, auxillary_Leja, auxillary_NL, 
+                             N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK5P1")
         {
             LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, 
-                            auxillary_expint, auxillary_Leja, auxillary_NL, 
-                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+                             auxillary_expint, auxillary_Leja, auxillary_NL, 
+                             N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else
         {
