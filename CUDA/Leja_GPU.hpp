@@ -1,13 +1,14 @@
 #pragma once
 
+using namespace std;
+
 #include "Divided_Differences.hpp"
 #include "Jacobian_vector.hpp"
+#include "Leja.hpp"
 
 //? CUDA 
 #include "Kernels_CUDA_Cpp.hpp"
 #include "error_check.hpp"
-
-using namespace std;
 
 template <typename rhs>
 struct Leja_GPU
@@ -24,7 +25,7 @@ struct Leja_GPU
     double* auxillary_NL;           //? Internal vectors for computation of NL remainder
 
     //! Constructor
-    Leja_GPU(int _N, string _integrator_name) :  N{_N}, integrator_name{_integrator_name}
+    Leja_GPU(int _N, string _integrator_name) :  N(_N), integrator_name(_integrator_name)
     {
         if (integrator_name == "Rosenbrock_Euler")
         {
@@ -133,15 +134,15 @@ struct Leja_GPU
         //! Call the required integrator
         if (integrator_name == "Rosenbrock_Euler")
         {
-            Ros_Eu(RHS, u_input, u_output,
-                   auxillary_expint, auxillary_Leja,
-                   N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
+            LeXInt::Ros_Eu(RHS, u_input, u_output,
+                           auxillary_expint, auxillary_Leja,
+                           N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
         }
         else if (integrator_name == "EPIRK4s3B")
         {
-            EPIRK4s3B(RHS, u_input, u_output, 
-                      auxillary_expint, auxillary_Leja, auxillary_NL, 
-                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
+            LeXInt::EPIRK4s3B(RHS, u_input, u_output, 
+                              auxillary_expint, auxillary_Leja, auxillary_NL, 
+                              N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
         }
         else
         {
@@ -167,51 +168,51 @@ struct Leja_GPU
         //! Call the required integrator
         if (integrator_name == "EXPRB32")
         {
-            EXPRB32(RHS, u_input, u_output_low, u_output_high, 
-                    auxillary_expint, auxillary_Leja, auxillary_NL, 
-                    N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
+            LeXInt::EXPRB32(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);
         }
         else if (integrator_name == "EXPRB42")
         {
-            EXPRB42(RHS, u_input, u_output_low, u_output_high, 
-                    auxillary_expint, auxillary_Leja, auxillary_NL, 
-                    N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+            LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB43")
         {
-            EXPRB43(RHS, u_input, u_output_low, u_output_high, 
-                    auxillary_expint, auxillary_Leja, auxillary_NL, 
-                    N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+            LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB53s3")
         {
-            EXPRB53s3(RHS, u_input, u_output_low, u_output_high, 
-                      auxillary_expint, auxillary_Leja, auxillary_NL, 
-                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+            LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB54s4")
         {
-            EXPRB54s4(RHS, u_input, u_output_low, u_output_high, 
-                      auxillary_expint, auxillary_Leja, auxillary_NL, 
-                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
+            LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);        
         }
         else if (integrator_name == "EPIRK4s3")
         {
-            EPIRK4s3(RHS, u_input, u_output_low, u_output_high, 
-                     auxillary_expint, auxillary_Leja, auxillary_NL, 
-                     N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+            LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, 
+                    auxillary_expint, auxillary_Leja, auxillary_NL, 
+                    N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK4s3A")
         {
-            EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, 
-                      auxillary_expint, auxillary_Leja, auxillary_NL, 
-                      N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+            LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK5P1")
         {
-            EPIRK5P1(RHS, u_input, u_output_low, u_output_high, 
-                     auxillary_expint, auxillary_Leja, auxillary_NL, 
-                     N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
+            LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, 
+                            auxillary_expint, auxillary_Leja, auxillary_NL, 
+                            N, Leja_X, c, Gamma, tol, dt, GPU, cublas_handle);         
         }
         else
         {

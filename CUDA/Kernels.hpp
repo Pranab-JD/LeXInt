@@ -38,80 +38,74 @@ struct GPU_handle
     }
 };
 
-
-#ifdef __CUDACC__
-
-//? ones(y) = (y[0:N] =) 1.0
-__global__ void ones_CUDA(double *x, size_t N)                    
+namespace LeXInt
 {
-    int ii = blockDim.x * blockIdx.x + threadIdx.x;
+    #ifdef __CUDACC__
 
-    if(ii < N)
+    //? ones(y) = (y[0:N] =) 1.0
+    __global__ void ones_CUDA(double *x, size_t N)                    
     {
-        x[ii] = 1.0;
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N)
+        {
+            x[ii] = 1.0;
+        }
     }
-}
 
-//? y = ax
-__global__ void axpby_CUDA(double a, double *x, 
-                                     double *y, size_t N)                    
-{
-    int ii = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if(ii < N)
+    //? y = ax
+    __global__ void axpby_CUDA(double a, double *x, 
+                                         double *y, size_t N)                    
     {
-        y[ii] = (a * x[ii]);
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N)
+        {
+            y[ii] = (a * x[ii]);
+        }
     }
-}
 
-//? z = ax + by
-__global__ void axpby_CUDA(double a, double *x, 
-                           double b, double *y, 
-                                     double *z, size_t N)
-{
-    int ii = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if(ii < N) 
+    //? z = ax + by
+    __global__ void axpby_CUDA(double a, double *x, 
+                               double b, double *y, 
+                                         double *z, size_t N)
     {
-        z[ii] = (a * x[ii]) + (b * y[ii]);
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N) 
+        {
+            z[ii] = (a * x[ii]) + (b * y[ii]);
+        }
     }
-}
 
-//? w = ax + by + cz
-__global__ void axpby_CUDA(double a, double *x, 
-                           double b, double *y,
-                           double c, double *z, 
-                                     double *w, size_t N)
-{
-    int ii = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if(ii < N) 
+    //? w = ax + by + cz
+    __global__ void axpby_CUDA(double a, double *x, 
+                               double b, double *y,
+                               double c, double *z, 
+                                         double *w, size_t N)
     {
-        w[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]);
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N) 
+        {
+            w[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]);
+        }
     }
-}
 
-//? v = ax + by + cz + dw
-__global__ void axpby_CUDA(double a, double *x,
-                           double b, double *y,
-                           double c, double *z,
-                           double d, double *w,
-                                     double *v, size_t N)
-{
-    int ii = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if(ii < N) 
+    //? v = ax + by + cz + dw
+    __global__ void axpby_CUDA(double a, double *x,
+                               double b, double *y,
+                               double c, double *z,
+                               double d, double *w,
+                                         double *v, size_t N)
     {
-        v[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]) + (d * w[ii]);
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N) 
+        {
+            v[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]) + (d * w[ii]);
+        }
     }
+
+    #endif
 }
-
-//? Boundary conditions
-__global__ void boundary_1D()
-{
-
-}
-
-#endif
-
-//TODO: Implement kernel for boundary conditions

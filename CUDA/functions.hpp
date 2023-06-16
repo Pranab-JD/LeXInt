@@ -10,118 +10,121 @@
 
 //! ======================================================================================== !//
 
-//! Return double !//
-
-double l1norm_Cpp(double* vector, size_t N)
+namespace LeXInt
 {
+    //! Return double !//
 
-    double norm = 0.0;
-
-    #pragma omp parallel for reduction(+:norm)
-    for (int ii = 0; ii < N; ii++)
+    double l1norm_Cpp(double* vector, size_t N)
     {
-        norm = norm + abs(vector[ii]);
+
+        double norm = 0.0;
+
+        #pragma omp parallel for reduction(+:norm)
+        for (int ii = 0; ii < N; ii++)
+        {
+            norm = norm + abs(vector[ii]);
+        }
+
+        return norm;
     }
 
-    return norm;
-}
-
-double l2norm_Cpp(double* vector, size_t N)
-{
-
-    double norm = 0.0;
-
-    #pragma omp parallel for reduction(+:norm)
-    for (int ii = 0; ii < N; ii++)
+    double l2norm_Cpp(double* vector, size_t N)
     {
-        norm = norm + (vector[ii] * vector[ii]);
+
+        double norm = 0.0;
+
+        #pragma omp parallel for reduction(+:norm)
+        for (int ii = 0; ii < N; ii++)
+        {
+            norm = norm + (vector[ii] * vector[ii]);
+        }
+
+        return sqrt(norm);
     }
 
-    return sqrt(norm);
-}
-
-double factorial(int number)
-{
-    double fact = 1.0;
-
-    if (number == 0)
+    double factorial(int number)
     {
-        fact = 1.0;
+        double fact = 1.0;
+
+        if (number == 0)
+        {
+            fact = 1.0;
+        }
+
+        else
+        {
+            for(int ii = 1; ii <= abs(number); ii++)
+            {    
+                fact = fact*ii;    
+            }
+        }
+
+        return fact;
     }
 
-    else
+    //! ======================================================================================== !//
+
+    //! Return double* !//
+
+    //? ones(y) = (y[0:N] =) 1.0
+    void ones_Cpp(double *x, size_t N)                    
     {
-        for(int ii = 1; ii <= abs(number); ii++)
-        {    
-            fact = fact*ii;    
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            x[ii] = 1.0;
         }
     }
 
-    return fact;
-}
-
-//! ======================================================================================== !//
-
-//! Return double* !//
-
-//? ones(y) = (y[0:N] =) 1.0
-void ones_Cpp(double *x, size_t N)                    
-{
-    #pragma omp parallel for
-    for (int ii = 0; ii < N; ii++)
+    //? y = ax
+    void axpby_Cpp(double a, double *x, 
+                             double *y, size_t N)                    
     {
-        x[ii] = 1.0;
-    }
-}
-
-//? y = ax
-void axpby_Cpp(double a, double *x, 
-                         double *y, size_t N)                    
-{
-    #pragma omp parallel for
-    for (int ii = 0; ii < N; ii++)
-    {
-        y[ii] = (a * x[ii]);
-    }
-}
-
-//? z = ax + by
-void axpby_Cpp(double a, double *x, 
-               double b, double *y, 
-                         double *z, size_t N)
-{
-    #pragma omp parallel for
-    for (int ii = 0; ii < N; ii++)
-    {
-        z[ii] = (a * x[ii]) + (b * y[ii]);
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            y[ii] = (a * x[ii]);
+        }
     }
 
-}
-
-//? w = ax + by + cz
-void axpby_Cpp(double a, double *x,
-               double b, double *y,
-               double c, double *z, 
-                         double *w, size_t N)
-{
-    #pragma omp parallel for
-    for (int ii = 0; ii < N; ii++)
+    //? z = ax + by
+    void axpby_Cpp(double a, double *x, 
+                   double b, double *y, 
+                             double *z, size_t N)
     {
-        w[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]);
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            z[ii] = (a * x[ii]) + (b * y[ii]);
+        }
+
     }
-}
 
-//? v = ax + by + cz + dw
-void axpby_Cpp(double a, double *x,
-               double b, double *y,
-               double c, double *z,
-               double d, double *w,
-                         double *v, size_t N)
-{
-    #pragma omp parallel for
-    for (int ii = 0; ii < N; ii++)
+    //? w = ax + by + cz
+    void axpby_Cpp(double a, double *x,
+                   double b, double *y,
+                   double c, double *z, 
+                             double *w, size_t N)
     {
-        v[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]) + (d * w[ii]);
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            w[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]);
+        }
+    }
+
+    //? v = ax + by + cz + dw
+    void axpby_Cpp(double a, double *x,
+                   double b, double *y,
+                   double c, double *z,
+                   double d, double *w,
+                             double *v, size_t N)
+    {
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            v[ii] = (a * x[ii]) + (b * y[ii]) + (c * z[ii]) + (d * w[ii]);
+        }
     }
 }
 
