@@ -40,6 +40,28 @@ namespace LeXInt
         return norm;
     }
 
+    //? Set x = y
+    void copy(double *x, double *y, size_t N, bool GPU)
+    {
+        if (GPU == true)
+        {
+            #ifdef __CUDACC__
+
+            //* CUDA
+            copy_CUDA<<<(N/128) + 1, 128>>>(x, y, N);
+
+            #else
+            ::std::cout << "Error. Compiled with gcc, not nvcc." << ::std::endl;
+            exit(1);
+            #endif
+        }
+        else
+        {
+            //* C++
+            ::std::cout << "Error. Use 'swap(x, y)' " << ::std::endl;
+        }
+    }
+
     //? ones(y) = (y[0:N] =) 1.0
     void ones(double *x, size_t N, bool GPU)
     {

@@ -42,6 +42,17 @@ namespace LeXInt
 {
     #ifdef __CUDACC__
 
+    //? Set x = y
+    __global__ void copy_CUDA(double *x, double *y, size_t N)                    
+    {
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N)
+        {
+            y[ii] = x[ii];
+        }
+    }
+
     //? ones(y) = (y[0:N] =) 1.0
     __global__ void ones_CUDA(double *x, size_t N)                    
     {
