@@ -25,6 +25,8 @@ __global__ void Dif_Adv_1D(int N, double dx, double velocity, double* input, dou
                        - 3.0/6.0 * input[ii]
                        + 6.0/6.0 * input[(ii + 1)%N]
                        - 1.0/6.0 * input[(ii + 2)%N]);
+
+
     }
 }
 

@@ -137,6 +137,10 @@ int main()
     double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
+    //! Create nested directories
+    int sys_value = system(("mkdir -p ../../LeXInt_Test/B1/"));
+    string directory = "../../LeXInt_Test/B1/";
+
     //! Time Loop
     LeXInt::timer time_loop;
     time_loop.start();
@@ -224,10 +228,6 @@ int main()
             cout << "Time elapsed: " << time << endl;
             cout << endl;
         }
-
-        //! Create nested directories
-        int sys_value = system(("mkdir -p ../../LeXInt_Test/B1/"));
-        string directory = "../../LeXInt_Test/B1/";
 
         //? Write data to files
         string output_data = directory + "/" +  to_string(time_steps) + ".txt";

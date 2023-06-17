@@ -82,16 +82,16 @@ int main()
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 0.01;                                  // Final simulation time
+    double t_final = 0.004;                                  // Final simulation time
     int time_steps = 0;                                     // # time steps
 
     //* Set of Leja points
     vector<double> Leja_X = Leja_Points();
 
     //? Choose problem and integrator
-    double tol = 1e-7;
-    string problem = "Burgers_2D";
-    string integrator = "Rosenbrock_Euler";
+    double tol = 1e-10;
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
     RHS_Dif_Adv_2D RHS(n, dx, dy, velocity);                //* Default problem
     Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};       //* Default problem
@@ -109,7 +109,7 @@ int main()
     }
     else if (problem == "Burgers_2D")
     {
-        RHS_Burgers_2D RHS = RHS_Burgers_2D(n, dx, dy, velocity);
+        RHS_Burgers_2D RHS(n, dx, dy, velocity);
         Leja_GPU<RHS_Burgers_2D> leja_gpu{N, integrator};
 
         //? Initial condition
@@ -149,8 +149,8 @@ int main()
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
     //! Create nested directories (for movies)
-    int sys_value = system(("mkdir -p ../../LeXInt_Test/B_GPU/"));
-    string directory = "../../LeXInt_Test/B_GPU/";
+    int sys_value = system(("mkdir -p ../../LeXInt_Test/DA_GPU/"));
+    string directory = "../../LeXInt_Test/DA_GPU/";
 
     //! Time Loop
     LeXInt::timer time_loop;
@@ -232,7 +232,7 @@ int main()
 
         //* Update variables
         time = time + dt;
-        swap(device_u, device_u_sol);
+        LeXInt::copy(device_u_sol, device_u, N, GPU_access);
         time_steps = time_steps + 1;
 
         if (time_steps % 100 == 0)
@@ -242,22 +242,22 @@ int main()
             cout << endl;
         }
 
-        //? Write data to files
-        string output_data = directory + "/" +  to_string(time_steps) + ".txt";
-        ofstream data;
-        data.open(output_data); 
-        cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);   
-        for(int ii = 0; ii < N; ii++)
-        {
-            data << setprecision(16) << u[ii] << endl;
-        }
-        data.close();
+        // //? Write data to files
+        // string output_data = directory + "/" +  to_string(time_steps) + ".txt";
+        // ofstream data;
+        // data.open(output_data); 
+        // cudaMemcpy(&u[0], device_u_sol, N_size, cudaMemcpyDeviceToHost);   
+        // for(int ii = 0; ii < N; ii++)
+        // {
+        //     data << setprecision(16) << u[ii] << endl;
+        // }
+        // data.close();
     }
 
     time_loop.stop();
 
     //* Copy state variable from device to host
-    // cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);                
+    cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);                
 
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
@@ -266,28 +266,28 @@ int main()
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    // system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/EXPRB32_3/dt_" + step_size.str()).c_str());
-    // string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/EXPRB32_3/dt_" + step_size.str();
+    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
+    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
 
-    // //? Write data to files
-    // string final_data = directory + "/Final_data.txt";
-    // ofstream data;
-    // data.open(final_data);
-    // for(int ii = 0; ii < N; ii++)
-    // {
-    //     data << setprecision(16) << u[ii] << endl;
-    // }
-    // data.close();
+    //? Write data to files
+    string final_data = directory_f + "/Final_data.txt";
+    ofstream data;
+    data.open(final_data);
+    for(int ii = 0; ii < N; ii++)
+    {
+        data << setprecision(16) << u[ii] << endl;
+    }
+    data.close();
 
-    // string results = directory + "/Results.txt";
-    // ofstream params;
-    // params.open(results);
-    // params << "Simulation time: " << time << endl;
-    // params << "Total number of time steps: " << time_steps << endl;
-    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    // params.close();
+    string results = directory_f + "/Results.txt";
+    ofstream params;
+    params.open(results);
+    params << "Simulation time: " << time << endl;
+    params << "Total number of time steps: " << time_steps << endl;
+    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    params.close();
 
-    // cout << "Writing data to files complete!" << endl << endl;
+    cout << "Writing data to files complete!" << endl << endl;
 
     return 0;
 }

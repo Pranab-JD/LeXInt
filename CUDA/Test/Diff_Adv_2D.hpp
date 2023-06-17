@@ -13,9 +13,9 @@ __global__ void Dif_Adv_2D(int N, double dx, double dy, double velocity, double*
     int ii = blockDim.x * blockIdx.x + threadIdx.x;
     int jj = blockDim.y * blockIdx.y + threadIdx.y;
     
-    if(ii < N)
+    for(ii = 0; ii < N; ii++)
     {
-        if(jj < N)
+        for(jj = 0; jj < N; jj++)
         {
             //? Diffusion
             output[N*ii + jj] = (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
@@ -32,6 +32,7 @@ __global__ void Dif_Adv_2D(int N, double dx, double dy, double velocity, double*
                                 - 3.0/6.0 * input[ii + N*jj]
                                 + 6.0/6.0 * input[(ii + 1) % N + N*jj]
                                 - 1.0/6.0 * input[(ii + 2) % N + N*jj]);
+
         }
     }
 }

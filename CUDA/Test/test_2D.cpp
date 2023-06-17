@@ -51,7 +51,7 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int n = 100;                                    // # grid points
+    int n = 256;                                    // # grid points
     int N = n*n;                                    // # grid points
     double xmin = -1;                               // Left boundary (limit)
     double xmax =  1;                               // Right boundary (limit)
@@ -81,16 +81,16 @@ int main()
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 0.1;                                   // Final simulation time
+    double t_final = 0.004;                                   // Final simulation time
     int time_steps = 0;                                     // # time steps
 
     //* Set of Leja points
     vector<double> Leja_X = Leja_Points();
 
     //? Choose problem and integrator
-    double tol = 1e-7;
-    string problem = "Burgers_2D";
-    string integrator = "Rosenbrock_Euler";
+    double tol = 1e-10;
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
     RHS_Dif_Adv_2D RHS(n, dx, dy, velocity);                //* Default problem
     Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};       //* Default problem
@@ -147,6 +147,10 @@ int main()
     double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
+    //! Create nested directories
+    int sys_value = system(("mkdir -p ../../LeXInt_Test/DA/"));
+    string directory = "../../LeXInt_Test/DA/";
+
     //! Time Loop
     LeXInt::timer time_loop;
     time_loop.start();
@@ -177,7 +181,7 @@ int main()
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-            if (time_steps % 50 == 0)
+            if (time_steps % 100 == 0)
             {
                 //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
                 LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
@@ -198,7 +202,7 @@ int main()
         {
             // * ----------- Eigenvalue (Spectrum) ----------- *//
 
-            if (time_steps % 50 == 0)
+            if (time_steps % 100 == 0)
             {
                 //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
                 LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxillary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
@@ -228,26 +232,22 @@ int main()
         swap(u, u_sol);
         time_steps = time_steps + 1;
 
-        if (time_steps % 50 == 0)
+        if (time_steps % 100 == 0)
         {
             cout << "Time steps: " << time_steps << endl;
             cout << "Time elapsed: " << time << endl;
             cout << endl;
         }
 
-        //! Create nested directories
-        int sys_value = system(("mkdir -p ../../LeXInt_Test/B/"));
-        string directory = "../../LeXInt_Test/B/";
-
-        //? Write data to files
-        string output_data = directory + "/" +  to_string(time_steps) + ".txt";
-        ofstream data;
-        data.open(output_data); 
-        for(int ii = 0; ii < N; ii++)
-        {
-            data << setprecision(16) << u[ii] << endl;
-        }
-        data.close();
+        // //? Write data to files
+        // string output_data = directory + "/" +  to_string(time_steps) + ".txt";
+        // ofstream data;
+        // data.open(output_data); 
+        // for(int ii = 0; ii < N; ii++)
+        // {
+        //     data << setprecision(16) << u[ii] << endl;
+        // }
+        // data.close();
     }
 
     time_loop.stop();
@@ -259,28 +259,28 @@ int main()
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    // int sys_value = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
-    // string directory = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
+    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
+    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
 
-    // //? Write data to files
-    // string final_data = directory + "/0.txt";
-    // ofstream data;
-    // data.open(final_data);
-    // for(int ii = 0; ii < N; ii++)
-    // {
-    //     data << setprecision(16) << u[ii] << endl;
-    // }
-    // data.close();
+    //? Write data to files
+    string final_data = directory_f + "/Final_data.txt";
+    ofstream data;
+    data.open(final_data);
+    for(int ii = 0; ii < N; ii++)
+    {
+        data << setprecision(16) << u[ii] << endl;
+    }
+    data.close();
 
-    // string results = directory + "/Results.txt";
-    // ofstream params;
-    // params.open(results);
-    // params << "Simulation time: " << time << endl;
-    // params << "Total number of time steps: " << time_steps << endl;
-    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    // params.close();
+    string results = directory_f + "/Results.txt";
+    ofstream params;
+    params.open(results);
+    params << "Simulation time: " << time << endl;
+    params << "Total number of time steps: " << time_steps << endl;
+    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    params.close();
 
-    // cout << "Writing data to files complete!" << endl << endl;
+    cout << "Writing data to files complete!" << endl << endl;
 
     return 0;
 }
