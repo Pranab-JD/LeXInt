@@ -69,11 +69,13 @@ struct Leja_GPU
         }
         else if (integrator_name == "Hom_Linear")
         {
-            //? Homogeneous Linear Differential Equations 
+            //? Homogeneous Linear Differential Equations
+            num_vectors = 0;
         }
         else if (integrator_name == "NonHom_Linear")
         {
-            //? Nonhomogeneous Linear Differential Equations 
+            //? Nonhomogeneous Linear Differential Equations
+            num_vectors = 0;
         }
         else
         {

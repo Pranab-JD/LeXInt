@@ -22,7 +22,7 @@ namespace LeXInt
 
         double rhs_norm = l2norm(rhs_u, N, GPU, cublas_handle);
         double epsilon = 1e-7*rhs_norm;
-        
+
         //? u_eps1 = u + epsilon*y
         double* u_eps_1 = &auxillary_Jv[N];
         axpby(1.0, u, epsilon, y, u_eps_1, N, GPU); 

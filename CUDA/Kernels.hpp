@@ -13,8 +13,9 @@
 #include "Timer.hpp"
 
 #ifdef __CUDACC__
-    #include "cublas_v2.h"
-    #include "cuda_runtime.h"
+    #include <cublas_v2.h>
+    #include <cuda_runtime.h>
+    #include <cuda.h>
 #endif
 
 struct GPU_handle

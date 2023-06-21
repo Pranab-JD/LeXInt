@@ -9,8 +9,6 @@
 
 namespace LeXInt
 {
-    using namespace std;
-
     //? Matrix exponential interpolated on real Leja points
     template <typename rhs>
     void real_Leja_exp(rhs& RHS,                       //? RHS function
