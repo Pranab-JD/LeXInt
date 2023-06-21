@@ -51,7 +51,7 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int n = 256;                                    // # grid points
+    int n = 2048;                                   // # grid points
     int N = n*n;                                    // # grid points
     double xmin = -1;                               // Left boundary (limit)
     double xmax =  1;                               // Right boundary (limit)
@@ -71,17 +71,17 @@ int main()
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 150;                                  // Advection speed
+    double velocity = 50;                                  // Advection speed
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = 1.2*min(dif_cfl, adv_cfl);                  // Step size
+    double dt = 2*min(dif_cfl, adv_cfl);                  // Step size
     stringstream step_size;
     step_size << fixed << scientific << setprecision(1) << dt;
-    cout << "Step size: " << dt << endl;
+    cout << endl << "Step size: " << dt << endl;
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 0.004;                                   // Final simulation time
+    double t_final = 0.001;                                  // Final simulation time
     int time_steps = 0;                                     // # time steps
 
     //* Set of Leja points
@@ -147,9 +147,9 @@ int main()
     double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
-    //! Create nested directories
-    int sys_value = system(("mkdir -p ../../LeXInt_Test/DA/"));
-    string directory = "../../LeXInt_Test/DA/";
+    //! Create nested directories (for movies)
+    // int sys_value = system(("mkdir -p ../../LeXInt_Test/DA/"));
+    // string directory = "../../LeXInt_Test/DA/";
 
     //! Time Loop
     LeXInt::timer time_loop;
@@ -232,14 +232,14 @@ int main()
         swap(u, u_sol);
         time_steps = time_steps + 1;
 
-        if (time_steps % 100 == 0)
+        if (time_steps % 1000 == 0)
         {
             cout << "Time steps: " << time_steps << endl;
             cout << "Time elapsed: " << time << endl;
             cout << endl;
         }
 
-        // //? Write data to files
+        //! Write data to files (for movies)
         // string output_data = directory + "/" +  to_string(time_steps) + ".txt";
         // ofstream data;
         // data.open(output_data); 
