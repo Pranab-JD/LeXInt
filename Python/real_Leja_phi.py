@@ -2,8 +2,6 @@ import numpy as np
 from Jacobian import Jacobian
 from Divided_Difference import Divided_Difference
 
-from datetime import datetime
-
 def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamma, Leja_X, phi_function, tol):
     """
     Computes the polynomial interpolation of 'phi_function' applied to 'interp_vector' at real Leja points.
@@ -43,13 +41,13 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
     """
 
     ###? Initialize parameters and arrays
-    convergence = 0                                                                 #* 0 -> did not converge, 1 -> converged
-    num_interpolations = len(integrator_coeffs)                                     #* Number of interpolations in vertical
-    max_Leja_pts = len(Leja_X)                                                      #* Max number of Leja points  
-    phi_function_array = np.zeros((len(Leja_X), num_interpolations))                #* Phi function applied to 'interp_vector'
-    poly_coeffs = np.zeros((len(Leja_X), num_interpolations))                       #* Polynomial coefficients
-    polynomial_array = np.zeros(np.shape(interp_vector) + (num_interpolations,))    #* Polynomial array
-    y = interp_vector.copy()                                                        #* To avoid changing 'interp_vector'
+    convergence = 0                                                             #* 0 -> did not converge, 1 -> converged
+    num_interpolations = len(integrator_coeffs)                                 #* Number of interpolations in vertical
+    max_Leja_pts = len(Leja_X)                                                  #* Max number of Leja points  
+    phi_function_array = np.zeros((len(Leja_X), num_interpolations))            #* Phi function applied to 'interp_vector'
+    poly_coeffs = np.zeros((len(Leja_X), num_interpolations))                   #* Polynomial coefficients
+    polynomial_array = np.zeros((len(interp_vector), num_interpolations))       #* Polynomial array
+    y = interp_vector.copy()                                                    #* To avoid changing 'interp_vector'
     
     ###? Loop for vertical implementation
     for ij in range(0, num_interpolations):
@@ -58,11 +56,11 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
         phi_function_array[:, ij] = phi_function(integrator_coeffs[ij] * dt * (c + Gamma*Leja_X))
         
         ###? Compute polynomial coefficients
-        poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij])
+        poly_coeffs[:, ij] = Divided_Difference(Leja_X, phi_function_array[:, ij]) 
         
         ###? Form the polynomial: p_0 term
-        polynomial_array[..., ij] = interp_vector * poly_coeffs[0, ij]
-
+        polynomial_array[:, ij] = interp_vector * poly_coeffs[0, ij]
+    
     ###? p_1, p_2, ...., p_n terms; iterate until converges
     for ii in range(1, max_Leja_pts):
 
@@ -78,17 +76,16 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
             ### To prevent diverging, restart simulations with smaller dt
             if poly_error > 1e7:
                 convergence = 0
-                polynomial_array[..., ij] = u
-                print("Diverging")
+                polynomial_array[:, ij] = u
                 return polynomial_array, ii+1, convergence
 
             ###? Add the new term to the polynomial
-            polynomial_array[..., ij] = polynomial_array[..., ij] + (poly_coeffs[ii, ij] * y)
+            polynomial_array[:, ij] = polynomial_array[:, ij] + (poly_coeffs[ii, ij] * y)
             
         ###? If new term to be added < tol, break loop
-        if  poly_error < (tol*np.linalg.norm(polynomial_array) + tol):
+        if  poly_error < ((tol*np.linalg.norm(polynomial_array)) + tol):
             convergence = 1
-            # print("Leja points used: ", ii)
+            print("Leja points used: ", ii)
             break
 
         ###! Warning flags
