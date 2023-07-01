@@ -16,10 +16,10 @@ namespace LeXInt
                           GPU_handle& cublas_handle     //? CuBLAS handle
                           )
     {
-        double tol = 0.01;                              //? 2% tolerance
+        double tol = 0.02;                              //? 2% tolerance
         double eigenvalue_ii = 0.0;                     //? Eigenvalue at ii
         double eigenvalue_ii_1 = 0.0;                   //? Eigenvalue at ii-1
-        int niters = 100;                               //? Max. number of iterations
+        int niters = 1000;                              //? Max. number of iterations
 
         //? Allocate memory for internal vectors
         double* init_vector = &auxillary[0];
