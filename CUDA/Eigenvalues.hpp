@@ -26,8 +26,14 @@ namespace LeXInt
         double* eigenvector = &auxillary[N];
         double* auxillary_Jv = &auxillary[2*N];
 
+        cudaDeviceSynchronize();
+        gpuErrchk(cudaPeekAtLastError());
+
         //? Set initial estimate of eigenvector = 1.0
         ones(init_vector, N, GPU);
+
+        cudaDeviceSynchronize();
+        gpuErrchk(cudaPeekAtLastError());
 
         //? Iterate untill convergence is reached
         for (int ii = 0; ii < niters; ii++)
