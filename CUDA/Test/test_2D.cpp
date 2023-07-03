@@ -6,7 +6,7 @@
 #include "../Timer.hpp"
 
 //? Problems
-#include "Diff_Adv_2D.hpp"
+#include "Dif_Adv_2D.hpp"
 #include "Burgers_2D.hpp"
 
 //! ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ vector<double> Leja_Points()
 int main()
 {
     //* Initialise parameters
-    int n = 2048;                                   // # grid points
+    int n = 8192;                                   // # grid points
     int N = n*n;                                    // # grid points
     double xmin = -1;                               // Left boundary (limit)
     double xmax =  1;                               // Right boundary (limit)
@@ -71,24 +71,29 @@ int main()
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 50;                                  // Advection speed
-    double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
-    double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = 2*min(dif_cfl, adv_cfl);                  // Step size
-    stringstream step_size;
-    step_size << fixed << scientific << setprecision(1) << dt;
-    cout << endl << "Step size: " << dt << endl;
+    double velocity = 50;                                   // Advection speed
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 0.001;                                  // Final simulation time
+    double t_final = 0.00005;                                // Final simulation time
     int time_steps = 0;                                     // # time steps
+
+    double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
+    double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
+    double dt = 4.0*min(dif_cfl, adv_cfl);                  // Step size
+    cout << endl << "Step size: " << dt << endl;
+
+    //? Strings for directory names
+    stringstream step_size, tf, grid;
+    step_size << fixed << scientific << setprecision(1) << dt;
+    tf << fixed << scientific << setprecision(1) << t_final;
+    grid << fixed << scientific << setprecision(0) << n;
 
     //* Set of Leja points
     vector<double> Leja_X = Leja_Points();
 
     //? Choose problem and integrator
-    double tol = 1e-10;
+    double tol = 1e-12;
     string problem = "Diff_Adv_2D";
     string integrator = "Hom_Linear";
 
@@ -232,7 +237,7 @@ int main()
         swap(u, u_sol);
         time_steps = time_steps + 1;
 
-        if (time_steps % 1000 == 0)
+        if (time_steps % 500 == 0)
         {
             cout << "Time steps: " << time_steps << endl;
             cout << "Time elapsed: " << time << endl;
@@ -259,8 +264,10 @@ int main()
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str()).c_str());
-    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/dt_" + step_size.str();
+    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem 
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str()).c_str());
+    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem 
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str();
 
     //? Write data to files
     string final_data = directory_f + "/Final_data.txt";
@@ -280,7 +287,7 @@ int main()
     params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
     params.close();
 
-    cout << "Writing data to files complete!" << endl << endl;
+    cout << "Writing data to files complete!" << endl;
 
     return 0;
 }

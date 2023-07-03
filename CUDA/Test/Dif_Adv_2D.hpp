@@ -9,7 +9,7 @@ using namespace std;
 
 #ifdef __CUDACC__
 
-__global__ void Burgers_2D(int N, double dx, double dy, double velocity, double* input, double* output)
+__global__ void Dif_Adv_2D(int N, double dx, double dy, double velocity, double* input, double* output)
 {
     int ii = threadIdx.y + blockIdx.y * blockDim.y;
     int jj = threadIdx.x + blockIdx.x * blockDim.x;
@@ -23,25 +23,25 @@ __global__ void Burgers_2D(int N, double dx, double dy, double velocity, double*
             
     //? Advection
     output[N*ii + jj] = output[N*ii + jj] + velocity/dx 
-                        * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii] * input[(jj + N - 1) % N + N*ii]/2
-                        - 3.0/6.0 * input[jj + N*ii] * input[jj + N*ii]/2
-                        + 6.0/6.0 * input[(jj + 1) % N + N*ii] * input[(jj + 1) % N + N*ii]/2
-                        - 1.0/6.0 * input[(jj + 2) % N + N*ii] * input[(jj + 2) % N + N*ii]/2)
+                        * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii]
+                        - 3.0/6.0 * input[jj + N*ii]
+                        + 6.0/6.0 * input[(jj + 1) % N + N*ii]
+                        - 1.0/6.0 * input[(jj + 2) % N + N*ii])
                         + velocity/dy
-                        * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj] * input[(ii + N - 1) % N + N*jj]/2
-                        - 3.0/6.0 * input[ii + N*jj] * input[ii + N*jj]/2
-                        + 6.0/6.0 * input[(ii + 1) % N + N*jj] * input[(ii + 1) % N + N*jj]/2
-                        - 1.0/6.0 * input[(ii + 2) % N + N*jj] * input[(ii + 2) % N + N*jj]/2);
+                        * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj]
+                        - 3.0/6.0 * input[ii + N*jj]
+                        + 6.0/6.0 * input[(ii + 1) % N + N*jj]
+                        - 1.0/6.0 * input[(ii + 2) % N + N*jj]);
 }
 
 #endif
 
-struct RHS_Burgers_2D:public Problems_2D
+struct RHS_Dif_Adv_2D:public Problems_2D
 {
     //? RHS = A_adv.u^2/2.0 + A_dif.u
 
     //! Constructor
-    RHS_Burgers_2D(int _N, double _dx, double _dy, double _velocity) : Problems_2D(_N, _dx, _dy, _velocity) {}
+    RHS_Dif_Adv_2D(int _N, double _dx, double _dy, double _velocity) : Problems_2D(_N, _dx, _dy, _velocity) {}
 
     void operator()(double* input, double* output)
     {
@@ -49,7 +49,7 @@ struct RHS_Burgers_2D:public Problems_2D
 
             dim3 threads(32, 32);
             dim3 blocks((N+31)/32, (N+31)/32);
-            Burgers_2D<<<blocks, threads>>>(N, dx, dy, velocity, input, output);
+            Dif_Adv_2D<<<blocks, threads>>>(N, dx, dy, velocity, input, output);
         
         #else
 
@@ -75,15 +75,15 @@ struct RHS_Burgers_2D:public Problems_2D
                                 
                                 //? Advection
                                 output[N*ii + jj] = output[N*ii + jj] + velocity/dx 
-                                                    * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii] * input[(jj + N - 1) % N + N*ii]/2
-                                                    - 3.0/6.0 * input[jj + N*ii] * input[jj + N*ii]/2
-                                                    + 6.0/6.0 * input[(jj + 1) % N + N*ii] * input[(jj + 1) % N + N*ii]/2
-                                                    - 1.0/6.0 * input[(jj + 2) % N + N*ii] * input[(jj + 2) % N + N*ii]/2)
+                                                    * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii]
+                                                    - 3.0/6.0 * input[jj + N*ii]
+                                                    + 6.0/6.0 * input[(jj + 1) % N + N*ii]
+                                                    - 1.0/6.0 * input[(jj + 2) % N + N*ii])
                                                     + velocity/dy
-                                                    * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj] * input[(ii + N - 1) % N + N*jj]/2
-                                                    - 3.0/6.0 * input[ii + N*jj] * input[ii + N*jj]/2
-                                                    + 6.0/6.0 * input[(ii + 1) % N + N*jj] * input[(ii + 1) % N + N*jj]/2
-                                                    - 1.0/6.0 * input[(ii + 2) % N + N*jj] * input[(ii + 2) % N + N*jj]/2);
+                                                    * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj]
+                                                    - 3.0/6.0 * input[ii + N*jj]
+                                                    + 6.0/6.0 * input[(ii + 1) % N + N*jj]
+                                                    - 1.0/6.0 * input[(ii + 2) % N + N*jj]);
                             }
                         }
                     }
@@ -94,7 +94,7 @@ struct RHS_Burgers_2D:public Problems_2D
     }
 
     //! Destructor
-    ~RHS_Burgers_2D() {}
+    ~RHS_Dif_Adv_2D() {}
 };
 
 //? ====================================================================================== ?//
