@@ -16,7 +16,7 @@ namespace LeXInt
     void real_Leja_phi_nl(rhs& RHS,                           //? RHS function
                           double* interp_vector,              //? Input vector multiplied to phi function
                           double* polynomial,                 //? Output vector multiplied to phi function
-                          double* auxillary_Leja,             //? Internal auxillary variables (Leja)
+                          double* auxiliary_Leja,             //? Internal auxiliary variables (Leja)
                           size_t N,                           //? Number of grid points
                           double (* phi_function) (double),   //? Phi function
                           vector<double>& Leja_X,             //? Array of Leja points
@@ -41,7 +41,7 @@ namespace LeXInt
         //* -------------------------------------------------------------------------
 
         int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
-        double* Jacobian_function = &auxillary_Leja[0];                 //? Auxillary variable for Jacobian-vector product
+        double* Jacobian_function = &auxiliary_Leja[0];                 //? auxiliary variable for Jacobian-vector product
         
         //* Phi function applied to 'interp_vector' (scaled and shifted)
         vector<double> phi_function_array(max_Leja_pts);
@@ -76,7 +76,7 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_error) + tol))
             {
-                // ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
+                ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
                 break;
             }
 

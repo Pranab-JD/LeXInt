@@ -76,6 +76,18 @@ namespace LeXInt
         }
     }
 
+    //? ones(y) = (y[0:N] =) 1.0
+    void eigen_ones_Cpp(double *x, size_t N)                    
+    {
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            x[ii] = 1.0;
+        }
+        
+        x[N] = 2.5;
+    }
+
     //? y = ax
     void axpby_Cpp(double a, double *x, 
                              double *y, size_t N)                    

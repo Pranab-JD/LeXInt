@@ -7,6 +7,8 @@
 #include "error_check.hpp"
 #include "Leja_GPU.hpp"
 
+//! This function has 10 vector reads and writes.
+
 namespace LeXInt
 {
     //? Matrix exponential interpolated on real Leja points
@@ -14,13 +16,14 @@ namespace LeXInt
     void real_Leja_exp(rhs& RHS,                       //? RHS function
                        double* u,                      //? Input state variable(s)
                        double* polynomial,             //? Output matrix exponential multiplied by 'u'
-                       double* auxillary_Leja,         //? Internal auxillary variables (Leja)
+                       double* auxiliary_Leja,         //? Internal auxiliary variables (Leja)
                        size_t N,                       //? Number of grid points
                        vector<double>& Leja_X,         //? Array of Leja points
                        double c,                       //? Shifting factor
                        double Gamma,                   //? Scaling factor
                        double tol,                     //? Tolerance (normalised desired accuracy)
                        double dt,                      //? Step size
+                       int& iters,                     //? # of iterations needed to converge (iteration variable)
                        bool GPU,                       //? false (0) --> CPU; true (1) --> GPU
                        GPU_handle& cublas_handle       //? CuBLAS handle
                        )
@@ -38,7 +41,7 @@ namespace LeXInt
         //* -------------------------------------------------------------------------
         
         int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
-        double* Jacobian_function = &auxillary_Leja[0];                 //? Auxillary variable for Jacobian-vector product
+        double* Jacobian_function = &auxiliary_Leja[0];                 //? auxiliary variable for Jacobian-vector product
 
         //* Matrix exponential (scaled and shifted)
         vector<double> matrix_exponential(max_Leja_pts);
@@ -55,20 +58,20 @@ namespace LeXInt
         axpby(coeffs[0], u, polynomial, N, GPU);
 
         //? Iterate until converges
-        for (int nn = 1; nn < max_Leja_pts - 1; nn++)
+        for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
-            //* Compute numerical Jacobian (for linear eqs., this is the RHS evaluation at y)
+            //* Compute numerical Jacobian (for linear eqs., this is the RHS evaluation at u)
             RHS(u, Jacobian_function);
 
             //* u = u * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), u, u, N, GPU);
+            axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[iters - 1]), u, u, N, GPU);
 
-            //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[nn] * u))
-            axpby(coeffs[nn], u, 1.0, polynomial, polynomial, N, GPU);
+            //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[iters] * u))
+            axpby(coeffs[iters], u, 1.0, polynomial, polynomial, N, GPU);
 
-            //* Error estimate: poly_error = |coeffs[nn]| ||u|| at every iteration
+            //* Error estimate: poly_error = |coeffs[iters]| ||u|| at every iteration
             double poly_error = l2norm(u, N, GPU, cublas_handle);
-            poly_error = abs(coeffs[nn]) * poly_error;
+            poly_error = abs(coeffs[iters]) * poly_error;
 
             //* Norm of the polynomial
             double poly_norm = l2norm(polynomial, N, GPU, cublas_handle);
@@ -76,12 +79,12 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                // ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
+                // ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
                 break;
             }
 
             //! Warning flags
-            if (nn == max_Leja_pts - 2)
+            if (iters == max_Leja_pts - 2)
             {
                 ::std::cout << "Warning!! Max. number of Leja points reached without convergence!!" << ::std::endl; 
                 ::std::cout << "Max. Leja points currently set to " << max_Leja_pts << ::std::endl;

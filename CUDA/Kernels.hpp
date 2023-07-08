@@ -65,6 +65,19 @@ namespace LeXInt
         }
     }
 
+    //? ones(y) = (y[0:N] =) 1.0
+    __global__ void eigen_ones_CUDA(double *x, size_t N)                    
+    {
+        int ii = blockDim.x * blockIdx.x + threadIdx.x;
+
+        if(ii < N)
+        {
+            x[ii] = 1.0;
+        }
+
+        x[N] = 2.5;
+    }
+
     //? y = ax
     __global__ void axpby_CUDA(double a, double *x, 
                                          double *y, size_t N)                    

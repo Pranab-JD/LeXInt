@@ -16,7 +16,7 @@ namespace LeXInt
                        double* u,                          //? Input state variable(s)
                        double* interp_vector,              //? Input vector multiplied to phi function
                        double* polynomial,                 //? Output vector multiplied to phi function
-                       double* auxillary_Leja,             //? Internal auxillary variables (Leja)
+                       double* auxiliary_Leja,             //? Internal auxiliary variables (Leja)
                        size_t N,                           //? Number of grid points
                        vector<double> integrator_coeffs,   //? Coefficients of the integrator
                        double (* phi_function) (double),   //? Phi function
@@ -45,8 +45,8 @@ namespace LeXInt
         int max_Leja_pts = Leja_X.size();                                     //? Max. # of Leja points
         int num_interpolations = integrator_coeffs.size();                    //? Number of interpolations in vertical
 
-        double* Jacobian_function = &auxillary_Leja[0];                       //? Auxillary variable for Jacobian-vector product
-        double* auxillary_Jv = &auxillary_Leja[N];                            //? Auxillary variables for Jacobian-vector computation
+        double* Jacobian_function = &auxiliary_Leja[0];                       //? auxiliary variable for Jacobian-vector product
+        double* auxiliary_Jv = &auxiliary_Leja[N];                            //? auxiliary variables for Jacobian-vector computation
 
         //* Phi function applied to 'interp_vector' (scaled and shifted)
         vector<vector<double> > phi_function_array(num_interpolations);
@@ -81,7 +81,7 @@ namespace LeXInt
         for (int nn = 1; nn < max_Leja_pts - 1; nn++)
         {
             //* Compute numerical Jacobian: J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
-            Jacobian_vector(RHS, u, interp_vector, Jacobian_function, auxillary_Jv, N, GPU, cublas_handle);
+            Jacobian_vector(RHS, u, interp_vector, Jacobian_function, auxiliary_Jv, N, GPU, cublas_handle);
 
             //* y = y * ((z - c)/Gamma - Leja_X)
             axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), interp_vector, interp_vector, N, GPU);
@@ -103,7 +103,7 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                // ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
+                ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
                 break;
             }
 

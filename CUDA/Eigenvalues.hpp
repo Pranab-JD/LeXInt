@@ -11,7 +11,7 @@ namespace LeXInt
                           double* u,                    //? Input state variable(s)
                           size_t N,                     //? Number of grid points
                           double& largest_eigenvalue,   //? Largest eigenvalue (output)
-                          double* auxillary,            //? Internal auxillary variables (Jv)
+                          double* auxiliary,            //? Internal auxiliary variables (Jv)
                           bool GPU,                     //? false (0) --> CPU; true (1) --> GPU
                           GPU_handle& cublas_handle     //? CuBLAS handle
                           )
@@ -22,24 +22,18 @@ namespace LeXInt
         int niters = 1000;                              //? Max. number of iterations
 
         //? Allocate memory for internal vectors
-        double* init_vector = &auxillary[0];
-        double* eigenvector = &auxillary[N];
-        double* auxillary_Jv = &auxillary[2*N];
-
-        cudaDeviceSynchronize();
-        gpuErrchk(cudaPeekAtLastError());
+        double* init_vector = &auxiliary[0];
+        double* eigenvector = &auxiliary[N];
+        double* auxiliary_Jv = &auxiliary[2*N];
 
         //? Set initial estimate of eigenvector = 1.0
         ones(init_vector, N, GPU);
-
-        cudaDeviceSynchronize();
-        gpuErrchk(cudaPeekAtLastError());
 
         //? Iterate untill convergence is reached
         for (int ii = 0; ii < niters; ii++)
         {
             //? Compute new eigenvector
-            Jacobian_vector(RHS, u, init_vector, eigenvector, auxillary_Jv, N, GPU, cublas_handle);
+            Jacobian_vector(RHS, u, init_vector, eigenvector, auxiliary_Jv, N, GPU, cublas_handle);
 
             //? Norm of eigenvector = eigenvalue
             eigenvalue_ii = l2norm(eigenvector, N, GPU, cublas_handle);
@@ -50,6 +44,12 @@ namespace LeXInt
             //? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
             if (abs(eigenvalue_ii - eigenvalue_ii_1) <= tol * eigenvalue_ii)
             {
+                #ifdef __CUDACC__
+                    //! Error Check
+                    cudaDeviceSynchronize();
+                    gpuErrchk(cudaPeekAtLastError());
+                #endif
+
                 //! Returns the largest eigenvalue in magnitude (needs to multiplied to a safety factor)
                 largest_eigenvalue = eigenvalue_ii;
                 break;

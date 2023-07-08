@@ -84,6 +84,28 @@ namespace LeXInt
         }
     }
 
+    //? ones(y) = (y[0:N] =) 1.0
+    void eigen_ones(double *x, size_t N, bool GPU)
+    {
+        if (GPU == true)
+        {
+            #ifdef __CUDACC__
+
+            //* CUDA
+            eigen_ones_CUDA<<<(N/128) + 1, 128>>>(x, N);
+
+            #else
+            ::std::cout << "Error. Compiled with gcc, not nvcc." << ::std::endl;
+            exit(1);
+            #endif
+        }
+        else
+        {
+            //* C++
+            eigen_ones_Cpp(x, N);
+        }
+    }
+
 
     //? y = ax
     void axpby(double a, double *x, 
