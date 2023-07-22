@@ -3,8 +3,6 @@
 #include "Timer.hpp"
 #include "Kernels_CUDA_Cpp.hpp"
 
-//! This function has 21 vector reads and writes.
-
 namespace LeXInt
 {
     //? J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
@@ -19,28 +17,29 @@ namespace LeXInt
                          GPU_handle& cublas_handle      //? CuBLAS handle
                          )
     {
-        double* rhs_u = &auxiliary_Jv[0];
-        RHS(u, rhs_u);
+        //! This function has 16 vector reads and writes.
 
-        double rhs_norm = l2norm(rhs_u, N, GPU, cublas_handle);
+        //? Jac_vec = rhs(u)
+        RHS(u, Jac_vec);
+
+        double rhs_norm = l2norm(Jac_vec, N, GPU, cublas_handle);
         double epsilon = 1e-7*rhs_norm;
+        
+        //? Jac_vec = u + epsilon*y
+        axpby(1.0, u, epsilon, y, Jac_vec, N, GPU); 
 
-        //? u_eps = u + epsilon*y
-        double* u_eps = &auxiliary_Jv[N];
-        axpby(1.0, u, epsilon, y, u_eps, N, GPU); 
+        //? rhs_u_eps_1 = RHS(u + epsilon*y)
+        double* rhs_u_eps_1 = &auxiliary_Jv[0];
+        RHS(Jac_vec, rhs_u_eps_1);
 
-        //? RHS(u + epsilon*y)
-        double* rhs_u_eps_1 = &auxiliary_Jv[2*N];
-        RHS(u_eps, rhs_u_eps_1);
+        //? Jac_vec = u - epsilon*y
+        axpby(1.0, u, -epsilon, y, Jac_vec, N, GPU); 
 
-        //? u_eps = u - epsilon*y
-        axpby(1.0, u, -epsilon, y, u_eps, N, GPU); 
+        //? rhs_u_eps_2 = RHS(u - epsilon*y)
+        double* rhs_u_eps_2 = &auxiliary_Jv[N];
+        RHS(Jac_vec, rhs_u_eps_2);
 
-        //? RHS(u - epsilon*y)
-        double* rhs_u_eps_2 = &auxiliary_Jv[3*N];
-        RHS(u_eps, rhs_u_eps_2);
-
-        //? J(u) * y = (RHS(u + epsilon*y) - RHS(u - epsilon*y))/(2*epsilon)
+        //? Jac_vec = J(u) * y = (RHS(u + epsilon*y) - RHS(u - epsilon*y))/(2*epsilon)
         axpby(1.0/(2.0*epsilon), rhs_u_eps_1, -1.0/(2.0*epsilon), rhs_u_eps_2, Jac_vec, N, GPU);
     }
 
@@ -56,13 +55,15 @@ namespace LeXInt
                              GPU_handle& cublas_handle      //? CuBLAS handle
                              )
     {
+        //! This function has 21 vector reads and writes.
+
         //? J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
         double* Linear_y = &auxiliary_Jv[0];
         double* Jv = &auxiliary_Jv[N];
         Jacobian_vector(RHS, u, y, Linear_y, Jv, N, GPU, cublas_handle);
 
         //? f(y)
-        double* rhs_y = &auxiliary_Jv[5*N];
+        double* rhs_y = &auxiliary_Jv[3*N];
         RHS(y, rhs_y);
 
         //? F(y) = f(y) - (J(u) * y)

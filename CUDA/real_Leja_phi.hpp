@@ -25,6 +25,7 @@ namespace LeXInt
                        double Gamma,                       //? Scaling factor
                        double tol,                         //? Tolerance (normalised desired accuracy)
                        double dt,                          //? Step size
+                       int& iters,                     //? # of iterations needed to converge (iteration variable)
                        bool GPU,                           //? false (0) --> CPU; true (1) --> GPU
                        GPU_handle& cublas_handle           //? CuBLAS handle
                        )
@@ -78,24 +79,24 @@ namespace LeXInt
         }
 
         //? Iterate until converges
-        for (int nn = 1; nn < max_Leja_pts - 1; nn++)
+        for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
             //* Compute numerical Jacobian: J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
             Jacobian_vector(RHS, u, interp_vector, Jacobian_function, auxiliary_Jv, N, GPU, cublas_handle);
 
             //* y = y * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[nn - 1]), interp_vector, interp_vector, N, GPU);
+            axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[iters - 1]), interp_vector, interp_vector, N, GPU);
 
             //* Add the new term to the polynomial
             for (int ij = 0; ij < num_interpolations; ij++)
             {
-                //? polynomial = polynomial + coeffs[nn] * y
-                axpby(coeffs[ij][nn], interp_vector, 1.0, &polynomial[ij*N], &polynomial[ij*N], N, GPU);
+                //? polynomial = polynomial + coeffs[iters] * y
+                axpby(coeffs[ij][iters], interp_vector, 1.0, &polynomial[ij*N], &polynomial[ij*N], N, GPU);
             }
 
-            //* Error estimate for 'y': poly_error = |coeffs[nn]| ||y|| at every iteration
+            //* Error estimate for 'y': poly_error = |coeffs[iters]| ||y|| at every iteration
             double poly_error = l2norm(interp_vector, N, GPU, cublas_handle);
-            poly_error = abs(coeffs[num_interpolations - 1][nn]) * poly_error;
+            poly_error = abs(coeffs[num_interpolations - 1][iters]) * poly_error;
 
             //* Norm of the (largest) polynomial
             double poly_norm = l2norm(&polynomial[(num_interpolations - 1)*N], N, GPU, cublas_handle);
@@ -103,12 +104,12 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                ::std::cout << "Converged! Iterations: " << nn << ::std::endl;
+                ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
                 break;
             }
 
             //! Warning flags
-            if (nn == max_Leja_pts - 2)
+            if (iters == max_Leja_pts - 2)
             {
                 ::std::cout << "Warning!! Max. number of Leja points reached without convergence!! Reduce dt." << ::std::endl;
                 break;

@@ -16,7 +16,7 @@ namespace LeXInt
                           GPU_handle& cublas_handle     //? CuBLAS handle
                           )
     {
-        double tol = 0.02;                              //? 2% tolerance
+        double tol = 0.01;                              //? 2% tolerance
         double eigenvalue_ii = 0.0;                     //? Eigenvalue at ii
         double eigenvalue_ii_1 = 0.0;                   //? Eigenvalue at ii-1
         int niters = 1000;                              //? Max. number of iterations
@@ -27,7 +27,7 @@ namespace LeXInt
         double* auxiliary_Jv = &auxiliary[2*N];
 
         //? Set initial estimate of eigenvector = 1.0
-        ones(init_vector, N, GPU);
+        eigen_ones(init_vector, N, GPU);
 
         //? Iterate untill convergence is reached
         for (int ii = 0; ii < niters; ii++)

@@ -5,8 +5,6 @@
 
 #include <string.h>
 
-// #include <chrono>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -72,10 +72,10 @@ namespace LeXInt
 
         if(ii < N)
         {
-            x[ii] = 1.0;
+            x[ii] = 0.0;
         }
 
-        x[N] = 2.5;
+        x[0] = 1.0;
     }
 
     //? y = ax
