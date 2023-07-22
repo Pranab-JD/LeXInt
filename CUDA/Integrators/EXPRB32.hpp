@@ -18,8 +18,7 @@ namespace LeXInt
                  double* u_exprb2,           //? Output state variable(s) (lower order)
                  double* u_exprb3,           //? Output state variable(s) (higher order)
                  double* auxiliary_expint,   //? Internal auxiliary variables (EXPRB32)
-                 double* auxiliary_Leja,     //? Internal auxiliary variables (Leja)
-                 double* auxiliary_NL,       //? Internal auxiliary variables (EXPRB32 NL)
+                 double* auxiliary_Leja,     //? Internal auxiliary variables (Leja and NL remainders)
                  size_t N,                   //? Number of grid points
                  vector<double>& Leja_X,     //? Array of Leja points
                  double c,                   //? Shifting factor
@@ -54,36 +53,31 @@ namespace LeXInt
         //? Counters for Leja iterations
         int iters_1 = 0, iters_2 = 0;
 
-        //? RHS evaluated at 'u' multiplied by 'dt'
-        double* rhs_u = &auxiliary_expint[0];
-        RHS(u, rhs_u);
-        axpby(dt, rhs_u, rhs_u, N, GPU);
+        //? Assign required variables
+        double* temp_vec = &auxiliary_expint[0];
+
+        //? RHS evaluated at 'u' multiplied by 'dt'; u_exprb3 = f(u)
+        RHS(u, u_exprb3);
+        axpby(dt, u_exprb3, u_exprb3, N, GPU);
         
-        //? Interpolation of RHS(u) at 1; phi_1(J(u) dt) f(u) dt
-        double* u_flux = &auxiliary_expint[N];
-        real_Leja_phi(RHS, u, rhs_u, u_flux, auxiliary_Leja, N, {1.0}, 
+        //? Interpolation of RHS(u) at 1; u_exprb2 = phi_1(J(u) dt) f(u) dt
+        real_Leja_phi(RHS, u, u_exprb3, u_exprb2, auxiliary_Leja, N, {1.0}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
         //? Internal stage 1; 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
-        axpby(1.0, u, 1.0, u_flux, u_exprb2, N, GPU);
+        axpby(1.0, u, 1.0, u_exprb2, u_exprb2, N, GPU);
 
-        //? Assign memory for nonlinear remainders
-        double* NL_u = &auxiliary_expint[2*N];
-        double* NL_u_exprb2 = &auxiliary_expint[3*N];
-        double* R_a = &auxiliary_expint[4*N];
+        //? Difference of nonlinear remainders at u_exprb2; u_exprb3 = (u_exprb3 - temp_vec_1)*dt 
+        Nonlinear_remainder(RHS, u, u,        temp_vec, auxiliary_Leja, N, GPU, cublas_handle);
+        Nonlinear_remainder(RHS, u, u_exprb2, u_exprb3, auxiliary_Leja, N, GPU, cublas_handle);
+        axpby(dt, u_exprb3, -dt, temp_vec, u_exprb3, N, GPU);
 
-        //? Difference of nonlinear remainders at u_exprb2
-        Nonlinear_remainder(RHS, u, u, NL_u, auxiliary_NL, N, GPU, cublas_handle);
-        Nonlinear_remainder(RHS, u, u_exprb2, NL_u_exprb2, auxiliary_NL, N, GPU, cublas_handle);
-        axpby(dt, NL_u_exprb2, -dt, NL_u, R_a, N, GPU);
-
-        //? Final nonlinear stage; phi_3(J(u) dt) R(a) dt
-        double* u_nl_3 = &auxiliary_expint[5*N];
-        real_Leja_phi(RHS, u, R_a, u_nl_3, auxiliary_Leja, N, {1.0}, 
+        //? Final nonlinear stage; temp_vec_1 = phi_3(J(u) dt) R(a) dt
+        real_Leja_phi(RHS, u, u_exprb3, temp_vec, auxiliary_Leja, N, {1.0}, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
                         
         //? 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
-        axpby(1.0, u_exprb2, 2.0, u_nl_3, u_exprb3, N, GPU);
+        axpby(1.0, u_exprb2, 2.0, temp_vec, u_exprb3, N, GPU);
 
         //? Total number of Leja iterations
         iters = iters_1 + iters_2;

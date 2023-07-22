@@ -19,7 +19,6 @@ namespace LeXInt
                   double* u_epirk5,           //? Output state variable(s) (higher order)
                   double* auxiliary_expint,   //? Internal auxiliary variables (EPIRK5P1)
                   double* auxiliary_Leja,     //? Internal auxiliary variables (Leja)
-                  double* auxiliary_NL,       //? Internal auxiliary variables (EPIRK5P1 NL)
                   size_t N,                   //? Number of grid points
                   vector<double>& Leja_X,     //? Array of Leja points
                   double c,                   //? Shifting factor
@@ -74,54 +73,46 @@ namespace LeXInt
         //? Counters for Leja iterations
         int iters_1 = 0, iters_2 = 0, iters_3 = 0;
 
-        //? RHS evaluated at 'u' multiplied by 'dt'
-        double* rhs_u = &auxiliary_expint[0];
-        RHS(u, rhs_u);
-        axpby(dt, rhs_u, rhs_u, N, GPU);
+        //? Assign required variables
+        double* u_flux = &auxiliary_expint[0];
+        double* u_nl_1 = &auxiliary_expint[3*N];
+        double* u_nl_2 = &auxiliary_expint[5*N];
+        double* a = &auxiliary_expint[7*N];
+
+        //? RHS evaluated at 'u' multiplied by 'dt'; u_epirk4 = f(u)
+        RHS(u, u_epirk4);
+        axpby(dt, u_epirk4, u_epirk4, N, GPU);
 
         //? Vertical interpolation of RHS(u) at g11, g21, and g31; phi_1({g11, g21, g31} J(u) dt) f(u) dt
-        double* u_flux = &auxiliary_expint[N];
-        real_Leja_phi(RHS, u, rhs_u, u_flux, auxiliary_Leja, N, {g11, g21, g31}, 
+        real_Leja_phi(RHS, u, u_epirk4, u_flux, auxiliary_Leja, N, {g11, g21, g31}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
         //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt
-        double* a = &auxiliary_expint[4*N];
         axpby(1.0, u, a11, &u_flux[0], a, N, GPU);
 
-        //? Assign memory for nonlinear remainders
-        double* NL_u = &auxiliary_expint[5*N];
-        double* NL_a = &auxiliary_expint[6*N];
-        double* R_a = &auxiliary_expint[7*N];
-
         //? Difference of nonlinear remainders at a
-        Nonlinear_remainder(RHS, u, u, NL_u, auxiliary_NL, N, GPU, cublas_handle);
-        Nonlinear_remainder(RHS, u, a, NL_a, auxiliary_NL, N, GPU, cublas_handle);
-        axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
+        Nonlinear_remainder(RHS, u, u, u_epirk4, auxiliary_Leja, N, GPU, cublas_handle);
+        Nonlinear_remainder(RHS, u, a, u_epirk5, auxiliary_Leja, N, GPU, cublas_handle);
+        double* R_a = &u_flux[0];
+        axpby(dt, u_epirk5, -dt, u_epirk4, R_a, N, GPU);
 
         //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
-        double* u_nl_1 = &auxiliary_expint[8*N];
         real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, {g32_4, g32, g22}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
 
-        //? Internal stage 2; b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
-        double* b = &auxiliary_expint[11*N];
-        axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], b, N, GPU);
-
-        //? Assign memory for nonlinear remainders
-        double* NL_b = &auxiliary_expint[12*N];
-        double* R_b = &auxiliary_expint[13*N];
+        //? Internal stage 2; a = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
+        axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], a, N, GPU);
 
         //? Difference of nonlinear remainders at b
-        Nonlinear_remainder(RHS, u, b, NL_b, auxiliary_NL, N, GPU, cublas_handle);
-        axpby(dt, NL_b, -dt, NL_u, R_b, N, GPU);
+        Nonlinear_remainder(RHS, u, a, u_epirk5, auxiliary_Leja, N, GPU, cublas_handle);
+        double* R_b = &u_flux[N];
+        axpby(dt, u_epirk5, -dt, u_epirk4, R_b, N, GPU);
 
         //? (-2*R(a) + R(b))
-        double* nl_2 = &auxiliary_expint[14*N];
-        axpby(-2.0, R_a, 1.0, R_b, nl_2, N, GPU);
+        axpby(-2.0, R_a, 1.0, R_b, R_b, N, GPU);
 
         //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
-        double* u_nl_2 = &auxiliary_expint[15*N];
-        real_Leja_phi(RHS, u, nl_2, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
+        real_Leja_phi(RHS, u, R_b, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
 
         //? 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt

@@ -53,11 +53,10 @@ namespace LeXInt
         axpby(dt, rhs_u, rhs_u, N, GPU);
 
         //? Interpolation of RHS(u) at 1; phi_1(J(u) dt) f(u) dt
-        double* u_flux = &auxiliary_expint[N];
-        real_Leja_phi(RHS, u, rhs_u, u_flux, auxiliary_Leja, N, {1.0}, 
+        real_Leja_phi(RHS, u, rhs_u, u_exprb2, auxiliary_Leja, N, {1.0}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
 
         //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
-        axpby(1.0, u, 1.0, u_flux, u_exprb2, N, GPU);
+        axpby(1.0, u, 1.0, u_exprb2, u_exprb2, N, GPU);
     }
 }
