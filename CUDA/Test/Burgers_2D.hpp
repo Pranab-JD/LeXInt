@@ -17,12 +17,12 @@ __global__ void Burgers_2D(int N, double dx, double dy, double velocity, double*
     if ((ii >= N) || (jj >= N))
         return;
     
-    //? Diffusion
+                        //? Diffusion
     output[N*ii + jj] =   (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
-                        + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy);
+                        + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy)
             
-    //? Advection
-    output[N*ii + jj] = output[N*ii + jj] + velocity/dx 
+                        //? Advection (nonlinear)
+                        + velocity/dx 
                         * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii] * input[(jj + N - 1) % N + N*ii]/2
                         - 3.0/6.0 * input[jj + N*ii] * input[jj + N*ii]/2
                         + 6.0/6.0 * input[(jj + 1) % N + N*ii] * input[(jj + 1) % N + N*ii]/2
@@ -47,8 +47,10 @@ struct RHS_Burgers_2D:public Problems_2D
     {
         #ifdef __CUDACC__
 
-            dim3 threads(32, 32);
-            dim3 blocks((N+31)/32, (N+31)/32);
+            int num_threads = 16;
+            dim3 threads(num_threads, num_threads );
+            dim3 blocks((N + num_threads - 1)/num_threads, (N + num_threads - 1)/num_threads);
+            
             Burgers_2D<<<blocks, threads>>>(N, dx, dy, velocity, input, output);
         
         #else
@@ -69,12 +71,12 @@ struct RHS_Burgers_2D:public Problems_2D
 
                             if ((ii < N) && (jj < N))
                             {
-                                //? Diffusion
-                                output[N*ii + jj] = (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
-                                                + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy);
-                                
-                                //? Advection
-                                output[N*ii + jj] = output[N*ii + jj] + velocity/dx 
+                                                    //? Diffusion
+                                output[N*ii + jj] =   (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
+                                                    + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy)
+                                        
+                                                    //? Advection (nonlinear)
+                                                    + velocity/dx 
                                                     * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii] * input[(jj + N - 1) % N + N*ii]/2
                                                     - 3.0/6.0 * input[jj + N*ii] * input[jj + N*ii]/2
                                                     + 6.0/6.0 * input[(jj + 1) % N + N*ii] * input[(jj + 1) % N + N*ii]/2
