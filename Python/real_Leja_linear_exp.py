@@ -31,14 +31,14 @@ def real_Leja_linear_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
                                     Polynomial interpolation of 'u' multiplied 
                                     by the matrix exponential at real Leja points
         ii*substeps             : int
-                                    # of RHS calls (assuming each substep require same # of Leja points)
+                                    # of Leja points used (assuming each substep require same # of Leja points)
 
     """
     
     ###? Initialize parameters and arrays
     max_Leja_pts = len(Leja_X)                                    #* Max number of Leja points  
     y = u.copy()                                                  #* To avoid changing 'interp_function'
-    substeps = 7                                                  #* Number of time substeps
+    substeps = 2                                                  #* Number of time substeps
     
     ###? Matrix exponential (scaled and shifted)
     matrix_exponential = np.exp(dt/substeps * (c + Gamma*Leja_X))

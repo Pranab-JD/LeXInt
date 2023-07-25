@@ -31,8 +31,8 @@ def real_Leja_phi_nl(u, dt, RHS_function, c, Gamma, Leja_X, phi_function, tol):
         polynomial              : numpy array
                                     Polynomial interpolation of 'u' multiplied
                                     to phi_function at real Leja points
-        ii+1                    : int
-                                    Number of RHS calls
+        ii                      : int
+                                    # of Leja points used
 
     """
 

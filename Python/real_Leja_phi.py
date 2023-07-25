@@ -32,11 +32,11 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
 
         Returns
         ----------
-        polynomial        : numpy array(s)
+        polynomial              : numpy array(s)
                                     Polynomial interpolation of 'interp_vector' 
                                     multiplied by 'phi_function' at real Leja points
-        3*ii                    : int
-                                    # of RHS calls
+        ii                      : int
+                                    # of Leja points used
         convergence             : int
                                     0 -> did not converge, 1 -> converged
 
@@ -96,4 +96,4 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
             print("Reduce dt.")
             break
 
-    return polynomial, 3*ii, convergence
+    return polynomial, ii, convergence

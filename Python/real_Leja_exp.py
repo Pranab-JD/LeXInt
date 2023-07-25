@@ -29,7 +29,7 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
                                     Polynomial interpolation of 'u' multiplied 
                                     by the matrix exponential at real Leja points
         ii                      : int
-                                    # of RHS calls
+                                    # of Leja points used
 
     """
     
