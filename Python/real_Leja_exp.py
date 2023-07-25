@@ -59,7 +59,7 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
         polynomial = polynomial + (poly_coeffs[ii] * y)
 
         ###? If new term to be added < tol, break loop; safety factor = 0.1
-        if  poly_error < 0.1*tol*np.linalg.norm(polynomial) + tol:
+        if  poly_error < tol*np.linalg.norm(polynomial):
             break
 
         ###! Warning flags
