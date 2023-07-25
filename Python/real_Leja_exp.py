@@ -28,7 +28,7 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
         polynomial              : numpy array
                                     Polynomial interpolation of 'u' multiplied 
                                     by the matrix exponential at real Leja points
-        ii+1                    : int
+        ii                      : int
                                     # of RHS calls
 
     """
@@ -43,7 +43,7 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
     ###? Compute polynomial coefficients
     poly_coeffs = Divided_Difference(Leja_X, matrix_exponential) 
 
-    ###? Form the polynomial: p_0 term
+    ###? Form the polynomial: 1st term (p_0)
     polynomial = poly_coeffs[0] * u
 
     ###? p_1, p_2, ...., p_n terms; iterate until converges
@@ -58,8 +58,9 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
         ###? Add the new term to the polynomial
         polynomial = polynomial + (poly_coeffs[ii] * y)
 
-        ###? If new term to be added < tol, break loop; safety factor = 0.1
+        ###? If new term to be added < tol, break loop
         if  poly_error < tol*np.linalg.norm(polynomial):
+            # print("Converged! # of Leja points used (exp): ", ii)
             break
 
         ###! Warning flags

@@ -1,19 +1,20 @@
 import numpy as np
 from Divided_Difference import Divided_Difference
 
-def real_Leja_phi_nl(dt, RHS_function, interp_function, c, Gamma, Leja_X, phi_function, tol):
+def real_Leja_phi_nl(u, dt, RHS_function, c, Gamma, Leja_X, phi_function, tol):
     """
-    Computes the polynomial interpolation of phi_function applied to 'interp_function' at real Leja points.
+    Computes the polynomial interpolation of phi_function applied to 'u' at real Leja points.
     
     
         Parameters
         ----------
+        u                       : numpy array
+                                    Vector multiplied to phi function
         dt                      : double
                                     Step size
         RHS_function            : user-defined function 
                                     RHS function
-        interp_function         : numpy array
-                                    Vector multiplied to phi function
+
         c                       : double
                                     Shifting factor
         Gamma                   : double
@@ -28,25 +29,25 @@ def real_Leja_phi_nl(dt, RHS_function, interp_function, c, Gamma, Leja_X, phi_fu
         Returns
         ----------
         polynomial              : numpy array
-                                    Polynomial interpolation of 'interp_function' 
-                                    applied to phi_function at real Leja points
+                                    Polynomial interpolation of 'u' multiplied
+                                    to phi_function at real Leja points
         ii+1                    : int
                                     Number of RHS calls
 
     """
 
     ###? Initialize parameters and arrays
-    max_Leja_pts = len(Leja_X)                                                  #* Max number of Leja points  
-    y = interp_function.copy()                                                  #* To avoid changing 'interp_function'
+    max_Leja_pts = len(Leja_X)                                    #* Max number of Leja points  
+    y = u.copy()                                                  #* To avoid changing 'interp_function'
         
     ###? Phi function applied to 'interp_function' (scaled and shifted)
     phi_function_array = phi_function(dt * (c + Gamma*Leja_X))
     
     ###? Compute polynomial coefficients
     poly_coeffs = Divided_Difference(Leja_X, phi_function_array) 
-    
-    ###? Form the polynomial: p_0 term
-    polynomial = interp_function * poly_coeffs[0]
+
+    ###? Form the polynomial: 1st term (p_0)
+    polynomial = poly_coeffs[0] * u
     
     ###? p_1, p_2, ...., p_n terms; iterate until converges
     for ii in range(1, max_Leja_pts):
@@ -60,9 +61,9 @@ def real_Leja_phi_nl(dt, RHS_function, interp_function, c, Gamma, Leja_X, phi_fu
         ###? Add the new term to the polynomial
         polynomial = polynomial + (poly_coeffs[ii] * y)
         
-        ###? If new term to be added < tol, break loop; safety factor = 0.1
-        if  poly_error < (0.4*tol*np.linalg.norm(polynomial) + tol):
-            print("Converged! # of Leja points used (phi): ", ii)
+        ###? If new term to be added < tol, break loop
+        if  poly_error < tol*np.linalg.norm(polynomial):
+            # print("Converged! # of Leja points used (phi nl): ", ii)
             break
         
         ###! Warning flags
