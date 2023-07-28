@@ -17,6 +17,7 @@ namespace LeXInt
                   double* u,                  //? Input state variable(s)
                   double* u_epirk4,           //? Output state variable(s) (lower order)
                   double* u_epirk5,           //? Output state variable(s) (higher order)
+                  double& error,              //? Embedded error estimate
                   double* auxiliary_expint,   //? Internal auxiliary variables (EPIRK5P1)
                   double* auxiliary_Leja,     //? Internal auxiliary variables (Leja)
                   size_t N,                   //? Number of grid points
@@ -32,7 +33,7 @@ namespace LeXInt
     {
         //* -------------------------------------------------------------------------
 
-        //! u, u_epirk4, u_epirk5, auxiliary_expint, auxiliary_Leja, and auxiliary_NL
+        //! u, u_epirk4, u_epirk5, auxiliary_expint, and auxiliary_Leja
         //! are device vectors if GPU support is activated.
 
         //*    Returns
@@ -73,46 +74,45 @@ namespace LeXInt
         //? Counters for Leja iterations
         int iters_1 = 0, iters_2 = 0, iters_3 = 0;
 
-        //? Assign required variables
-        double* u_flux = &auxiliary_expint[0];
-        double* u_nl_1 = &auxiliary_expint[3*N];
-        double* u_nl_2 = &auxiliary_expint[5*N];
-        double* a = &auxiliary_expint[7*N];
+        //? Assign names and variables
+        double* f_u = &u_epirk4[0]; double* u_flux = &auxiliary_expint[0]; double* NL_u = &u_epirk4[0];
+        double* u_nl_1 = &auxiliary_expint[3*N]; double* u_nl_2 = &auxiliary_expint[6*N];
+        double* a = &u_nl_2[0]; double* NL_a = &u_epirk5[0]; double* R_a = &u_flux[0];
+        double* b = &u_nl_2[0]; double* NL_b = &u_epirk5[0]; double* R_b = &u_flux[N];
+        double* R_3 = &u_flux[N]; double* error_vector = &u_flux[2*N];
 
-        //? RHS evaluated at 'u' multiplied by 'dt'; u_epirk4 = f(u)
-        RHS(u, u_epirk4);
-        axpby(dt, u_epirk4, u_epirk4, N, GPU);
+        //? RHS evaluated at 'u' multiplied by 'dt'; f_u = RHS(u)*dt
+        RHS(u, f_u);
+        axpby(dt, f_u, f_u, N, GPU);
 
-        //? Vertical interpolation of RHS(u) at g11, g21, and g31; phi_1({g11, g21, g31} J(u) dt) f(u) dt
-        real_Leja_phi(RHS, u, u_epirk4, u_flux, auxiliary_Leja, N, {g11, g21, g31}, 
+        //? Vertical interpolation of RHS(u) at g11, g21, and g31; u_flux = phi_1({g11, g21, g31} J(u) dt) f(u) dt
+        real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, {g11, g21, g31}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
-        //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt
+        //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt 
         axpby(1.0, u, a11, &u_flux[0], a, N, GPU);
 
-        //? Difference of nonlinear remainders at a
-        Nonlinear_remainder(RHS, u, u, u_epirk4, auxiliary_Leja, N, GPU, cublas_handle);
-        Nonlinear_remainder(RHS, u, a, u_epirk5, auxiliary_Leja, N, GPU, cublas_handle);
-        double* R_a = &u_flux[0];
-        axpby(dt, u_epirk5, -dt, u_epirk4, R_a, N, GPU);
+        //? R_a = (NL_a - NL_u) * dt
+        Nonlinear_remainder(RHS, u, u, NL_u, auxiliary_Leja, N, GPU, cublas_handle);
+        Nonlinear_remainder(RHS, u, a, NL_a, auxiliary_Leja, N, GPU, cublas_handle);
+        axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
 
         //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
         real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, {g32_4, g32, g22}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
 
-        //? Internal stage 2; a = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
-        axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], a, N, GPU);
+        //? Internal stage 2; b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
+        axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], b, N, GPU);
 
-        //? Difference of nonlinear remainders at b
-        Nonlinear_remainder(RHS, u, a, u_epirk5, auxiliary_Leja, N, GPU, cublas_handle);
-        double* R_b = &u_flux[N];
-        axpby(dt, u_epirk5, -dt, u_epirk4, R_b, N, GPU);
+        //? R_b = (NL_b - NL_u) * dt
+        Nonlinear_remainder(RHS, u, b, NL_b, auxiliary_Leja, N, GPU, cublas_handle);
+        axpby(dt, NL_b, -dt, NL_u, R_b, N, GPU);
 
         //? (-2*R(a) + R(b))
-        axpby(-2.0, R_a, 1.0, R_b, R_b, N, GPU);
+        axpby(-2.0, R_a, 1.0, R_b, R_3, N, GPU);
 
         //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
-        real_Leja_phi(RHS, u, R_b, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
+        real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
 
         //? 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
@@ -120,6 +120,10 @@ namespace LeXInt
 
         //? 5th order solution; u_5 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32 J(u) dt) R(a) dt + b3 phi_3(g33 J(u) dt) (-2*R(a) + R(b)) dt
         axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[N], b3, &u_nl_2[0], u_epirk5, N, GPU);
+
+        //? Error estimate
+        axpby(1.0, u_epirk5, -1.0, u_epirk4, error_vector, N, GPU);
+        error = l2norm(error_vector, N, GPU, cublas_handle);
 
         //? Total number of Leja iterations
         iters = iters_1 + iters_2 + iters_3;
