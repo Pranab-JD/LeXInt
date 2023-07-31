@@ -58,7 +58,7 @@ namespace LeXInt
         else
         {
             //* C++
-            ::std::cout << "Error. Use 'swap(x, y)' " << ::std::endl;
+            copy_Cpp(x, y, N);
         }
     }
 

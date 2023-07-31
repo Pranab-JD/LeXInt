@@ -43,7 +43,7 @@ namespace LeXInt
 {
     #ifdef __CUDACC__
 
-    //? Set x = y
+    //? Set y = x
     __global__ void copy_CUDA(double *x, double *y, size_t N)                    
     {
         int ii = blockDim.x * blockIdx.x + threadIdx.x;

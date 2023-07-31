@@ -13,9 +13,8 @@ struct Leja_GPU
     string integrator_name;         //? Name of the exponential integrator
     GPU_handle cublas_handle;       //? Modified handle for cublas
 
-    //? Allocate memory
-    //! These are device vectors if GPU support is activated
-    double* auxiliary_Leja;         //? Internal vectors for Leja interpolation
+    //! Allocate memory - these are device vectors if GPU support is activated
+    double* auxiliary_Leja;         //? Internal vectors for Leja interpolation and power iterations
     double* auxiliary_expint;       //? Internal vectors for an exponential integrator
 
     //! Constructor
@@ -39,11 +38,11 @@ struct Leja_GPU
         }
         else if (integrator_name == "EXPRB53s3")
         {
-            num_vectors = 6;
+            num_vectors = 5;
         }
         else if (integrator_name == "EXPRB54s4")
         {
-            num_vectors = 25;
+            num_vectors = 5;
         }
         else if (integrator_name == "EPIRK4s3")
         {
@@ -61,19 +60,14 @@ struct Leja_GPU
         {
             num_vectors = 8;
         }
-        else if (integrator_name == "Hom_Linear")
+        else if (integrator_name == "Hom_Linear" or integrator_name == "NonHom_Linear")
         {
-            //? Homogeneous Linear Differential Equations
-            num_vectors = 0;
-        }
-        else if (integrator_name == "NonHom_Linear")
-        {
-            //? Nonhomogeneous Linear Differential Equations
+            //? Linear Differential Equations
             num_vectors = 0;
         }
         else
         {
-            std::cout << "Incorrect integrator!! (Leja_GPU.hpp)" << std::endl;
+            std::cout << "Incorrect integrator!! See Leja_GPU.hpp" << std::endl;
         }
 
         #ifdef __CUDACC__
@@ -110,59 +104,71 @@ struct Leja_GPU
     //! ============ Operator Functions ============ !//
 
     //? Power Iterations
-    void operator()(rhs& RHS, 
-                    double* u_input,
-                    int N, 
-                    double& eigenvalue,
-                    bool GPU
-                    )
+    void Power_iterations(rhs& RHS, 
+                          double* u_input,
+                          int N, 
+                          double& eigenvalue,
+                          bool GPU
+                          )
     {
         LeXInt::Power_iterations(RHS, u_input, N, eigenvalue, auxiliary_Leja, GPU, cublas_handle);
     }
 
-    //? Real Leja Phi
-    void operator()(rhs& RHS, 
-                    double* u_input, 
-                    double* u_output, 
-                    int N,
-                    double (* phi_function) (double),
-                    vector<double>& Leja_X, 
-                    double c,
-                    double Gamma,
-                    double tol,
-                    double dt,
-                    int& iters,
-                    bool GPU
-                    )
+    //? Real Leja Phi NL (Nonhomogenous linear equations)
+    void real_Leja_phi_nl(rhs& RHS, 
+                          double* u_input, 
+                          double* u_output, 
+                          int N,
+                          double (* phi_function) (double),
+                          vector<double>& Leja_X, 
+                          double c,
+                          double Gamma,
+                          double tol,
+                          double dt,
+                          int& iters,
+                          bool GPU
+                          )
     {
         LeXInt::real_Leja_phi_nl(RHS, u_input, u_output, 
                                  auxiliary_Leja, 
                                  N, (* phi_function), Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
     }
 
+    //? Real Leja Exp (Homogenous linear equations, matrix exponential)
+    void real_Leja_exp(rhs& RHS, 
+                       double* u_input, 
+                       double* u_output, 
+                       int N, 
+                       vector<double>& Leja_X, 
+                       double c,
+                       double Gamma,
+                       double tol,
+                       double dt,
+                       int& iters,
+                       bool GPU
+                       )
+    {
+        LeXInt::real_Leja_exp(RHS, u_input, u_output,
+                              auxiliary_Leja, 
+                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+    }
+
     //? Solvers without an error estimate
-    void operator()(rhs& RHS, 
-                    double* u_input, 
-                    double* u_output, 
-                    int N, 
-                    vector<double>& Leja_X, 
-                    double c,
-                    double Gamma,
-                    double tol,
-                    double dt,
-                    int& iters,
-                    bool GPU
-                    )
+    void exp_int(rhs& RHS, 
+                 double* u_input, 
+                 double* u_output, 
+                 int N, 
+                 vector<double>& Leja_X, 
+                 double c,
+                 double Gamma,
+                 double tol,
+                 double dt,
+                 int& iters,
+                 bool GPU
+                 )
     {
         //! Call the required integrator
-        if (integrator_name == "Hom_Linear")
-        {
-            LeXInt::real_Leja_exp(RHS, u_input, u_output,
-                                  auxiliary_Leja, 
-                                  N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
-        }
-
-        else if (integrator_name == "Rosenbrock_Euler")
+        if (integrator_name == "Rosenbrock_Euler")
         {
             LeXInt::Ros_Eu(RHS, u_input, u_output,
                            auxiliary_expint, auxiliary_Leja,
@@ -181,72 +187,74 @@ struct Leja_GPU
     }
 
     //? Embedded integrators
-    void operator()(rhs& RHS, 
-                    double* u_input, 
-                    double* u_output_low, 
-                    double* u_output_high, 
-                    int N, 
-                    vector<double>& Leja_X, 
-                    double c,
-                    double Gamma,
-                    double tol,
-                    double dt,
-                    int& iters,
-                    bool GPU
-                    )
+    void embed_exp_int(rhs& RHS, 
+                       double* u_input, 
+                       double* u_output_low, 
+                       double* u_output_high,
+                       double& error,
+                       int N,
+                       vector<double>& Leja_X, 
+                       double c,
+                       double Gamma,
+                       double tol,
+                       double dt,
+                       int& iters,
+                       bool GPU
+                       )
     {
         //! Call the required integrator
         if (integrator_name == "EXPRB32")
         {
-            LeXInt::EXPRB32(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EXPRB32(RHS, u_input, u_output_low, u_output_high, error,
                             auxiliary_expint, auxiliary_Leja, 
                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
         }
         else if (integrator_name == "EXPRB42")
         {
-            LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, error, 
                             auxiliary_expint, auxiliary_Leja,
                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB43")
         {
-            LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, error,
                             auxiliary_expint, auxiliary_Leja,
                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB53s3")
         {
-            LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, error,
                               auxiliary_expint, auxiliary_Leja,
                               N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
         }
-        // else if (integrator_name == "EXPRB54s4")
-        // {
-        //     LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, 
-        //                       auxiliary_expint, auxiliary_Leja, auxiliary_NL, 
-        //                       N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
-        // }
+        else if (integrator_name == "EXPRB54s4")
+        {
+            LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, error,
+                              auxiliary_expint, auxiliary_Leja, 
+                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+        }
         else if (integrator_name == "EPIRK4s3")
         {
-            LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK4s3A")
         {
-            LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK5P1")
         {
-            LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, 
+            LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
         }
         else
         {
-            std::cout << "ERROR: 2 output vectors for EXPRB32, EXPRB43, EXPRB53s3, EXPRB54s4, EPIRK4s3, EPIRK4s3A, and EPIRK5P1." << std::endl;
+            std::cout << "ERROR: 2 output vectors for EXPRB32, EXPRB52, EXPRB43,\
+                          EXPRB53s3, EXPRB54s4, EPIRK4s3, EPIRK4s3A, and EPIRK5P1." << std::endl;
             return;
         }
     }

@@ -88,6 +88,16 @@ namespace LeXInt
         x[0] = 1.0;
     }
 
+    //? y = x
+    void copy_Cpp(double *x, double *y, size_t N)                    
+    {
+        #pragma omp parallel for
+        for (int ii = 0; ii < N; ii++)
+        {
+            y[ii] = x[ii];
+        }
+    }
+
     //? y = ax
     void axpby_Cpp(double a, double *x, 
                              double *y, size_t N)                    

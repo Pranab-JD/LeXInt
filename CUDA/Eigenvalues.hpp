@@ -16,7 +16,7 @@ namespace LeXInt
                           GPU_handle& cublas_handle     //? CuBLAS handle
                           )
     {
-        double tol = 0.01;                              //? 2% tolerance
+        double tol = 0.01;                              //? 1% tolerance
         double eigenvalue_ii = 0.0;                     //? Eigenvalue at ii
         double eigenvalue_ii_1 = 0.0;                   //? Eigenvalue at ii-1
         int niters = 1000;                              //? Max. number of iterations

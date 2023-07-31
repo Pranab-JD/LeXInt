@@ -68,81 +68,9 @@ namespace LeXInt
             return elapsed/double(counter);
         }
 
-        // double deviation() {
-        //     return sqrt(elapsed_sq/double(counter)-average()*average());
-        // }
-
         unsigned count() {
             return counter;
         }
     };
-
-    // namespace gt {
-    //     std::map<string, L_timer> timers;
-
-    //     inline bool is_master() {
-    //         #ifdef _OPENMP
-    //         if(omp_get_thread_num() != 0)
-    //             return false;
-    //         #endif
-
-    //         return true;
-    //     }
-       
-    //     inline void reset() {
-    //         for(auto& el : timers)
-    //             el.second.reset();
-    //     }
-
-    //     inline void print() {
-    //         for(auto el : timers)
-    //             cout << "gt " << el.first << ": " << el.second.total() << " s" 
-    //                  << endl;
-    //     }
-
-    //     inline string sorted_output() {
-    //         typedef std::pair<string, L_timer> pair_nt;
-    //         auto comp = [](pair_nt a1, pair_nt a2) {
-    //             return a1.second.total() > a2.second.total();
-    //         };
-    //         std::set<pair_nt, decltype(comp)> sorted(begin(timers), end(timers), comp);
-            
-    //         std::stringstream ss;
-    //         ss.precision(4);
-    //         ss.setf(std::ios_base::scientific);
-    //         for(auto el : sorted) {
-    //             L_timer& t = el.second;
-    //             ss << std::setw(40) << el.first 
-    //                << std::setw(15) << t.total()
-    //                << std::setw(15) << t.count() 
-    //                << std::setw(15) << t.average() 
-    //                << std::setw(15) << t.deviation()/t.average() << endl;
-    //         }
-    //         return ss.str();
-    //     }
-
-    //     inline void start(string name) {
-    //         if(is_master())
-    //             timers[name].start();
-
-    //     }
-
-    //     inline void stop(string name) {
-    //         if(is_master())
-    //             timers[name].stop();
-    //     }
-
-    //     inline double total(string name) {
-    //         return timers[name].total();
-    //     }
-
-    //     inline double average(string name) {
-    //         return timers[name].average();
-    //     }
-
-    //     inline double deviation(string name) {
-    //         return timers[name].deviation();
-    //     }
-    // }
 }
 

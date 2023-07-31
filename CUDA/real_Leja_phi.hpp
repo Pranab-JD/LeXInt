@@ -46,10 +46,12 @@ namespace LeXInt
         int max_Leja_pts = Leja_X.size();                                     //? Max. # of Leja points
         int num_interpolations = integrator_coeffs.size();                    //? Number of interpolations in vertical
 
-        double* Jacobian_function = &auxiliary_Leja[0];                       //? auxiliary variable for Jacobian-vector product
+        double* Jacobian_vector = &auxiliary_Leja[0];                         //? auxiliary variable for Jacobian-vector product
         double* auxiliary_Jv = &auxiliary_Leja[N];                            //? auxiliary variables for Jacobian-vector computation
+        double* y = &auxiliary_Leja[3*N];                                     //? To avoid overwriting "interp_vector"
+        copy(interp_vector, y, N, GPU);
 
-        //* Phi function applied to 'interp_vector' (scaled and shifted)
+        //* Phi function applied to 'y' (scaled and shifted)
         vector<vector<double> > phi_function_array(num_interpolations);
 
         //* Polynomial coefficients
@@ -67,7 +69,7 @@ namespace LeXInt
         {
             for (int ii = 0; ii < max_Leja_pts; ii++)
             {
-                //? Phi function applied to 'interp_vector' (scaled and shifted)
+                //? Phi function applied to 'y' (scaled and shifted)
                 phi_function_array[ij][ii] = phi_function(integrator_coeffs[ij] * dt * (c + (Gamma * Leja_X[ii])));
             }
 
@@ -75,27 +77,27 @@ namespace LeXInt
             coeffs[ij] = Divided_Differences(Leja_X, phi_function_array[ij]);
 
             //? Form the polynomial (first term): polynomial = coeffs[0] * y
-            axpby(coeffs[ij][0], interp_vector, &polynomial[ij*N], N, GPU);
+            axpby(coeffs[ij][0], y, &polynomial[ij*N], N, GPU);
         }
 
         //? Iterate until converges
         for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
             //* Compute numerical Jacobian: J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
-            Jacobian_vector(RHS, u, interp_vector, Jacobian_function, auxiliary_Jv, N, GPU, cublas_handle);
+            Jacobian_vector(RHS, u, y, Jacobian_vector, auxiliary_Jv, N, GPU, cublas_handle);
 
             //* y = y * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jacobian_function, (-c/Gamma - Leja_X[iters - 1]), interp_vector, interp_vector, N, GPU);
+            axpby(1./Gamma, Jacobian_vector, (-c/Gamma - Leja_X[iters - 1]), y, y, N, GPU);
 
             //* Add the new term to the polynomial
             for (int ij = 0; ij < num_interpolations; ij++)
             {
                 //? polynomial = polynomial + coeffs[iters] * y
-                axpby(coeffs[ij][iters], interp_vector, 1.0, &polynomial[ij*N], &polynomial[ij*N], N, GPU);
+                axpby(coeffs[ij][iters], y, 1.0, &polynomial[ij*N], &polynomial[ij*N], N, GPU);
             }
 
             //* Error estimate for 'y': poly_error = |coeffs[iters]| ||y|| at every iteration
-            double poly_error = l2norm(interp_vector, N, GPU, cublas_handle);
+            double poly_error = l2norm(y, N, GPU, cublas_handle);
             poly_error = abs(coeffs[num_interpolations - 1][iters]) * poly_error;
 
             //* Norm of the (largest) polynomial
@@ -104,7 +106,7 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
+                // ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
                 break;
             }
 

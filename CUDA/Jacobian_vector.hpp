@@ -17,27 +17,31 @@ namespace LeXInt
                          GPU_handle& cublas_handle      //? CuBLAS handle
                          )
     {
-        //! This function has 16 vector reads and writes.
+        //! This function has 10 + (3 * RHS_read_writes) vector reads and writes.
 
-        //? Jac_vec = rhs(u)
-        RHS(u, Jac_vec);
+        //? Assign names and variables
+        double* f_u = &Jac_vec[0]; double* u_eps = &Jac_vec[0];
+        double* rhs_u_eps_1 = &auxiliary_Jv[0];
+        double* rhs_u_eps_2 = &auxiliary_Jv[N];
 
-        double rhs_norm = l2norm(Jac_vec, N, GPU, cublas_handle);
+        //? RHS evaluated at 'u'; f_u = RHS(u)
+        RHS(u, f_u);
+
+        //? epsilon ~ 1e-7 (normalised)
+        double rhs_norm = l2norm(f_u, N, GPU, cublas_handle);
         double epsilon = 1e-7*rhs_norm;
         
-        //? Jac_vec = u + epsilon*y
-        axpby(1.0, u, epsilon, y, Jac_vec, N, GPU); 
+        //? u_eps = u + epsilon*y
+        axpby(1.0, u, epsilon, y, u_eps, N, GPU); 
 
         //? rhs_u_eps_1 = RHS(u + epsilon*y)
-        double* rhs_u_eps_1 = &auxiliary_Jv[0];
-        RHS(Jac_vec, rhs_u_eps_1);
+        RHS(u_eps, rhs_u_eps_1);
 
-        //? Jac_vec = u - epsilon*y
-        axpby(1.0, u, -epsilon, y, Jac_vec, N, GPU); 
+        //? u_eps = u - epsilon*y
+        axpby(1.0, u, -epsilon, y, u_eps, N, GPU); 
 
         //? rhs_u_eps_2 = RHS(u - epsilon*y)
-        double* rhs_u_eps_2 = &auxiliary_Jv[N];
-        RHS(Jac_vec, rhs_u_eps_2);
+        RHS(u_eps, rhs_u_eps_2);
 
         //? Jac_vec = J(u) * y = (RHS(u + epsilon*y) - RHS(u - epsilon*y))/(2*epsilon)
         axpby(1.0/(2.0*epsilon), rhs_u_eps_1, -1.0/(2.0*epsilon), rhs_u_eps_2, Jac_vec, N, GPU);
@@ -55,18 +59,20 @@ namespace LeXInt
                              GPU_handle& cublas_handle      //? CuBLAS handle
                              )
     {
-        //! This function has 21 vector reads and writes.
+        //! This function has 13 + (4 * RHS_read_writes) vector reads and writes.
+
+        //? Assign names and variables
+        double* Linear_y = &auxiliary_Jv[0];
+        double* Jv = &auxiliary_Jv[N]; 
+        double* f_y = &auxiliary_Jv[3*N];
 
         //? J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
-        double* Linear_y = &auxiliary_Jv[0];
-        double* Jv = &auxiliary_Jv[N];
         Jacobian_vector(RHS, u, y, Linear_y, Jv, N, GPU, cublas_handle);
 
-        //? f(y)
-        double* rhs_y = &auxiliary_Jv[3*N];
-        RHS(y, rhs_y);
+        //? RHS evaluated at 'y'; f_y = RHS(y)
+        RHS(y, f_y);
 
         //? F(y) = f(y) - (J(u) * y)
-        axpby(1.0, rhs_y, -1.0, Linear_y, Nonlinear_y, N, GPU);
+        axpby(1.0, f_y, -1.0, Linear_y, Nonlinear_y, N, GPU);
     }
 }
