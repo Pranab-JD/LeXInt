@@ -47,13 +47,15 @@ namespace LeXInt
 
         //* -------------------------------------------------------------------------
 
-        //? RHS evaluated at 'u' multiplied by 'dt'
-        double* rhs_u = &auxiliary_expint[0];
-        RHS(u, rhs_u);
-        axpby(dt, rhs_u, rhs_u, N, GPU);
+        //? Assign names and variables
+        double* f_u = &auxiliary_expint[0];
+
+        //? RHS evaluated at 'u' multiplied by 'dt'; f_u = RHS(u)*dt
+        RHS(u, f_u);
+        axpby(dt, f_u, f_u, N, GPU);
 
         //? Interpolation of RHS(u) at 1; phi_1(J(u) dt) f(u) dt
-        real_Leja_phi(RHS, u, rhs_u, u_exprb2, auxiliary_Leja, N, {1.0}, 
+        real_Leja_phi(RHS, u, f_u, u_exprb2, auxiliary_Leja, N, {1.0}, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
 
         //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt

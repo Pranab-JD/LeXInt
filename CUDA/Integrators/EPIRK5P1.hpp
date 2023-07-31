@@ -115,10 +115,10 @@ namespace LeXInt
         real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
 
-        //? 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
+        //! 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
         axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[0], b3, &u_nl_2[N], u_epirk4, N, GPU);
 
-        //? 5th order solution; u_5 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32 J(u) dt) R(a) dt + b3 phi_3(g33 J(u) dt) (-2*R(a) + R(b)) dt
+        //! 5th order solution; u_5 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32 J(u) dt) R(a) dt + b3 phi_3(g33 J(u) dt) (-2*R(a) + R(b)) dt
         axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[N], b3, &u_nl_2[0], u_epirk5, N, GPU);
 
         //? Error estimate
