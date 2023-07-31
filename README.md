@@ -43,7 +43,7 @@ Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
 Lukas Einkemmer (<lukas.einkemmer@uibk.ac.at>) <br />
 Mayya Tokman  (<mtokman@ucmerced.edu>)
 
-In case you are unable to append LeXInt into your code or face issues running LeXInt, kindly contact Pranab J. Deka.
+In case you face issues using LeXInt, kindly contact Pranab J. Deka.
 
 ## Acknowledgements
 Alexander Moriggl contributed to the development of the CUDA version.
