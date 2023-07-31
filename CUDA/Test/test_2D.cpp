@@ -52,10 +52,9 @@ int main()
 {
     //! Set GPU spport to false
     bool GPU_access = false;
-    GPU_handle cublas_h;            //! To be ignored if compiled with g++ (for C++ implementation) 
 
     //* Initialise parameters
-    int n = pow(2, 11);                             // # grid points (1D)
+    int n = pow(2, 8);                             // # grid points (1D)
     int N = n*n;                                    // # grid points (2D)
     double xmin = -1;                               // Left boundary (limit)
     double xmax =  1;                               // Right boundary (limit)
@@ -76,16 +75,16 @@ int main()
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 500;                                   // Advection speed
+    double velocity = 100;                                   // Advection speed
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
-    double t_final = 5e-4;                                  // Final simulation time
+    double t_final = 1e-3;                                  // Final simulation time
     int time_steps = 0;                                     // # time steps
 
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = 10.0*min(dif_cfl, adv_cfl);                 // Step size
+    double dt = 8.0*min(dif_cfl, adv_cfl);                  // Step size
     cout << endl << "Step size: " << dt << endl;
 
     //* Set of Leja points
@@ -94,12 +93,17 @@ int main()
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    double tol = 1e-5;
+    double tol = 1e-10;
     string problem = "Burgers_2D";
-    string integrator = "EPIRK4s3A";
+    string integrator = "EXPRB54s4";
 
-    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity);                //* Default problem
-    Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};       //* Default problem
+    //! Diffusion-Advection or Diffusion-Advection + Sources
+    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    // Leja_GPU<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+
+    //! Burgers' Equation
+    RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    Leja_GPU<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
     stringstream step_size, tf, grid, acc;
@@ -133,16 +137,13 @@ int main()
     }
     else if (problem == "Burgers_2D")
     {
-        RHS_Burgers_2D RHS = RHS_Burgers_2D(n, dx, dy, velocity);
-        Leja_GPU<RHS_Burgers_2D> leja_gpu{N, integrator};
-
         //? Initial condition
         for (int ii = 0; ii < n; ii++)
         {
             for (int jj = 0; jj< n; jj++)
             {
-                u_init[n*ii + jj] = 2 + 0.01*sin(2*M_PI*X[ii]) + 0.01*sin(8*M_PI*X[ii] + 0.3)
-                                      + 0.01*sin(2*M_PI*Y[jj]) + 0.01*sin(8*M_PI*Y[jj] + 0.3);
+                u_init[n*ii + jj] = 2 + 0.1*sin(2*M_PI*X[ii]) + 0.1*sin(8*M_PI*X[ii] + 0.3)
+                                      + 0.1*sin(2*M_PI*Y[jj]) + 0.1*sin(8*M_PI*Y[jj] + 0.3);
             }
         }
     }
@@ -156,44 +157,36 @@ int main()
     double *u = (double*)malloc(N_size);
     copy(u_init.begin(), u_init.end(), u);
     double *u_sol = (double*)malloc(N_size);            //* Solution vector
-    double *auxiliary_Jv = (double*)malloc(4*N_size);   //* To compute spectrum using power iterations
     
-    double *auxiliary_Leja;                             //? Only for linear problems
     double *u_low;                                      //? Only for nonlinear problems
-    double *u_error;                                    //? Only for nonlinear problems
-    double error;
     double *interp_vector;                              //? Only for nonhomogenous linear problems
     double *source;                                     //? Only for nonhomogenous linear problems
+    double error;
     
-    if (integrator == "Hom_Linear" or integrator == "Rosenbrock_Euler" or integrator == "EPIRK4s3B" )
-    {
-        auxiliary_Leja = (double*)malloc(N_size);
-    }
-    else if (integrator == "NonHom_Linear")
+    if (integrator == "NonHom_Linear")
     {
         //? Vector to be interpolated
         interp_vector = (double*)malloc(N_size);
         
         //? Source
         source = (double*)malloc(N_size);
-        copy(Source.begin(), Source.end(), source);         //? Only for nonhomogenous linear problems
+        copy(Source.begin(), Source.end(), source);
     }
     else
     {
         u_low = (double*)malloc(N_size);
-        u_error = (double*)malloc(N_size);
     }
 
-    //? Shifting and scaling parameters
+    //? Spectrum - scaling and shifting factors
     double eigenvalue = 0.0;
-    LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxiliary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-    eigenvalue = -1.2*eigenvalue;
+    leja_gpu.Power_iterations(RHS, u, N, eigenvalue, GPU_access);
+    eigenvalue = -1.05*eigenvalue;               //! Real eigenvalue has to be negative
     double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
     cout << "Largest eigenvalue: " << eigenvalue << endl;
 
     //! Create nested directories (for movies)
-    // int sys_value = system(("mkdir -p ../../LeXInt_Test/DAS/"));
-    // string directory = "../../LeXInt_Test/DAS/";
+    // int sys_value = system(("mkdir -p ../../LeXInt_Test/B/"));
+    // string directory = "../../LeXInt_Test/B/";
 
     //! Time Loop
     LeXInt::timer time_loop;
@@ -213,7 +206,7 @@ int main()
 
         if (integrator == "Hom_Linear")
         {
-            LeXInt::real_Leja_exp(RHS, u, u_sol, auxiliary_Leja, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access, cublas_h);
+            leja_gpu.real_Leja_exp(RHS, u, u_sol, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
         }
 
         //? ---------------------------------------------------------------- ?//
@@ -225,7 +218,7 @@ int main()
             LeXInt::axpby(1.0, source, 1.0, u, interp_vector, N, GPU_access);
             LeXInt::axpby(dt, interp_vector, interp_vector, N, GPU_access);
 
-            LeXInt::real_Leja_phi_nl(RHS, interp_vector, u_sol, auxiliary_Leja, N, LeXInt::phi_1, Leja_X, c, Gamma, tol, dt, iters, GPU_access, cublas_h);
+            leja_gpu.real_Leja_phi_nl(RHS, interp_vector, u_sol, N, LeXInt::phi_1, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
         }
         
         //? ---------------------------------------------------------------- ?//
@@ -239,13 +232,13 @@ int main()
             if (time_steps != 0 && time_steps % 500 == 0)
             {
                 //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxiliary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-                eigenvalue = -1.2*eigenvalue;
-                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                leja_gpu.Power_iterations(RHS, u, N, eigenvalue, GPU_access);
+                eigenvalue = -1.05*eigenvalue;       //! Real eigenvalue has to be negative
+                c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
             }
 
            //? Non-embedded integrators
-            leja_gpu(RHS, u, u_sol, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.exp_int(RHS, u, u_sol, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
         }
 
         //* Embedded Integrators 
@@ -256,20 +249,15 @@ int main()
             if (time_steps != 0 && time_steps % 500 == 0)
             {
                 //? Largest eigenvalue of the Jacobian; changes at every time step for nonlinear equations
-                double eigenvalue = 0.0;
-                LeXInt::Power_iterations(RHS, u, N, eigenvalue, auxiliary_Jv, GPU_access, cublas_h);         // Real eigenvalue has to be negative
-                eigenvalue = -1.2*eigenvalue;
-                double c = eigenvalue/2.0; double Gamma = -eigenvalue/4.0;
+                leja_gpu.Power_iterations(RHS, u, N, eigenvalue, GPU_access);
+                eigenvalue = -1.05*eigenvalue;       //! Real eigenvalue has to be negative
+                c = eigenvalue/2.0; Gamma = -eigenvalue/4.0;
             }
 
             //? Embedded integrators
-            leja_gpu(RHS, u, u_low, u_sol, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
-            
-            //? Error estimate
-            LeXInt::axpby(1.0, u_low, -1.0, u_sol, u_error, N, GPU_access);
-            error = LeXInt::l2norm(u_error, N, GPU_access, cublas_h);
+            leja_gpu.embed_exp_int(RHS, u, u_low, u_sol, error, N, Leja_X, c, Gamma, tol, dt, iters, GPU_access);
 
-            if (time_steps % 1 == 0)
+            if (time_steps % 5 == 0)
             {
                 cout << "Embedded error: " << error << endl;
             }
@@ -286,16 +274,13 @@ int main()
         time_steps = time_steps + 1;
         iters_total = iters_total + iters;
 
-        if (time_steps == 10)
-            break;
-
         if (integrator == "NonHom_Linear")
         {
             LeXInt::axpby(1.0, u, 1.0, u_sol, u, N, GPU_access);
         }
         else
         {
-            swap(u, u_sol);
+            LeXInt::copy(u_sol, u, N, GPU_access);
         }
 
         if (time_steps % 500 == 0)
@@ -386,33 +371,33 @@ int main()
     cout << "Average Bandwidth (GB/s): " << bandwidth << endl;
     cout << "==================================================" << endl << endl;
 
-    // //! Create nested directories
-    // int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator
-    //                             + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str()).c_str());
-    // string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator
-    //                             + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str().c_str();
+    //! Create nested directories
+    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str()).c_str());
+    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str().c_str();
 
-    // //? Write data to files
-    // string final_data = directory_f + "/Final_data.txt";
-    // ofstream data;
-    // data.open(final_data);
-    // for(int ii = 0; ii < N; ii++)
-    // {
-    //     data << setprecision(16) << u[ii] << endl;
-    // }
-    // data.close();
+    //? Write data to files
+    string final_data = directory_f + "/Final_data.txt";
+    ofstream data;
+    data.open(final_data);
+    for(int ii = 0; ii < N; ii++)
+    {
+        data << setprecision(16) << u[ii] << endl;
+    }
+    data.close();
 
-    // string results = directory_f + "/Results.txt";
-    // ofstream params;
-    // params.open(results);
-    // params << "Simulation time: " << time << endl;
-    // params << "Total number of time steps: " << time_steps << endl;
-    // params << "Total number of Leja iterations: " << iters_total << endl;
-    // params << "Average Bandwidth (GB/s): " << bandwidth << endl;
-    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    // params.close();
+    string results = directory_f + "/Results.txt";
+    ofstream params;
+    params.open(results);
+    params << "Simulation time: " << time << endl;
+    params << "Total number of time steps: " << time_steps << endl;
+    params << "Total number of Leja iterations: " << iters_total << endl;
+    params << "Average Bandwidth (GB/s): " << bandwidth << endl;
+    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    params.close();
 
-    // cout << "Writing data to files complete!" << endl;
+    cout << "Writing data to files complete!" << endl;
 
     return 0;
 }
