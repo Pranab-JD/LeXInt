@@ -10,7 +10,6 @@
 
 namespace LeXInt
 {
-
     //? Phi function interpolated on real Leja points
     template <typename rhs>
     void real_Leja_phi_nl(rhs& RHS,                           //? RHS function
@@ -42,7 +41,7 @@ namespace LeXInt
         //* -------------------------------------------------------------------------
 
         int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
-        double* Jacobian_vector = &auxiliary_Leja[0];                   //? auxiliary variable for Jacobian-vector product
+        double* Jac_vec = &auxiliary_Leja[0];                           //? auxiliary variable for Jacobian-vector product
         
         //* Phi function applied to 'interp_vector' (scaled and shifted)
         vector<double> phi_function_array(max_Leja_pts);
@@ -62,10 +61,10 @@ namespace LeXInt
         for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
             //* Compute numerical Jacobian (for linear eqs., this is the RHS evaluation at y)
-            RHS(interp_vector, Jacobian_vector);
+            RHS(interp_vector, Jac_vec);
 
             //* y = y * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jacobian_vector, (-c/Gamma - Leja_X[iters - 1]), interp_vector, interp_vector, N, GPU);
+            axpby(1./Gamma, Jac_vec, (-c/Gamma - Leja_X[iters - 1]), interp_vector, interp_vector, N, GPU);
 
             //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[iters] * y))
             axpby(coeffs[iters], interp_vector, 1.0, polynomial, polynomial, N, GPU);
@@ -78,7 +77,7 @@ namespace LeXInt
             double poly_norm = l2norm(polynomial, N, GPU, cublas_handle);
 
             //? If new term to be added < tol, break loop
-            if (poly_error < tol*poly_norm)
+            if (poly_error < ((tol*poly_norm) + tol))
             {
                 // ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
                 break;

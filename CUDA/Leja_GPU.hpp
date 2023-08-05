@@ -134,7 +134,7 @@ struct Leja_GPU
                                  N, (* phi_function), Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
     }
 
-    //? Real Leja Exp (Homogenous linear equations, matrix exponential)
+    //? Real Leja Exp (Homogenous linear equations - matrix exponential)
     void real_Leja_exp(rhs& RHS, 
                        double* u_input, 
                        double* u_output, 
@@ -182,7 +182,7 @@ struct Leja_GPU
         }
         else
         {
-            std::cout << "ERROR: Only 1 output vector for Rosenbrock_Euler and EPIRK4s3B." << std::endl;
+            std::cout << "ERROR: Only 1 output vector for RosEu and EPIRK4s3B." << std::endl;
         }
     }
 

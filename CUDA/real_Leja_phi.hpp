@@ -25,7 +25,7 @@ namespace LeXInt
                        double Gamma,                       //? Scaling factor
                        double tol,                         //? Tolerance (normalised desired accuracy)
                        double dt,                          //? Step size
-                       int& iters,                     //? # of iterations needed to converge (iteration variable)
+                       int& iters,                         //? # of iterations needed to converge (iteration variable)
                        bool GPU,                           //? false (0) --> CPU; true (1) --> GPU
                        GPU_handle& cublas_handle           //? CuBLAS handle
                        )
@@ -46,7 +46,7 @@ namespace LeXInt
         int max_Leja_pts = Leja_X.size();                                     //? Max. # of Leja points
         int num_interpolations = integrator_coeffs.size();                    //? Number of interpolations in vertical
 
-        double* Jacobian_vector = &auxiliary_Leja[0];                         //? auxiliary variable for Jacobian-vector product
+        double* Jac_vec = &auxiliary_Leja[0];                                 //? auxiliary variable for Jacobian-vector product
         double* auxiliary_Jv = &auxiliary_Leja[N];                            //? auxiliary variables for Jacobian-vector computation
         double* y = &auxiliary_Leja[3*N];                                     //? To avoid overwriting "interp_vector"
         copy(interp_vector, y, N, GPU);
@@ -84,10 +84,10 @@ namespace LeXInt
         for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
             //* Compute numerical Jacobian: J(u) * y = (F(u + epsilon*y) - F(u - epsilon*y))/(2*epsilon)
-            Jacobian_vector(RHS, u, y, Jacobian_vector, auxiliary_Jv, N, GPU, cublas_handle);
+            Jacobian_vector(RHS, u, y, Jac_vec, auxiliary_Jv, N, GPU, cublas_handle);
 
             //* y = y * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jacobian_vector, (-c/Gamma - Leja_X[iters - 1]), y, y, N, GPU);
+            axpby(1./Gamma, Jac_vec, (-c/Gamma - Leja_X[iters - 1]), y, y, N, GPU);
 
             //* Add the new term to the polynomial
             for (int ij = 0; ij < num_interpolations; ij++)
