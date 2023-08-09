@@ -1,4 +1,4 @@
-# CUDA::Integrators
+#  [LeXInt::CUDA::Integrators](#)
 
 Here, we have a collection of exponential integrators. Rosenbrock--Euler and EPIRK4s3B do not have an embedded error estimate, whilst the rest do. These exponential integrators call the ``real_Leja_phi`` function to approximate exponential-like functions applied to the relevant vectors.
 
