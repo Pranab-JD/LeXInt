@@ -86,7 +86,8 @@ namespace LeXInt
         axpby(dt, f_u, f_u, N, GPU);
 
         //? Vertical interpolation of RHS(u) at g11, g21, and g31; u_flux = phi_1({g11, g21, g31} J(u) dt) f(u) dt
-        real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, {g11, g21, g31}, 
+        vector<double> coeffs_1 = {g11, g21, g31};
+        real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, coeffs_1, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
         //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt 
@@ -98,7 +99,8 @@ namespace LeXInt
         axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
 
         //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
-        real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, {g32_4, g32, g22}, 
+        vector<double> coeffs_2 = {g32_4, g32, g22};
+        real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, coeffs_2, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
 
         //? Internal stage 2; b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
@@ -112,7 +114,8 @@ namespace LeXInt
         axpby(-2.0, R_a, 1.0, R_b, R_3, N, GPU);
 
         //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
-        real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, {g33, g33_4}, 
+        vector<double> coeffs_3 = {g33, g33_4};
+        real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, coeffs_3, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
 
         //! 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
