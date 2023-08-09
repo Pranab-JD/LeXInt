@@ -36,7 +36,7 @@ Other references:
 [[DOI]](https://doi.org/10.1017/S0962492910000048)
 
 ## Future Prospects
-We are developing a GPU (NVIDIA CUDA) implementation of the Leja method for exponential integrators which will soon be publicly available.
+We will MPI-parallelise the CUDA/C++ code.
 
 ## Contact
 Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
