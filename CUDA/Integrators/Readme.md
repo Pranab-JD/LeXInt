@@ -10,7 +10,7 @@ Here, we have a collection of exponential integrators. Rosenbrock--Euler and EPI
 
 - Invoke the object of the class ``Leja_GPU`` as ``leja_gpu.embed_exp_int`` for embedded exponential integraotrs or ``leja_gpu.exp_int`` for non-embedded exponential integrators. For more info, see `Test -> test_2D.cu (lines 257 and 276)`.
 
-### Further Technical Aspects
+### Technical Aspects
 
 * The list of Leja points have to be read separately in the main file. See `Test -> test_2D.cu (lines 30 to 50 and 101)`.
 * `c` and `Gamma` have to be determined prior to invoking an exponential integrator. See `Test -> test_2D.cu (lines 193 to 198)`.
