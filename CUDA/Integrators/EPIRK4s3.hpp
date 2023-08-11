@@ -1,13 +1,7 @@
 #pragma once
 
+#include "../Leja.hpp"
 #include "../Phi_functions.hpp"
-#include "../real_Leja_phi.hpp"
-#include "../Timer.hpp"
-
-//? CUDA
-#include "../error_check.hpp"
-#include "../Leja_GPU.hpp"
-#include "../Kernels_CUDA_Cpp.hpp"
 
 namespace LeXInt
 {
@@ -36,7 +30,6 @@ namespace LeXInt
         //! u, u_epirk3, u_epirk4, auxiliary_expint, and auxiliary_Leja,
         //! are device vectors if GPU support is activated.
 
-        //*
         //*    Returns
         //*    ----------
         //*     u_epirk3                : double*

@@ -1,13 +1,7 @@
 #pragma once
 
+#include "../Leja.hpp"
 #include "../Phi_functions.hpp"
-#include "../real_Leja_phi.hpp"
-#include "../Timer.hpp"
-
-//? CUDA 
-#include "../error_check.hpp"
-#include "../Leja_GPU.hpp"
-#include "../Kernels_CUDA_Cpp.hpp"
 
 namespace LeXInt
 {
