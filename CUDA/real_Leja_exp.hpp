@@ -1,11 +1,7 @@
 #pragma once
 
+#include "Leja.hpp"
 #include "Divided_Differences.hpp"
-#include "Timer.hpp"
-
-//? CUDA
-#include "error_check.hpp"
-#include "Leja_GPU.hpp"
 
 namespace LeXInt
 {
