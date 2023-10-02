@@ -1,9 +1,9 @@
 # Python
 
+Test examples for constant and adaptive (or variable) step size implementation for the Leja-based exponential integrators can be found in *Python &rarr; Test &rarr; Constant_test.py* or *Adaptive_test.py*. Problems considered include the Burgers' equation and the Allen-Cahn equation. To run scripts, use the following commands: `python3 Constant_test.py` or `python3 Adaptive_test.py`. To add other problems, simply define the relevant *RHS_function* and the initial condition(s).
+
 ## Requirements
 - Python 3.10 (or later)
-
-Test examples for constant and adaptive (or variable) step size implementation for the Leja-based exponential integrators can be found in *Python &rarr; Test &rarr; Constant_test.py* or *Adaptive_test.py*. Problems considered include the Burgers' equation and the Allen-Cahn equation. To run scripts, use the following commands: `python3 Constant_test.py` or `python3 Adaptive_test.py`. To add other problems, simply define the relevant *RHS_function* and the initial condition(s). Please refer to *Python &rarr; Technical_details.md* for further details on technical aspects.
 
 Remarks:
 1. It is expected that the rhs function is defined in the following way:
@@ -11,7 +11,7 @@ Remarks:
 ```python
 def RHS_function(u):
 
-	### stencil_applied_to_u = * Apply stencil to 'u' * or * Compute matrix-vector products *
+	### stencil_applied_to_u = *Apply stencil to 'u'* or *Compute matrix-vector products*
 
 	return stencil_applied_to_u
 ```
