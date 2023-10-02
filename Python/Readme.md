@@ -9,7 +9,7 @@ Test examples for constant and adaptive (or variable) step size implementation f
 ## Requirements
 - Python 3.10 (or later)
 
-Remarks:
+## Remarks
 1. It is expected that the rhs function is defined in the following way:
 
 ```python
