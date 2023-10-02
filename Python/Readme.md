@@ -16,7 +16,7 @@ def RHS_function(u):
 	return stencil_applied_to_u
 ```
 
-If different stencils are used for different physical phenomena (e.g. centered differences for diffusion and upwind for advection), the two stencils applied to 'u' vector are to be combined together.
+   If different stencils are used for different physical phenomena (e.g. centered differences for diffusion and upwind for advection), the two stencils applied to 'u' vector are to be combined together.
 
 2. LeXInt can be used for multidimensional problems, once the state variable(s) is(are) vectorised or flattened.
 
