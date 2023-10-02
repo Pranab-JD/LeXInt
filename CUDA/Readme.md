@@ -5,7 +5,7 @@
 ![VS Code](https://img.shields.io/badge/VSCode-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
 ![Github](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 
-Test examples for C++ and CUDA implementations can be found in *Test &rarr; Test_2D.cpp* and *Test &rarr; Test_2D.cu*, respectively.  To run the codes, use `sbatch run_cpp.sh` or `sbatch run_cuda.sh`. Problems considered include the linear diffusion-advection equation and the nonlinear Burgers' equation. To add other problems, simply define the relevant RHS function (as defined in *Burgers_2D.hpp* or *Dif_Adv_2D.hpp*) and the initial condition(s) in the test files.
+Test examples for C++ and CUDA implementations can be found in *Test &rarr; Test_2D.cpp* and *Test &rarr; Test_2D.cu*, respectively.  To run the codes, use `bash run_cpp.sh` or `bash run_cuda.sh`. Alternatively, you could also use *sbatch* instead of *bash* if you have *slurm* installed on your computer. Problems considered include the linear diffusion-advection equation and the nonlinear Burgers' equation. To add other problems, simply define the relevant RHS function (as defined in *Burgers_2D.hpp* or *Dif_Adv_2D.hpp*) and the initial condition(s) in the test files.
 
 ## Requirements
 - gcc and nvcc compilers
