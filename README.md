@@ -22,7 +22,7 @@ The action of the matrix exponential or the $\varphi_l(z)$ functions on a vector
 
 - For CUDA:
   - NVIDIA GPU
-  - CUDA 11.2+ (or later)
+  - CUDA 11.2 (or later)
   - nvcc compiler
 
 ## Literature
