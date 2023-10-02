@@ -15,4 +15,3 @@ Here, we have a collection of exponential integrators. Rosenbrock-Euler and EPIR
 * `c` and `Gamma` have to be determined prior to invoking an exponential integrator. See `Test -> test_2D.cu (lines 167 to 172)`.
   
 * `iters` determines the number of Leja iterations per time step. This may be considered as a proxy of the computational cost.
-
