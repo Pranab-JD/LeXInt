@@ -15,15 +15,15 @@ The action of the matrix exponential or the $\varphi_l(z)$ functions on a vector
 
 ## Requirements
 - For the Python version:
-  -- Python 3.10 (or later)
+  - Python 3.10 (or later)
 
 - For C++:
-  -- gcc compiler
+  - gcc compiler
 
 - For CUDA:
-  -- NVIDIA GPU
-  -- CUDA 11.2+ (or later)
-  -- nvcc compiler
+  - NVIDIA GPU
+  - CUDA 11.2+ (or later)
+  - nvcc compiler
 
 ## Literature
 The publications associated with this code:
