@@ -14,7 +14,7 @@
 The action of the matrix exponential or the $\varphi_l(z)$ functions on a vectors is approximated using the method of polynomial interpolation at Leja points. For homogenous linear PDEs, one can obtain the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
 
 ## Requirements
-- For the Python version:
+- For Python:
   - Python 3.10 (or later)
 
 - For C++:
