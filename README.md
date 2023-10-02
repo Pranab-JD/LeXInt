@@ -10,9 +10,9 @@
 <a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/ascl-2208.009-blue.svg?colorY=262255" alt="ascl:2208.009" /></a>
 <a href="https://opensource.org/license/mit/"><img src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
 
-[**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package that comprises of a compilation of exponential integrators - the Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) solvers. 
+[**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package that comprises of a compilation of exponential integrators, specifically, the Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) solvers. 
 
-The action of the matrix exponential or the $\varphi_l(z)$ functions on a vectors is approximated using the method of polynomial interpolation at Leja points. For homogenous linear PDEs, one can obtain the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
+The action of the matrix exponential or the $\varphi_l(z)$ functions on a vector is computed using the method of polynomial interpolation at Leja points. For homogenous linear PDEs, one can obtain the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
 
 ## Requirements
 - For Python:
