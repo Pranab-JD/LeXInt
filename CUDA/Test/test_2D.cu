@@ -77,16 +77,16 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Burgers_2D";
-    string integrator = "EXPRB43";
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
-    //! Diffusion-Advection or Diffusion + Sources
-    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
-    // Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+    //! Diffusion-Advection or Diffusion-Advection + Sources
+    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
 
     //! Burgers' Equation
-    RHS_Burgers_2D RHS(n, dx, dy, velocity);
-    Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
+    // RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    // Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
     stringstream step_size, tf, grid, acc;
@@ -270,17 +270,12 @@ int main(int argc, char** argv)
             LeXInt::copy(device_u_sol, device_u, N, GPU_access);
         }
 
-        // if (time_steps % 250 == 0)
-        // {
-        //     cout << "Largest eigenvalue: " << eigenvalue << endl;
-        //     cout << "Time steps: " << time_steps << endl;
-        //     cout << "Time elapsed: " << time << endl;
-        //     cout << endl;
-        // }
-
-        if (time_steps == 20)
+        if (time_steps % 250 == 0)
         {
-            break;
+            cout << "Largest eigenvalue: " << eigenvalue << endl;
+            cout << "Time steps: " << time_steps << endl;
+            cout << "Time elapsed: " << time << endl;
+            cout << endl;
         }
     }
 
@@ -359,15 +354,15 @@ int main(int argc, char** argv)
     // //* Copy state variable from device to host
     // cudaMemcpy(&u[0], device_u, N_size, cudaMemcpyDeviceToHost);   
 
-    // //? Write data to files
-    // // string final_data = directory_f + "/Final_data.txt";
-    // // ofstream data;
-    // // data.open(final_data);
-    // // for(int ii = 0; ii < N; ii++)
-    // // {
-    // //     data << setprecision(16) << u[ii] << endl;
-    // // }
-    // // data.close();
+    //? Write data to files
+    // string final_data = directory_f + "/Final_data.txt";
+    // ofstream data;
+    // data.open(final_data);
+    // for(int ii = 0; ii < N; ii++)
+    // {
+    //     data << setprecision(16) << u[ii] << endl;
+    // }
+    // data.close();
 
     // string results = directory_f + "/Results.txt";
     // ofstream params;
@@ -379,7 +374,8 @@ int main(int argc, char** argv)
     // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
     // params.close();
 
-    cout << "Writing data to files complete!" << endl;
+    // cout << "Writing data to files complete!" << endl;
+    cout << "Simulations complete!" << endl;
 
     return 0;
 }
