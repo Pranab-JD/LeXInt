@@ -12,6 +12,7 @@ Test examples for C++ and CUDA implementations can be found in *Test &rarr; Test
 - NVIDIA GPU
 - CUDA 11.2 (or later)
 
-Remarks:
+## Remarks
 1. Before running the test files, please select (comment/uncomment) the desired problem and integrator (lines 79 - 89).
+
 2. If you get the error "Warning!! Max. number of Leja points reached without convergence!!", consider reducing the time step size (dt) or increasing the number of Leja points (line 130 in Leja.hpp).  
