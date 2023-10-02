@@ -9,17 +9,28 @@
 
 <a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/ascl-2208.009-blue.svg?colorY=262255" alt="ascl:2208.009" /></a>
 
-[**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package for exponential integrators using the method of polynomial interpolation at Leja points.
+[**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package that comprises of a compilation of exponential integrators - the Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) solvers. 
 
-Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) methods use the Leja interpolation method to compute the $\varphi_l(z)$ functions for nonlinear differential equations. For homogenous linear PDEs, one can get the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
+The action of the matrix exponential or the $\varphi_l(z)$ functions on a vectors is approximated using the method of polynomial interpolation at Leja points. For homogenous linear PDEs, one can obtain the ***exact*** solution (in time) by directly computing the matrix exponential using the functions ``real_Leja_exp`` and/or ``imag_Leja_exp``, whereas for nonhomogenous linear PDEs, one can use ``real_Leja_phi_nl`` and/or ``imag_Leja_phi_nl``. The algorithmic details can be found in the cited literature. 
 
 ## Requirements
-- Python 3.10 (or later)
+- For the Python version:
+  -- Python 3.10 (or later)
+
+- For C++:
+  -- gcc compiler
+
+- For CUDA:
+  -- NVIDIA GPU
+  -- CUDA 11.2+ (or later)
+  -- nvcc compiler
 
 ## Literature
-The publication associated with this code:
+The publications associated with this code:
 
-Deka, Einkemmer, and Tokman (2022), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX, 21, 101302 <br />
+Deka, Moriggl, and Einkemmer (2023), *LeXInt: GPU-accelerated package for Exponential Integrators*
+
+Deka, Einkemmer, and Tokman (2023), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX, 21, 101302 <br />
 [[DOI]](https://doi.org/10.1016/j.softx.2022.101302) [[arXiv:2208.08269]](https://doi.org/10.48550/arXiv.2208.08269)
 
 Other references:
