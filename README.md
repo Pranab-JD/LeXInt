@@ -8,7 +8,7 @@
 ![Github](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 
 <a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/ascl-2208.009-blue.svg?colorY=262255" alt="ascl:2208.009" /></a>
-<a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="ascl:2208.009" /></a>
+<a href="https://ascl.net/2208.009"><img src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
 
 [**Le**](#)ja interpolation for e[**X**](#)ponential [**Int**](#)egrators is a temporal integration package that comprises of a compilation of exponential integrators - the Exponential Rosenbrock (EXPRB) and Exponential Propagation Iterative Runge-Kutta (EPIRK) solvers. 
 
