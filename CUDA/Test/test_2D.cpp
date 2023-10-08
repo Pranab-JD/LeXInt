@@ -14,11 +14,7 @@
 //! ---------------------------------------------------------------------------
 
 //! Include Exponential Integrators and Leja functions 
-//! (This has to be included to use Leja and/or exponential integrators)
 #include "../Leja.hpp"
-
-//! Functions to compute the largest eigenvalue (in magnitude)
-#include "../Eigenvalues.hpp"
 
 //! ---------------------------------------------------------------------------
 

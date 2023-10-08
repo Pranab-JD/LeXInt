@@ -15,11 +15,7 @@
 //! ---------------------------------------------------------------------------
 
 //! Include Exponential Integrators and Leja functions 
-//! (This has to be included to use Leja and/or exponential integrators)
 #include "../Leja.hpp"
-
-//! Functions to compute the largest eigenvalue (in magnitude)
-#include "../Eigenvalues.hpp"
 
 //! ---------------------------------------------------------------------------
 
@@ -77,16 +73,16 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Diff_Adv_2D";
-    string integrator = "Hom_Linear";
+    string problem = "Burgers_2D";
+    string integrator = "EXPRB43";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
-    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
-    Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    // Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
 
     //! Burgers' Equation
-    // RHS_Burgers_2D RHS(n, dx, dy, velocity);
-    // Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
+    RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
     stringstream step_size, tf, grid, acc;
