@@ -22,7 +22,7 @@ namespace LeXInt
     struct timer {
         timespec t_start;
         bool running;
-        double   elapsed;
+        double elapsed = 0.0;
         unsigned counter;
 
         timer() {
