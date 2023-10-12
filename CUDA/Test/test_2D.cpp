@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 50;                                   // Advection speed
+    double velocity = 10;                                   // Advection speed
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed                          
@@ -74,16 +74,16 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Diff_Adv_2D";
-    string integrator = "Hom_Linear";
+    string problem = "Burgers_2D";
+    string integrator = "Rosenbrock_Euler";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
-    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
-    Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    // Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
 
     //! Burgers' Equation
-    // RHS_Burgers_2D RHS(n, dx, dy, velocity);
-    // Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
+    RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
     stringstream step_size, tf, grid, acc;
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
     double reads_writes;
     if (integrator == "Hom_Linear")
     {
-        reads_writes = 11.0 * iters_total;
+        reads_writes = (1.0 * time_steps) + (10.0 * iters_total);
     }
     else if (integrator == "NonHom_Linear")
     {
@@ -303,11 +303,11 @@ int main(int argc, char** argv)
     }
     else if (integrator == "Rosenbrock_Euler")
     {
-        reads_writes = (8.0 * time_steps) + (24 * iters_total);
+        reads_writes = (9.0 * time_steps) + (24.0 * iters_total);
     }
     else if (integrator == "EXPRB32")
     {
-        reads_writes = (56.0 * time_steps) + ((24 + 24)/2.0 * iters_total);
+        reads_writes = (60.0 * time_steps) + ((24 + 24)/2.0 * iters_total);
     }
     else if (integrator == "EXPRB42")
     {
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
     }
         else if (integrator == "EPIRK5P1")
     {
-        reads_writes = (94.0 * time_steps) + ((30 + 30 + 27)/3.0 * iters_total);
+        reads_writes = (95.0 * time_steps) + ((30 + 30 + 27)/3.0 * iters_total);
     }
     else if (integrator == "EXPRB53s3")
     {
@@ -335,11 +335,10 @@ int main(int argc, char** argv)
     }
     else
     {
-        
+
     }
 
     double bandwidth = (1.0 * N * 8 *  reads_writes * 1e-9)/time_loop.total();
-
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
     cout << "Total number of time steps: " << time_steps << endl;
@@ -349,10 +348,10 @@ int main(int argc, char** argv)
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    // int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_2"
-    //                             + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str()).c_str());
-    // string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_2"
-    //                             + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str().c_str();
+    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_4"
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str()).c_str());
+    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_4"
+                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str().c_str();
 
     //? Write data to files
     // string final_data = directory_f + "/Final_data.txt";
@@ -364,17 +363,17 @@ int main(int argc, char** argv)
     // }
     // data.close();
 
-    // string results = directory_f + "/Results.txt";
-    // ofstream params;
-    // params.open(results);
-    // params << "Simulation time: " << time << endl;
-    // params << "Total number of time steps: " << time_steps << endl;
-    // params << "Total number of Leja iterations: " << iters_total << endl;
-    // params << "Average Bandwidth (GB/s): " << bandwidth << endl;
-    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    // params.close();
+    string results = directory_f + "/Results.txt";
+    ofstream params;
+    params.open(results);
+    params << "Simulation time: " << time << endl;
+    params << "Total number of time steps: " << time_steps << endl;
+    params << "Total number of Leja iterations: " << iters_total << endl;
+    params << "Average Bandwidth (GB/s): " << bandwidth << endl;
+    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    params.close();
 
-    // cout << "Writing data to files complete!" << endl;
+    cout << "Writing data to files complete!" << endl;
     cout << "Simulations complete!" << endl;
 
     return 0;

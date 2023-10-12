@@ -18,4 +18,21 @@ struct Problems_2D
     ~Problems_2D() {}
 };
 
+//? Periodic BC
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+int PBC(int ii, int jj, int N)
+{
+    if(ii < 0)
+        ii = ii + N;
+    if(ii >= N)
+        ii = ii - N;
+    if(jj < 0)
+        jj = jj + N;
+    if(jj >= N)
+        jj = jj - N;
+    return N*ii + jj;
+}
+
 //? ====================================================================================== ?//

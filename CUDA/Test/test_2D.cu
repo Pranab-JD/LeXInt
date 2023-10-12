@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     //* Initialise additional parameters
     double dx = X[12] - X[11];                              // Grid spacing
     double dy = Y[12] - Y[11];                              // Grid spacing
-    double velocity = 10.0;                                 // Advection speed
+    double velocity = 50.0;                                 // Advection speed
 
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed
@@ -73,16 +73,16 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Burgers_2D";
-    string integrator = "EXPRB43";
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
-    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
-    // Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
 
     //! Burgers' Equation
-    RHS_Burgers_2D RHS(n, dx, dy, velocity);
-    Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
+    // RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    // Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
     stringstream step_size, tf, grid, acc;

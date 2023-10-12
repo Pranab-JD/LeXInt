@@ -19,20 +19,20 @@ __global__ void Dif_Adv_2D(int N, double dx, double dy, double velocity, double*
     if ((ii >= N) || (jj >= N))
         return;
                         //? Diffusion
-    output[N*ii + jj] =   (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
-                        + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy)
+    output[N*ii + jj] =   (input[PBC(ii, jj + 1, N)] - (4.0 * input[PBC(ii, jj, N)]) + input[PBC(ii, jj - 1, N)])/(dx*dx)
+                        + (input[PBC(ii + 1, jj, N)] + input[PBC(ii - 1, jj, N)])/(dy*dy)
                         
                         //? Advection
                         + velocity/dx 
-                        * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii]
-                        - 3.0/6.0 * input[jj + N*ii]
-                        + 6.0/6.0 * input[(jj + 1) % N + N*ii]
-                        - 1.0/6.0 * input[(jj + 2) % N + N*ii])
+                        * (- 2.0/6.0 * input[PBC(ii, jj - 1, N)]
+                        - 3.0/6.0 * input[PBC(ii, jj, N)]
+                        + 6.0/6.0 * input[PBC(ii, jj + 1, N)]
+                        - 1.0/6.0 * input[PBC(ii, jj + 2, N)])
                         + velocity/dy
-                        * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj]
-                        - 3.0/6.0 * input[ii + N*jj]
-                        + 6.0/6.0 * input[(ii + 1) % N + N*jj]
-                        - 1.0/6.0 * input[(ii + 2) % N + N*jj]);
+                        * (- 2.0/6.0 * input[PBC(ii - 1, jj, N)]
+                        - 3.0/6.0 * input[PBC(ii, jj, N)]
+                        + 6.0/6.0 * input[PBC(ii + 1, jj, N)]
+                        - 1.0/6.0 * input[PBC(ii + 2, jj, N)]);
 }
 
 #endif
@@ -73,20 +73,20 @@ struct RHS_Dif_Adv_2D:public Problems_2D
                             if ((ii < N) && (jj < N))
                             {
                                                     //? Diffusion
-                                output[N*ii + jj] =   (input[N*ii + (jj + 1) % N] - (4.0 * input[N*ii + jj]) + input[N*ii + (jj + N - 1) % N])/(dx*dx)
-                                                    + (input[N*((ii + 1) % N) + jj] + input[N*((ii + N - 1) % N) + jj])/(dy*dy)
+                                output[N*ii + jj] =   (input[PBC(ii, jj + 1, N)] - (4.0 * input[PBC(ii, jj, N)]) + input[PBC(ii, jj - 1, N)])/(dx*dx)
+                                                    + (input[PBC(ii + 1, jj, N)] + input[PBC(ii - 1, jj, N)])/(dy*dy)
                                                     
                                                     //? Advection
                                                     + velocity/dx 
-                                                    * (- 2.0/6.0 * input[(jj + N - 1) % N + N*ii]
-                                                    - 3.0/6.0 * input[jj + N*ii]
-                                                    + 6.0/6.0 * input[(jj + 1) % N + N*ii]
-                                                    - 1.0/6.0 * input[(jj + 2) % N + N*ii])
+                                                    * (- 2.0/6.0 * input[PBC(ii, jj - 1, N)]
+                                                    - 3.0/6.0 * input[PBC(ii, jj, N)]
+                                                    + 6.0/6.0 * input[PBC(ii, jj + 1, N)]
+                                                    - 1.0/6.0 * input[PBC(ii, jj + 2, N)])
                                                     + velocity/dy
-                                                    * (- 2.0/6.0 * input[(ii + N - 1) % N + N*jj]
-                                                    - 3.0/6.0 * input[ii + N*jj]
-                                                    + 6.0/6.0 * input[(ii + 1) % N + N*jj]
-                                                    - 1.0/6.0 * input[(ii + 2) % N + N*jj]);
+                                                    * (- 2.0/6.0 * input[PBC(ii - 1, jj, N)]
+                                                    - 3.0/6.0 * input[PBC(ii, jj, N)]
+                                                    + 6.0/6.0 * input[PBC(ii + 1, jj, N)]
+                                                    - 1.0/6.0 * input[PBC(ii + 2, jj, N)]);
                             }
                         }
                     }
