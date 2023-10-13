@@ -29,7 +29,8 @@ The action of the matrix exponential or the $\varphi_l(z)$ functions on a vector
 ## Literature
 The publications associated with this code:
 
-Deka, Moriggl, and Einkemmer (2023), *LeXInt: GPU-accelerated Exponential Integrators package*
+Deka, Moriggl, and Einkemmer (2023), *LeXInt: GPU-accelerated Exponential Integrators package* <br />
+[[arXiv:2310.08344]](https://doi.org/10.48550/arXiv.2310.08344)
 
 Deka, Einkemmer, and Tokman (2023), *LeXInt: Package for Exponential Integrators employing Leja interpolation*, SoftwareX, 21, 101302 <br />
 [[DOI]](https://doi.org/10.1016/j.softx.2022.101302) [[arXiv:2208.08269]](https://doi.org/10.48550/arXiv.2208.08269)
