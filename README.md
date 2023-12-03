@@ -52,7 +52,7 @@ Other references:
 We will MPI-parallelise the CUDA/C++ code.
 
 ## Contact
-Pranab J. Deka  (<pranab.deka@uibk.ac.at>) <br />
+Pranab J. Deka  (<pranab.deka@kuleuven.be>) <br />
 Lukas Einkemmer (<lukas.einkemmer@uibk.ac.at>) <br />
 Mayya Tokman  (<mtokman@ucmerced.edu>)
 
