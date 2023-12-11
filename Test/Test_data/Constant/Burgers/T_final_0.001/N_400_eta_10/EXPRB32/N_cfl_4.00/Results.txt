@@ -1,0 +1,9 @@
+Time elapsed (secs): 0:00:00.640484
+
+Number of matrix-vector products = 3054
+
+Step size
+1.25e-05
+
+Time steps
+80

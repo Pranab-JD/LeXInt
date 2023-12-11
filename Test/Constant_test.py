@@ -9,6 +9,7 @@ Description: Constant Test
 import os, sys, shutil
 import numpy as np
 from scipy.sparse import csr_matrix
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 
@@ -16,8 +17,8 @@ startTime = datetime.now()
 
 ### ------------------------------------------------------ ###
 
-sys.path.insert(1, "../Integrators/")
-from EXPRB_EPIRK import *
+sys.path.insert(1, "../Constant/")
+from Cons_ExpInt import *
 
 sys.path.insert(1, "../")
 from Eigenvalues import *
@@ -25,9 +26,9 @@ from Eigenvalues import *
 ##############################################################################
 
 ### Initialize parameters
-N = 580             # Number of grid points
+N = 400             # Number of grid points
 eta = 10            # Peclet number
-tmax = 0.1          # Final simulation time
+tmax = 0.005        # Final simulation time
 
 ## Periodic boundaries
 X = np.linspace(0, 1, N, endpoint = False)
@@ -129,7 +130,14 @@ def solve(problem, integrator, N_cfl):
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
     
-    tol = 1e-10                                          # Desired accuracy
+    tol = 1e-10                                         # Desired accuracy
+    
+    if integrator.__name__ == "EPI3":
+        u_prev = u.copy()
+    elif integrator.__name__ == "EPI4":
+        u_prev = np.zeros((N, 2))
+        u_prev[:, 0] = u.copy()
+        u_prev[:, 1] = u.copy()
 
     ### Choose step size (dt)
     ncfl = '{:1.2f}'.format(N_cfl)
@@ -142,7 +150,7 @@ def solve(problem, integrator, N_cfl):
     ### with 100 - 500 Leja points. If you get the warning 
     ### "Warning!! Max. # of Leja points reached without convergence!!",
     ### increase the number of Leja points or comment out the following line.
-    Leja_X = Leja_X[0:500]  
+    Leja_X = Leja_X[0:1000]  
     
     ############## --------------------- ##############
     
@@ -153,14 +161,37 @@ def solve(problem, integrator, N_cfl):
         
         if time_elapsed + dt > tmax:
             dt = tmax - time_elapsed
+
+        ###? Integrate
+        if integrator.__name__ == "EPI3":
             
-        _, u_new, rhs_calls = integrator(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            if time_step == 0:
+                u_new, rhs_calls = EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            else:
+                u_new, rhs_calls = EPI3(u, u_prev, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            
+            ###* Update previous solutions
+            u_prev = u.copy()
+                
+        elif integrator.__name__ == "EPI4":
+            
+            if time_step < 2:
+                u_new, rhs_calls = EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            else:
+                u_new, rhs_calls = EPI4(u, u_prev, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            
+            ###* Update previous solutions
+            u_prev[:, 1] = u_prev[:, 0].copy()
+            u_prev[:, 0] = u.copy()
+            
+        else:
+            u_new, rhs_calls = integrator(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
         
         ### Update u and time
-        u = u_new.copy()
         time_elapsed = time_elapsed + dt
         time_step = time_step + 1
         count_mv = count_mv + rhs_calls
+        u = u_new.copy()
         
     ############## --------------------- ##############
         
@@ -168,28 +199,29 @@ def solve(problem, integrator, N_cfl):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    # path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
-    #                           + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
-    # if os.path.exists(path):
-    #     shutil.rmtree(path)                     # remove previous directory with same name
-    # os.makedirs(path, 0o777)                    # create directory with access rights
+    path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
+                              + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
+    if os.path.exists(path):
+        shutil.rmtree(path)                     # remove previous directory with same name
+    os.makedirs(path, 0o777)                    # create directory with access rights
     
-    # ### Write final data to file
-    # final_data = open(path + "/Final_data.txt", 'w+')
-    # final_data.write(' '.join(map(str, u)) % u)
-    # final_data.close()
+    ### Write final data to file
+    final_data = open(path + "/Final_data.txt", 'w+')
+    final_data.write(' '.join(map(str, u)) % u)
+    final_data.close()
     
     ### Write simulation results to file
-    # file_res = open(path + "/Results.txt", "w+")
-    # file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
-    # file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
-    # file_res.write("Step size" + "\n")
-    # file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
-    # file_res.write("Time steps" + "\n")
-    # file_res.write(str(time_step) + "\n")
-    # file_res.close()
+    file_res = open(path + "/Results.txt", "w+")
+    file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
+    file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
+    file_res.write("Step size" + "\n")
+    file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
+    file_res.write("Time steps" + "\n")
+    file_res.write(str(time_step) + "\n")
+    file_res.close()
 
     print("\nTime elapsed: ", tol_time)
+    print("Time steps: ", time_step)
     print("Total RHS Calls: ", count_mv)
     print("\n========================================================\n")
 
@@ -197,6 +229,6 @@ def solve(problem, integrator, N_cfl):
                 
 ### Call the function
 ### solve(problem, integrator, N_CFL)
-solve("Allen_Cahn", EXPRB32, 10)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
+solve("Burgers", EPI3, 1000)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)
