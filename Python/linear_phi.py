@@ -30,7 +30,7 @@ def A_tilde(A, B, v):
     return y.reshape(np.shape(y)[1])
 
 
-def linear_phi(interp_vector, T_final, Jacobian_vector, integrator_coeff, c, Gamma, Leja_X, tol):
+def linear_phi(interp_vector, T_final, substeps, Jacobian_vector, integrator_coeff, c, Gamma, Leja_X, tol):
     """
     Evaluates a linear combinaton of the phi functions as the 
     exponential of an augmented matrix.
@@ -77,6 +77,6 @@ def linear_phi(interp_vector, T_final, Jacobian_vector, integrator_coeff, c, Gam
     
     v = np.concatenate([interp_vector[0], np.zeros(p-1), [1]])
 
-    polynomial, rhs_calls = real_Leja_linear_exp(v, T_final, Atx, integrator_coeff, c, Gamma, Leja_X, tol)
+    polynomial, rhs_calls, substeps = real_Leja_linear_exp(v, T_final, substeps, Atx, integrator_coeff, c, Gamma, Leja_X, tol)
     
-    return polynomial[0:n], rhs_calls
+    return polynomial[0:n], rhs_calls, substeps

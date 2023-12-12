@@ -17,8 +17,8 @@ def real_Leja_phi(u, dt, RHS_function, interp_vector, integrator_coeffs, c, Gamm
                                     RHS function
         interp_vector           : numpy array
                                     Vector to be interpolated
-        integrator_coeffs       : list
-                                    Points where phi function is to be evaluated
+        integrator_coeff        : int
+                                    Point where the matrix exponential is to be evaluated
         c                       : double
                                     Shifting factor
         Gamma                   : double

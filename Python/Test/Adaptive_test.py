@@ -16,8 +16,8 @@ startTime = datetime.now()
 
 ### ------------------------------------------------------ ###
 
-sys.path.insert(1, "../Adaptive/")
-from EXPRB_EPIRK import *
+sys.path.insert(1, "../Variable/")
+from Var_ExpInt import *
 
 sys.path.insert(1, "../")
 from Eigenvalues import *
@@ -25,7 +25,7 @@ from Eigenvalues import *
 ##############################################################################
 
 ### Initialize parameters
-N = 128             # Number of grid points
+N = 300             # Number of grid points
 eta = 10            # Peclet number
 tmax = 0.1          # Final simulation time
 
@@ -124,7 +124,7 @@ def solve(problem, integrator, order, tol):
     print("Integrator: ", integrator.__name__)
     
     ### Parameters
-    dt = 10*dt_cfl
+    dt = 5*dt_cfl
     time = 0                                            # Time
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
@@ -188,6 +188,8 @@ def solve(problem, integrator, order, tol):
         ### Append data to arrays
         dt_history.append(dt)
         time_arr.append(time)
+        print("Error: ", error)
+        print()
         
         ### dt for next time step
         new_dt = dt * (tol/error)**(1/(order + 1))
@@ -199,24 +201,24 @@ def solve(problem, integrator, order, tol):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    path = os.path.expanduser("./Test_data/Adaptive/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
-                              + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/tol_" + str(emax))
-    if os.path.exists(path):
-        shutil.rmtree(path)                     # remove previous directory with same name
-    os.makedirs(path, 0o777)                    # create directory with access rights
+    # path = os.path.expanduser("./Test_data/Adaptive/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
+    #                           + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/tol_" + str(emax))
+    # if os.path.exists(path):
+    #     shutil.rmtree(path)                     # remove previous directory with same name
+    # os.makedirs(path, 0o777)                    # create directory with access rights
     
-    ### Write final data to file
-    final_data = open(path + "/Final_data.txt", 'w+')
-    final_data.write(' '.join(map(str, u)) % u)
-    final_data.close()
+    # ### Write final data to file
+    # final_data = open(path + "/Final_data.txt", 'w+')
+    # final_data.write(' '.join(map(str, u)) % u)
+    # final_data.close()
     
-    ### Write simulation results to file
-    file = open(path + '/Results.txt', 'w+')
-    file.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
-    file.write('Number of matrix-vector products = %d' % count_mv + '\n' + '\n')
-    file.write(' '.join(map(str, dt_history)) % dt_history + '\n' + '\n')
-    file.write(' '.join(map(str, time_arr)) % time_arr)
-    file.close()
+    # ### Write simulation results to file
+    # file = open(path + '/Results.txt', 'w+')
+    # file.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
+    # file.write('Number of matrix-vector products = %d' % count_mv + '\n' + '\n')
+    # file.write(' '.join(map(str, dt_history)) % dt_history + '\n' + '\n')
+    # file.write(' '.join(map(str, time_arr)) % time_arr)
+    # file.close()
 
     print("\nTime elapsed: ", tol_time)
     print("Total RHS Calls: ", count_mv)
@@ -228,6 +230,6 @@ def solve(problem, integrator, order, tol):
 ### Call the function
 
 ### solve(problem, integrator, order of error-estimate (depends on the integrator), tol)
-solve("Burgers", EXPRB43, 3, 1e-7)
+solve("Allen_Cahn", EXPRB43, 3, 1e-6)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)
