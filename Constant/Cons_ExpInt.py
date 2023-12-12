@@ -20,7 +20,7 @@ from EXPRB53s3 import EXPRB53s3                         #! 5th order
 from EPIRK4s3 import EPIRK4s3                           #! 4th order
 from EPIRK4s3A import EPIRK4s3A                         #! 4th order
 from EPIRK4s3B import EPIRK4s3B                         #! 4th order
-from EPIRK5P1 import EPIRK5P1                           #! 5th order
+# from EPIRK5P1 import EPIRK5P1                           #! 5th order
 
 from EPI3 import EPI3                                   #! 3rd order
 from EPI4 import EPI4                                   #! 4th order

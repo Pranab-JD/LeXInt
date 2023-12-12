@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def Rosenbrock_Euler(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def Rosenbrock_Euler(u, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -52,7 +52,7 @@ def Rosenbrock_Euler(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag)
     Jac_vec = lambda z: T_final * Jacobian(RHS_function, u, z, rhs_u)
     
     ###? Interpolation of RHS(u) at 1
-    u_flux, rhs_calls = linear_phi([zero_vec, rhs_u*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
 
     ###? 2nd order solution; u_roseu = u + phi_1(J(u) dt) f(u) dt
     u_roseu = u + u_flux
@@ -60,4 +60,4 @@ def Rosenbrock_Euler(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag)
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls + 2
 
-    return u_roseu, num_rhs_calls
+    return u_roseu, num_rhs_calls, substeps

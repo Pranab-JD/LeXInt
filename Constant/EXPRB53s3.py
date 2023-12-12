@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def EXPRB53s3(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EXPRB53s3(u, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -55,7 +55,7 @@ def EXPRB53s3(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     Jacobian_u = Jacobian(RHS_function, u, u, rhs_u)
     
     ###? Interpolation 1; 1/2 phi_1(1/2 J(u) dt) f(u) dt
-    u_flux_1, rhs_calls_1 = linear_phi([zero_vec, rhs_u*T_final], T_final, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
+    u_flux_1, rhs_calls_1, substeps = linear_phi([zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
 
     ###? Internal stage 1; a = u + 1/2 phi_1(1/2 J(u) dt) f(u) dt
     a = u + u_flux_1
@@ -64,10 +64,10 @@ def EXPRB53s3(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_a = (RHS_function(a) - Jacobian(RHS_function, u, a, rhs_u)) - (rhs_u - Jacobian_u)
     
     ###? Interpolation 2a; 9/10 phi_1(9/10 J(u) dt) f(u) dt + 729/125 phi_3(9/10 J(u) dt)) R(a) dt
-    u_flux_2a, rhs_calls_2a = linear_phi([zero_vec, rhs_u*T_final, zero_vec, 10/9*729/125*R_a*T_final], T_final, Jac_vec, 9/10, c, Gamma, Leja_X, tol)
+    u_flux_2a, rhs_calls_2a, substeps = linear_phi([zero_vec, rhs_u*T_final, zero_vec, 10/9*729/125*R_a*T_final], T_final, substeps, Jac_vec, 9/10, c, Gamma, Leja_X, tol)
     
     ###? Interpolation 2b; 27/25 phi_3(1/2 J(u) dt
-    u_flux_2b, rhs_calls_2b = linear_phi([zero_vec, zero_vec, zero_vec, 2*27/25*R_a*T_final], T_final, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
+    u_flux_2b, rhs_calls_2b, substeps = linear_phi([zero_vec, zero_vec, zero_vec, 2*27/25*R_a*T_final], T_final, substeps, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
 
     ###? b = u + 9/10 phi_1(9/10 J(u) dt) f(u) dt + 27/25 phi_3(1/2 J(u) dt + 729/125 phi_3(9/10 J(u) dt)) R(a) dt
     b = u + u_flux_2a + u_flux_2b
@@ -76,7 +76,7 @@ def EXPRB53s3(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_b = (RHS_function(b) - Jacobian(RHS_function, u, b, rhs_u)) - (rhs_u - Jacobian_u)
     
     ###? Interpolation 3; phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (18R(a) - (250/81)R(b)) dt + phi_4(J(u) dt) (-60R(a) + (500/27)R(b)) dt
-    u_flux, rhs_calls_3 = linear_phi([zero_vec, rhs_u*T_final, zero_vec, (18*R_a - (250/81)*R_b)*T_final, (-60*R_a + (500/27)*R_b)*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls_3, substeps = linear_phi([zero_vec, rhs_u*T_final, zero_vec, (18*R_a - (250/81)*R_b)*T_final, (-60*R_a + (500/27)*R_b)*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
     
     ###? 5th order solution; u_5 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (18R(a) - (250/81)R(b)) dt + phi_4(J(u) dt) (-60R(a) + (500/27)R(b)) dt
     u_exprb5 = u + u_flux
@@ -84,4 +84,4 @@ def EXPRB53s3(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2a + rhs_calls_2b + rhs_calls_3 + 6
 
-    return u_exprb5, num_rhs_calls
+    return u_exprb5, num_rhs_calls, substeps

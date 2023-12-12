@@ -129,7 +129,7 @@ def solve(problem, integrator, N_cfl):
     time_elapsed = 0.0                                  # Time
     time_step = 0                                       # Number of time steps
     count_mv = 0                                        # Counter for matrix-vector products
-    
+    substeps = 1                                        # Initial guess for substeps
     tol = 1e-10                                         # Desired accuracy
     
     if integrator.__name__ == "EPI3":
@@ -166,9 +166,9 @@ def solve(problem, integrator, N_cfl):
         if integrator.__name__ == "EPI3":
             
             if time_step == 0:
-                u_new, rhs_calls = EXPRB32(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+                u_new, rhs_calls, substeps = EXPRB32(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
             else:
-                u_new, rhs_calls = EPI3(u, u_prev, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+                u_new, rhs_calls, substeps = EPI3(u, u_prev, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
             
             ###* Update previous solutions
             u_prev = u.copy()
@@ -176,16 +176,16 @@ def solve(problem, integrator, N_cfl):
         elif integrator.__name__ == "EPI4":
             
             if time_step < 2:
-                u_new, rhs_calls = EXPRB42(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+                u_new, rhs_calls, substeps = EXPRB42(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
             else:
-                u_new, rhs_calls = EPI4(u, u_prev, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+                u_new, rhs_calls, substeps = EPI4(u, u_prev, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
             
             ###* Update previous solutions
             u_prev[:, 1] = u_prev[:, 0].copy()
             u_prev[:, 0] = u.copy()
             
         else:
-            u_new, rhs_calls = integrator(u, dt, RHS_function, c, Gamma, Leja_X, tol, 0)
+            u_new, rhs_calls, substeps = integrator(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
         
         ### Update u and time
         time_elapsed = time_elapsed + dt
@@ -199,26 +199,26 @@ def solve(problem, integrator, N_cfl):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
-                              + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
-    if os.path.exists(path):
-        shutil.rmtree(path)                     # remove previous directory with same name
-    os.makedirs(path, 0o777)                    # create directory with access rights
+    # path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
+    #                           + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
+    # if os.path.exists(path):
+    #     shutil.rmtree(path)                     # remove previous directory with same name
+    # os.makedirs(path, 0o777)                    # create directory with access rights
     
-    ### Write final data to file
-    final_data = open(path + "/Final_data.txt", 'w+')
-    final_data.write(' '.join(map(str, u)) % u)
-    final_data.close()
+    # ### Write final data to file
+    # final_data = open(path + "/Final_data.txt", 'w+')
+    # final_data.write(' '.join(map(str, u)) % u)
+    # final_data.close()
     
-    ### Write simulation results to file
-    file_res = open(path + "/Results.txt", "w+")
-    file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
-    file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
-    file_res.write("Step size" + "\n")
-    file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
-    file_res.write("Time steps" + "\n")
-    file_res.write(str(time_step) + "\n")
-    file_res.close()
+    # ### Write simulation results to file
+    # file_res = open(path + "/Results.txt", "w+")
+    # file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
+    # file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
+    # file_res.write("Step size" + "\n")
+    # file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
+    # file_res.write("Time steps" + "\n")
+    # file_res.write(str(time_step) + "\n")
+    # file_res.close()
 
     print("\nTime elapsed: ", tol_time)
     print("Time steps: ", time_step)
@@ -229,6 +229,6 @@ def solve(problem, integrator, N_cfl):
                 
 ### Call the function
 ### solve(problem, integrator, N_CFL)
-solve("Burgers", EPI3, 1000)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
+solve("Burgers", EPIRK4s3B, 1000)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)

@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def EPI3(u, u_prev, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EPI3(u, u_prev, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -60,7 +60,7 @@ def EPI3(u, u_prev, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_1 = (RHS_function(u_prev) - Jacobian(RHS_function, u, u_prev, rhs_u)) - (rhs_u - Jacobian_u)
     
     ###? Interpolation 1; phi_1(J(u) dt) f(u) dt + 2/3 phi_2(J(u) dt) R(u^{n-1}) dt
-    u_flux, rhs_calls = linear_phi([zero_vec, rhs_u*T_final, 2/3*R_1*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final, 2/3*R_1*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
 
     ###? Internal stage; 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + 2/3 phi_2(J(u) dt) R(u^{n-1}) dt
     u_epi3 = u + u_flux
@@ -68,4 +68,4 @@ def EPI3(u, u_prev, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls + 4
 
-    return u_epi3, num_rhs_calls
+    return u_epi3, num_rhs_calls, substeps

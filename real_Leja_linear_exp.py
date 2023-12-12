@@ -1,7 +1,7 @@
 import numpy as np
 from Divided_Difference import Divided_Difference
 
-def real_Leja_linear_exp(u, T_f, RHS_function, integrator_coeff, c, Gamma, Leja_X, tol):
+def real_Leja_linear_exp(u, T_f, substeps, RHS_function, integrator_coeff, c, Gamma, Leja_X, tol):
     """
     Computes the polynomial interpolation of matrix exponential applied to 'u' at real Leja points.
 
@@ -39,10 +39,8 @@ def real_Leja_linear_exp(u, T_f, RHS_function, integrator_coeff, c, Gamma, Leja_
     y = u.copy()                                                  #* To avoid changing 'u'
     y_backup = u.copy()                                           #* Backup y - To avoid changing 'u'
     
-    substeps = 1                                                  #* Number of time substeps
-    
     max_Leja_pts = len(Leja_X)                                    #* Max number of Leja points
-    dt = T_f                                                      #* Initial substep size
+    dt = T_f/substeps                                             #* Initial substep size
     time_elapsed = 0                                              #* Counter for time elapsed
     subs = 1                                                      #* Counter for number of substeps
     convergence = 0                                               #* Check for convergence
@@ -119,4 +117,4 @@ def real_Leja_linear_exp(u, T_f, RHS_function, integrator_coeff, c, Gamma, Leja_
 
                 break
 
-    return polynomial, total_iters
+    return polynomial, total_iters, subs

@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def EPIRK4s3B(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EPIRK4s3B(u, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -52,8 +52,8 @@ def EPIRK4s3B(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     Jac_vec = lambda z: T_final * Jacobian(RHS_function, u, z, rhs_u)
     
     ###? Interpolation of RHS(u) at 1/2 and 3/4; phi_2({1/2, 3/4} J(u) dt) f(u) dt
-    u_flux_1, rhs_calls_1 = linear_phi([zero_vec, zero_vec, rhs_u*T_final], T_final, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
-    u_flux_2, rhs_calls_2 = linear_phi([zero_vec, zero_vec, rhs_u*T_final], T_final, Jac_vec, 3/4, c, Gamma, Leja_X, tol)
+    u_flux_1, rhs_calls_1, substeps = linear_phi([zero_vec, zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 1/2, c, Gamma, Leja_X, tol)
+    u_flux_2, rhs_calls_2, substeps = linear_phi([zero_vec, zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 3/4, c, Gamma, Leja_X, tol)
 
     ###? Internal stage 1; a = u + 2/3 phi_2(1/2 J(u) dt) f(u) dt
     a = u + (2/3 * 2 * u_flux_1)
@@ -66,7 +66,7 @@ def EPIRK4s3B(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_b = (RHS_function(b) - Jacobian(RHS_function, u, b, rhs_u)) - (rhs_u - Jacobian(RHS_function, u, u, rhs_u))
     
     ###? phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (32*R(a) - 27/2*R(b)) dt + phi_4(J(u) dt) (-144*R(a) + 81*R(b)) dt
-    u_flux, rhs_calls_3 = linear_phi([zero_vec, rhs_u*T_final, zero_vec, (54*R_a - 16*R_b)*T_final, (-324*R_a + 144*R_b)*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls_3, substeps = linear_phi([zero_vec, rhs_u*T_final, zero_vec, (54*R_a - 16*R_b)*T_final, (-324*R_a + 144*R_b)*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
      
     ###? 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) (54R(a) - 16R(b)) dt + phi_4(J(u) dt) (-324R(a) + 144R(b)) dt
     u_epirk4 = u + u_flux
@@ -74,4 +74,4 @@ def EPIRK4s3B(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + rhs_calls_3 + 8
 
-    return u_epirk4, num_rhs_calls
+    return u_epirk4, num_rhs_calls, substeps

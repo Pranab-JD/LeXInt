@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def EXPRB42(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EXPRB42(u, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -55,7 +55,7 @@ def EXPRB42(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     Jacobian_u = Jacobian(RHS_function, u, u, rhs_u)
     
     ###? Interpolation of RHS(u) at 3/4; 3/4 phi_1(3/4 J(u) dt) f(u) dt
-    u_flux_1, rhs_calls_1 = linear_phi([zero_vec, rhs_u*T_final], T_final, Jac_vec, 3/4, c, Gamma, Leja_X, tol)
+    u_flux_1, rhs_calls_1, substeps = linear_phi([zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 3/4, c, Gamma, Leja_X, tol)
 
     ###? Internal stage 1; a = u + 3/4 phi_1(3/4 J(u) dt) f(u) dt
     a = u + u_flux_1
@@ -64,7 +64,7 @@ def EXPRB42(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_a = (RHS_function(a) - Jacobian(RHS_function, u, a, rhs_u)) - (rhs_u - Jacobian_u)
 
     ###? Interpolation 2: phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt) R(a) dt
-    u_flux, rhs_calls_2 = linear_phi([zero_vec, rhs_u*T_final, zero_vec, 32/9*R_a*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls_2, substeps = linear_phi([zero_vec, rhs_u*T_final, zero_vec, 32/9*R_a*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
     
     ###? 3rd order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + 32/9 phi_3(J(u) dt) R(a) dt
     u_exprb4 = u + u_flux
@@ -72,4 +72,4 @@ def EXPRB42(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 4
 
-    return u_exprb4, num_rhs_calls
+    return u_exprb4, num_rhs_calls, substeps

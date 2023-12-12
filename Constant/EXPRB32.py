@@ -6,7 +6,7 @@ from linear_phi import linear_phi
 
 ################################################################################################
 
-def EXPRB32(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
+def EXPRB32(u, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     """
     Parameters
     ----------
@@ -57,7 +57,7 @@ def EXPRB32(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     Jacobian_u = Jacobian(RHS_function, u, u, rhs_u)
     
     ###? Interpolation 1; phi_1(J(u) dt) f(u) dt
-    u_flux, rhs_calls_1 = linear_phi([zero_vec, rhs_u*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls_1, substeps = linear_phi([zero_vec, rhs_u*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
 
     ###? Internal stage; 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
     u_exprb2 = u + u_flux
@@ -66,7 +66,7 @@ def EXPRB32(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     R_a = (RHS_function(u_exprb2) - Jacobian(RHS_function, u, u_exprb2, rhs_u)) - (rhs_u - Jacobian_u)
 
     ###? Interpolation 2; phi_3(J(u) dt) R(a) dt
-    u_nl, rhs_calls_2 = linear_phi([zero_vec, zero_vec, zero_vec, 2*R_a*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_nl, rhs_calls_2, substeps = linear_phi([zero_vec, zero_vec, zero_vec, 2*R_a*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
     
     ###? 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
     u_exprb3 = u_exprb2 + u_nl
@@ -74,4 +74,4 @@ def EXPRB32(u, T_final, RHS_function, c, Gamma, Leja_X, tol, Real_Imag):
     ###? Proxy of computational cost
     num_rhs_calls = rhs_calls_1 + rhs_calls_2 + 4
 
-    return u_exprb3, num_rhs_calls
+    return u_exprb3, num_rhs_calls, substeps
