@@ -53,7 +53,7 @@ def real_Leja_linear_exp(u, T_f, substeps, RHS_function, integrator_coeff, c, Ga
         poly_error = np.zeros(max_Leja_pts);                            
         
         ###* Adjust final time substep
-        if abs(T_f - time_elapsed) < 1e-12:
+        if abs(T_f - time_elapsed) < 1e-10:
             break
         elif time_elapsed + dt > T_f:
             dt = T_f - time_elapsed
@@ -88,7 +88,7 @@ def real_Leja_linear_exp(u, T_f, substeps, RHS_function, integrator_coeff, c, Ga
             poly_error[ii] = np.linalg.norm(y) * abs(poly_coeffs[ii])
             
             ###! Warning: Check for diverging values, if so, restart iteration with smaller dt
-            if ii == max_Leja_pts - 1 or poly_error[ii] > 1e3:
+            if ii == max_Leja_pts - 1 or poly_error[ii] > 1e4:
 
                 print("Step size: ", dt)
                 print("Computations wasted: ", ii)
