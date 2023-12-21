@@ -88,7 +88,7 @@ def real_Leja_linear_exp(u, T_f, init_subs, RHS_function, integrator_coeff, c, G
             poly_error[ii] = np.linalg.norm(y) * abs(poly_coeffs[ii])
             
             ###! Warning: Check for diverging values, if so, restart iteration with smaller dt
-            if ii == max_Leja_pts - 1 or poly_error[ii] > 1e7:
+            if ii == max_Leja_pts - 1 or poly_error[ii] > 1e10:
 
                 print("Computations wasted: ", ii, " dt = ", dt)
                 
@@ -123,4 +123,5 @@ def real_Leja_linear_exp(u, T_f, init_subs, RHS_function, integrator_coeff, c, G
                 
                 break
 
+    # print(substeps)
     return polynomial, total_iters, substeps

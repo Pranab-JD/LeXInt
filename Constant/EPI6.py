@@ -61,7 +61,7 @@ def EPI6(u, u_prev, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real
     
     ###? EPI5 coefficients
     a21 = -49/60; a22 = 351/560; a23 = -359/1260; a24 = 367/6720
-    a31 =   92/7; a32 =  -99/14; a33 =    176/53; a34 =     -1/2
+    a31 =   92/7; a32 =  -99/14; a33 =    176/63; a34 =     -1/2
     a41 = 485/21; a42 = -151/14; a43 =      23/9; a44 =  -31/168
     
     ###? Difference of nonlinear remainders at u^{n-1}, u^{n-2}, u^{n-3}, and u^{n-4}
@@ -72,10 +72,10 @@ def EPI6(u, u_prev, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real
     
     ###? Interpolation 1; phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2}) + a23 R(u^{n-3}) + a24 R(u^{n-4})) dt
     ###?                + phi_3(J(u) dt) (a31 R(u^{n-1}) + a32 R(u^{n-2}) + a33 R(u^{n-3}) + a34 R(u^{n-4})) dt + phi_4(J(u) dt) (a41 R(u^{n-1}) + a42 R(u^{n-2}) + a43 R(u^{n-3}) + a44 R(u^{n-4})) dt
-    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final, (a21*R_1+a22*R_2+a23*R_3)*T_final, (a31*R_1+a32*R_2+a33*R_3)*T_final,\
-                                                                       (a41*R_1+a42*R_2+a43*R_3)*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final, (a21*R_1+a22*R_2+a23*R_3+a24*R_4)*T_final, (a31*R_1+a32*R_2+a33*R_3+a34*R_4)*T_final,\
+                                                                       (a41*R_1+a42*R_2+a43*R_3+a44*R_4)*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
 
-    ###? Internal stage; 5th order solution; u_6 = u + phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2}) + a32 R(u^{n-3})) dt
+    ###? Internal stage; 6th order solution; u_6 = u + phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2}) + a32 R(u^{n-3})) dt
     ###?                                             + phi_3(J(u) dt) (a31 R(u^{n-1}) + a32 R(u^{n-2}) + a33 R(u^{n-3})) dt + phi_4(J(u) dt) (a41 R(u^{n-1}) + a42 R(u^{n-2}) + a43 R(u^{n-3})) dt
     u_epi6 = u + u_flux
 
