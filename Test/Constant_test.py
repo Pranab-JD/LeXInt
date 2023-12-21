@@ -28,7 +28,7 @@ from Eigenvalues import *
 ### Initialize parameters
 N = 400             # Number of grid points
 eta = 10            # Peclet number
-tmax = 0.005        # Final simulation time
+tmax = 0.05         # Final simulation time
 
 ## Periodic boundaries
 X = np.linspace(0, 1, N, endpoint = False)
@@ -133,11 +133,13 @@ def solve(problem, integrator, N_cfl):
     tol = 1e-10                                         # Desired accuracy
     
     if integrator.__name__ == "EPI3":
-        u_prev = u.copy()
+        u_prev = np.zeros((len(u), 1))
     elif integrator.__name__ == "EPI4":
-        u_prev = np.zeros((N, 2))
-        u_prev[:, 0] = u.copy()
-        u_prev[:, 1] = u.copy()
+        u_prev = np.zeros((len(u), 2))
+    elif integrator.__name__ == "EPI5":
+        u_prev = np.zeros((len(u), 3))
+    elif integrator.__name__ == "EPI6":
+        u_prev = np.zeros((len(u), 4))
 
     ### Choose step size (dt)
     ncfl = '{:1.2f}'.format(N_cfl)
@@ -163,28 +165,18 @@ def solve(problem, integrator, N_cfl):
             dt = tmax - time_elapsed
 
         ###? Integrate
-        if integrator.__name__ == "EPI3":
-            
-            if time_step == 0:
-                u_new, rhs_calls, substeps = EXPRB32(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
-            else:
-                u_new, rhs_calls, substeps = EPI3(u, u_prev, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
-            
-            ###* Update previous solutions
-            u_prev = u.copy()
+        if (integrator.__name__ == "EPI3" and time_step < 1) or (integrator.__name__ == "EPI4" and time_step < 2) or (integrator.__name__ == "EPI5" and time_step < 3) or (integrator.__name__ == "EPI6" and time_step < 4):
                 
-        elif integrator.__name__ == "EPI4":
-            
-            if time_step < 2:
-                u_new, rhs_calls, substeps = EXPRB42(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
-            else:
-                u_new, rhs_calls, substeps = EPI4(u, u_prev, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
-            
-            ###* Update previous solutions
-            u_prev[:, 1] = u_prev[:, 0].copy()
-            u_prev[:, 0] = u.copy()
-            
+            ###? First few time steps are integrated using EXPRB32
+            u_new, rhs_calls, substeps = EXPRB32(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
+        
+        elif (integrator.__name__ == "EPI3" and time_step > 0) or (integrator.__name__ == "EPI4" and time_step > 1) or (integrator.__name__ == "EPI5" and time_step > 2) or (integrator.__name__ == "EPI6" and time_step > 3):
+                
+            ###? EPI
+            u_new, rhs_calls, substeps = integrator(u, u_prev, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
+
         else:
+            ###? EPIRK and EXPRB
             u_new, rhs_calls, substeps = integrator(u, dt, substeps, RHS_function, c, Gamma, Leja_X, tol, 0)
         
         ### Update u and time
@@ -192,6 +184,22 @@ def solve(problem, integrator, N_cfl):
         time_step = time_step + 1
         count_mv = count_mv + rhs_calls
         u = u_new.copy()
+
+        ###? Update variables
+        if integrator.__name__ == "EPI3":
+            u_prev = u.copy()
+        elif integrator.__name__ == "EPI4":
+            u_prev[:, 1] = u_prev[:, 0].copy()
+            u_prev[:, 0] = u.copy()
+        elif integrator.__name__ == "EPI5":
+            u_prev[:, 2] = u_prev[:, 1].copy()
+            u_prev[:, 1] = u_prev[:, 0].copy()
+            u_prev[:, 0] = u.copy()
+        elif integrator.__name__ == "EPI6":
+            u_prev[:, 3] = u_prev[:, 2].copy()
+            u_prev[:, 2] = u_prev[:, 1].copy()
+            u_prev[:, 1] = u_prev[:, 0].copy()
+            u_prev[:, 0] = u.copy()
         
     ############## --------------------- ##############
         
@@ -199,26 +207,26 @@ def solve(problem, integrator, N_cfl):
     tol_time = datetime.now() - tolTime
     
     ### Create required files/directories
-    # path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
-    #                           + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
-    # if os.path.exists(path):
-    #     shutil.rmtree(path)                     # remove previous directory with same name
-    # os.makedirs(path, 0o777)                    # create directory with access rights
+    path = os.path.expanduser("./Test_data/Constant/" + str(problem) + "/T_final_" + str(tmax) + "/N_" + str(N) \
+                              + "_eta_" + str(eta)  + "/" + str(integrator.__name__) + "/N_cfl_" + str(ncfl))
+    if os.path.exists(path):
+        shutil.rmtree(path)                     # remove previous directory with same name
+    os.makedirs(path, 0o777)                    # create directory with access rights
     
-    # ### Write final data to file
-    # final_data = open(path + "/Final_data.txt", 'w+')
-    # final_data.write(' '.join(map(str, u)) % u)
-    # final_data.close()
+    ### Write final data to file
+    final_data = open(path + "/Final_data.txt", 'w+')
+    final_data.write(' '.join(map(str, u)) % u)
+    final_data.close()
     
-    # ### Write simulation results to file
-    # file_res = open(path + "/Results.txt", "w+")
-    # file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
-    # file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
-    # file_res.write("Step size" + "\n")
-    # file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
-    # file_res.write("Time steps" + "\n")
-    # file_res.write(str(time_step) + "\n")
-    # file_res.close()
+    ### Write simulation results to file
+    file_res = open(path + "/Results.txt", "w+")
+    file_res.write("Time elapsed (secs): %s" % str(tol_time) + "\n" + "\n")
+    file_res.write("Number of matrix-vector products = %d" % count_mv + "\n" + "\n")
+    file_res.write("Step size" + "\n")
+    file_res.write(str(N_cfl * dt_cfl) + "\n" + "\n")
+    file_res.write("Time steps" + "\n")
+    file_res.write(str(time_step) + "\n")
+    file_res.close()
 
     print("\nTime elapsed: ", tol_time)
     print("Time steps: ", time_step)
@@ -229,6 +237,7 @@ def solve(problem, integrator, N_cfl):
                 
 ### Call the function
 ### solve(problem, integrator, N_CFL)
-solve("Burgers", EPIRK4s3B, 1000)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
+solve("Allen_Cahn", EPI6, 50)     # N_CFL = 10 (factor multiplied to dt_CFL, dt = 10 * dt_CFL)
 
 print('Total Time Elapsed = ', datetime.now() - startTime)
+print()
