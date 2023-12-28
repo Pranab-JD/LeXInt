@@ -12,7 +12,7 @@ namespace LeXInt
                        double* polynomial,             //? Output matrix exponential multiplied by 'u'
                        double* auxiliary_Leja,         //? Internal auxiliary variables (Leja)
                        size_t N,                       //? Number of grid points
-                       vector<double>& Leja_X,         //? Array of Leja points
+                       std::vector<double>& Leja_X,    //? Array of Leja points
                        double c,                       //? Shifting factor
                        double Gamma,                   //? Scaling factor
                        double tol,                     //? Tolerance (normalised desired accuracy)
@@ -38,7 +38,7 @@ namespace LeXInt
         double* Jac_vec = &auxiliary_Leja[0];                           //? auxiliary variable for Jacobian-vector product
 
         //* Matrix exponential (scaled and shifted)
-        vector<double> matrix_exponential(max_Leja_pts);
+        std::vector<double> matrix_exponential(max_Leja_pts);
 
         for (int ii = 0; ii < max_Leja_pts; ii++)
         {
@@ -46,7 +46,7 @@ namespace LeXInt
         }
         
         //* Compute polynomial coefficients
-        vector<double> coeffs = Divided_Differences(Leja_X, matrix_exponential);
+        std::vector<double> coeffs = Divided_Differences(Leja_X, matrix_exponential);
 
         //* Form the polynomial (first term): polynomial = coeffs[0] * u
         axpby(coeffs[0], u, polynomial, N, GPU);

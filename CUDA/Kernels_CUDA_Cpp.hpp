@@ -119,7 +119,7 @@ namespace LeXInt
             axpby_CUDA<<<(N/128) + 1, 128>>>(a, x, y, N);
 
             #else
-            cout << "Error. Compiled with gcc, not nvcc." << endl;
+            ::std::cout << "Error. Compiled with gcc, not nvcc." << ::std::endl;
             exit(1);
             #endif
         }

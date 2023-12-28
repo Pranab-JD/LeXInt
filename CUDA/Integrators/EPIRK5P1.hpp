@@ -7,22 +7,22 @@ namespace LeXInt
 {
     //? Phi functions interpolated on real Leja points
     template <typename rhs>
-    void EPIRK5P1(rhs& RHS,                   //? RHS function
-                  double* u,                  //? Input state variable(s)
-                  double* u_epirk4,           //? Output state variable(s) (lower order)
-                  double* u_epirk5,           //? Output state variable(s) (higher order)
-                  double& error,              //? Embedded error estimate
-                  double* auxiliary_expint,   //? Internal auxiliary variables (EPIRK5P1)
-                  double* auxiliary_Leja,     //? Internal auxiliary variables (Leja)
-                  size_t N,                   //? Number of grid points
-                  vector<double>& Leja_X,     //? Array of Leja points
-                  double c,                   //? Shifting factor
-                  double Gamma,               //? Scaling factor
-                  double tol,                 //? Tolerance (normalised desired accuracy)
-                  double dt,                  //? Step size
-                  int& iters,                 //? # of iterations needed to converge (iteration variable)
-                  bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
-                  GPU_handle& cublas_handle   //? CuBLAS handle
+    void EPIRK5P1(rhs& RHS,                         //? RHS function
+                  double* u,                        //? Input state variable(s)
+                  double* u_epirk4,                 //? Output state variable(s) (lower order)
+                  double* u_epirk5,                 //? Output state variable(s) (higher order)
+                  double& error,                    //? Embedded error estimate
+                  double* auxiliary_expint,         //? Internal auxiliary variables (EPIRK5P1)
+                  double* auxiliary_Leja,           //? Internal auxiliary variables (Leja)
+                  size_t N,                         //? Number of grid points
+                  std::vector<double>& Leja_X,      //? Array of Leja points
+                  double c,                         //? Shifting factor
+                  double Gamma,                     //? Scaling factor
+                  double tol,                       //? Tolerance (normalised desired accuracy)
+                  double dt,                        //? Step size
+                  int& iters,                       //? # of iterations needed to converge (iteration variable)
+                  bool GPU,                         //? false (0) --> CPU; true (1) --> GPU
+                  GPU_handle& cublas_handle         //? CuBLAS handle
                   )
     {
         //* -------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace LeXInt
         axpby(dt, f_u, f_u, N, GPU);
 
         //? Vertical interpolation of RHS(u) at g11, g21, and g31; u_flux = phi_1({g11, g21, g31} J(u) dt) f(u) dt
-        vector<double> coeffs_1 = {g11, g21, g31};
+        std::vector<double> coeffs_1 = {g11, g21, g31};
         real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, coeffs_1, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
@@ -93,7 +93,7 @@ namespace LeXInt
         axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
 
         //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
-        vector<double> coeffs_2 = {g32_4, g32, g22};
+        std::vector<double> coeffs_2 = {g32_4, g32, g22};
         real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, coeffs_2, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
 
@@ -108,7 +108,7 @@ namespace LeXInt
         axpby(-2.0, R_a, 1.0, R_b, R_3, N, GPU);
 
         //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
-        vector<double> coeffs_3 = {g33, g33_4};
+        std::vector<double> coeffs_3 = {g33, g33_4};
         real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, coeffs_3, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
 

@@ -14,7 +14,7 @@ namespace LeXInt
                           double* auxiliary_Leja,             //? Internal auxiliary variables (Leja)
                           size_t N,                           //? Number of grid points
                           double (* phi_function) (double),   //? Phi function
-                          vector<double>& Leja_X,             //? Array of Leja points
+                          std::vector<double>& Leja_X,        //? Array of Leja points
                           double c,                           //? Shifting factor
                           double Gamma,                       //? Scaling factor
                           double tol,                         //? Tolerance (normalised desired accuracy)
@@ -40,7 +40,7 @@ namespace LeXInt
         double* Jac_vec = &auxiliary_Leja[0];                           //? auxiliary variable for Jacobian-vector product
         
         //* Phi function applied to 'interp_vector' (scaled and shifted)
-        vector<double> phi_function_array(max_Leja_pts);
+        std::vector<double> phi_function_array(max_Leja_pts);
         
         for (int ii = 0; ii < max_Leja_pts; ii++)
         {
@@ -48,7 +48,7 @@ namespace LeXInt
         }
 
         //* Compute polynomial coefficients
-        vector<double> coeffs = Divided_Differences(Leja_X, phi_function_array);
+        std::vector<double> coeffs = Divided_Differences(Leja_X, phi_function_array);
 
         //* Form the polynomial (first term): polynomial = coeffs[0] * interp_vector
         axpby(coeffs[0], interp_vector, polynomial, N, GPU);

@@ -7,22 +7,22 @@ namespace LeXInt
 {
     //? Phi functions interpolated on real Leja points
     template <typename rhs>
-    void EPIRK4s3(rhs& RHS,                   //? RHS function
-                  double* u,                  //? Input state variable(s)
-                  double* u_epirk3,           //? Output state variable(s) (lower order)
-                  double* u_epirk4,           //? Output state variable(s) (higher order)
-                  double& error,              //? Embedded error estimate
-                  double* auxiliary_expint,   //? Internal auxiliary variables (EPIRK4s3)
-                  double* auxiliary_Leja,     //? Internal auxiliary variables (Leja)
-                  size_t N,                   //? Number of grid points
-                  vector<double>& Leja_X,     //? Array of Leja points
-                  double c,                   //? Shifting factor
-                  double Gamma,               //? Scaling factor
-                  double tol,                 //? Tolerance (normalised desired accuracy)
-                  double dt,                  //? Step size
-                  int& iters,                 //? # of iterations needed to converge (iteration variable)
-                  bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
-                  GPU_handle& cublas_handle   //? CuBLAS handle
+    void EPIRK4s3(rhs& RHS,                         //? RHS function
+                  double* u,                        //? Input state variable(s)
+                  double* u_epirk3,                 //? Output state variable(s) (lower order)
+                  double* u_epirk4,                 //? Output state variable(s) (higher order)
+                  double& error,                    //? Embedded error estimate
+                  double* auxiliary_expint,         //? Internal auxiliary variables (EPIRK4s3)
+                  double* auxiliary_Leja,           //? Internal auxiliary variables (Leja)
+                  size_t N,                         //? Number of grid points
+                  std::vector<double>& Leja_X,      //? Array of Leja points
+                  double c,                         //? Shifting factor
+                  double Gamma,                     //? Scaling factor
+                  double tol,                       //? Tolerance (normalised desired accuracy)
+                  double dt,                        //? Step size
+                  int& iters,                       //? # of iterations needed to converge (iteration variable)
+                  bool GPU,                         //? false (0) --> CPU; true (1) --> GPU
+                  GPU_handle& cublas_handle         //? CuBLAS handle
                   )
     {
         //* -------------------------------------------------------------------------

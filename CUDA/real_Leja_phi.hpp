@@ -8,22 +8,22 @@ namespace LeXInt
 {
     //? Phi function interpolated on real Leja points
     template <typename rhs>
-    void real_Leja_phi(rhs& RHS,                           //? RHS function
-                       double* u,                          //? Input state variable(s)
-                       double* interp_vector,              //? Input vector multiplied to phi function
-                       double* polynomial,                 //? Output vector multiplied to phi function
-                       double* auxiliary_Leja,             //? Internal auxiliary variables (Leja)
-                       size_t N,                           //? Number of grid points
-                       vector<double> integrator_coeffs,   //? Coefficients of the integrator
-                       double (* phi_function) (double),   //? Phi function
-                       vector<double>& Leja_X,             //? Array of Leja points
-                       double c,                           //? Shifting factor
-                       double Gamma,                       //? Scaling factor
-                       double tol,                         //? Tolerance (normalised desired accuracy)
-                       double dt,                          //? Step size
-                       int& iters,                         //? # of iterations needed to converge (iteration variable)
-                       bool GPU,                           //? false (0) --> CPU; true (1) --> GPU
-                       GPU_handle& cublas_handle           //? CuBLAS handle
+    void real_Leja_phi(rhs& RHS,                                //? RHS function
+                       double* u,                               //? Input state variable(s)
+                       double* interp_vector,                   //? Input vector multiplied to phi function
+                       double* polynomial,                      //? Output vector multiplied to phi function
+                       double* auxiliary_Leja,                  //? Internal auxiliary variables (Leja)
+                       size_t N,                                //? Number of grid points
+                       std::vector<double> integrator_coeffs,   //? Coefficients of the integrator
+                       double (* phi_function) (double),        //? Phi function
+                       std::vector<double>& Leja_X,             //? Array of Leja points
+                       double c,                                //? Shifting factor
+                       double Gamma,                            //? Scaling factor
+                       double tol,                              //? Tolerance (normalised desired accuracy)
+                       double dt,                               //? Step size
+                       int& iters,                              //? # of iterations needed to converge (iteration variable)
+                       bool GPU,                                //? false (0) --> CPU; true (1) --> GPU
+                       GPU_handle& cublas_handle                //? CuBLAS handle
                        )
     {
         //* -------------------------------------------------------------------------
@@ -48,10 +48,10 @@ namespace LeXInt
         copy(interp_vector, y, N, GPU);
 
         //* Phi function applied to 'y' (scaled and shifted)
-        vector<vector<double> > phi_function_array(num_interpolations);
+        std::vector<std::vector<double> > phi_function_array(num_interpolations);
 
         //* Polynomial coefficients
-        vector<vector<double> > coeffs(num_interpolations);
+        std::vector<std::vector<double> > coeffs(num_interpolations);
         
         //* Reshape vectors to "num_interpolations x max_Leja_pts"
         for (int ij = 0; ij < num_interpolations; ij++)
@@ -102,14 +102,15 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                // ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
+                // std::cout << "Converged! Iterations: " << iters << std::endl;
                 break;
             }
 
             //! Warning flags
             if (iters == max_Leja_pts - 2)
             {
-                ::std::cout << "Warning!! Max. number of Leja points reached without convergence!! Reduce dt." << ::std::endl;
+                
+                std::cout << "Warning!! Max. number of Leja points reached without convergence!! Reduce dt." << std::endl;
                 break;
             }
         }

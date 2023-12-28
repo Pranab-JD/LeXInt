@@ -4,7 +4,7 @@
 
 namespace LeXInt
 {
-    vector<double> Divided_Differences(const vector<double>& X, vector<double> coeffs)
+    std::vector<double> Divided_Differences(const std::vector<double>& X, std::vector<double> coeffs)
     {
         //* -------------------------------------------------------------------------
         //* Compute the coefficients for polynomial interpolation.
@@ -34,7 +34,7 @@ namespace LeXInt
                 coeffs[ii] = (coeffs[ii] - coeffs[jj])/(X[ii] - X[jj]);
             }
         }
-        
+
         return coeffs;
     }
 }

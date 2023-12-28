@@ -1,5 +1,10 @@
 #pragma once
 
+#include <fstream>
+
+#include <iostream>
+#include <unistd.h>
+
 #include "Timer.hpp"
 #include "Eigenvalues.hpp"
 #include "error_check.hpp"
@@ -28,7 +33,7 @@ struct Leja
 {
     int N;                          //? Number of grid points
     int num_vectors;                //? Number of vectors in an exponential integrator
-    string integrator_name;         //? Name of the exponential integrator
+    std::string integrator_name;    //? Name of the exponential integrator
     GPU_handle cublas_handle;       //? Modified handle for cublas
 
     //! Allocate memory - these are device vectors if GPU support is activated
@@ -36,10 +41,10 @@ struct Leja
     double* auxiliary_expint;       //? Internal vectors for an exponential integrator
 
     //! Set of Leja points
-    vector<double> Leja_X = Leja_Points();
+    std::vector<double> Leja_X;
 
     //! Constructor
-    Leja(int _N, string _integrator_name) :  N(_N), integrator_name(_integrator_name)
+    Leja(int _N, std::string _integrator_name) :  N(_N), integrator_name(_integrator_name)
     {
         if (integrator_name == "Rosenbrock_Euler")
         {
@@ -103,6 +108,9 @@ struct Leja
             auxiliary_expint = (double*)malloc(num_vectors * N * sizeof(double));
 
         #endif
+
+        Leja_X = Leja_Points();
+
     }
 
     //! Destructor
@@ -125,14 +133,18 @@ struct Leja
     //! ============ Operator Functions ============ !//
 
     //! Read Leja points from file
-    vector<double> Leja_Points()
+    std::vector<double> Leja_Points()
     {
-        int max_Leja_pts = 150;                        // Max. number of Leja points
-        vector<double> Leja_X(max_Leja_pts);           // Initialize array
-
         //* Load Leja points
-        ifstream inputFile;
-        inputFile.open("../Leja_10000.txt");
+        std::ifstream inputFile("/home/pranab/PJD/LeXInt/CUDA/Leja_10000.txt");
+
+        if (!inputFile.is_open()) 
+        {
+            std::cout << "Unable to open Leja_10000.txt file." << std::endl;
+        }
+
+        int max_Leja_pts = 150;                        // Max. number of Leja points
+        std::vector<double> Leja_X(max_Leja_pts);      // Initialize array
 
         //* Read Leja_points from file into the vector Leja_X
         int count = 0;
@@ -210,12 +222,12 @@ struct Leja
                            auxiliary_expint, auxiliary_Leja,
                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
         }
-        else if (integrator_name == "EPIRK4s3B")
-        {
-            LeXInt::EPIRK4s3B(RHS, u_input, u_output, 
-                              auxiliary_expint, auxiliary_Leja,
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
-        }
+        // else if (integrator_name == "EPIRK4s3B")
+        // {
+        //     LeXInt::EPIRK4s3B(RHS, u_input, u_output, 
+        //                       auxiliary_expint, auxiliary_Leja,
+        //                       N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+        // }
         else
         {
             std::cout << "ERROR: Only 1 output vector for RosEu and EPIRK4s3B." << std::endl;
