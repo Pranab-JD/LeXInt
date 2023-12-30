@@ -47,6 +47,7 @@ namespace LeXInt
 
         //? Counters for Leja iterations
         int iters_1 = 0, iters_2 = 0;
+        std::vector<double> coeffs_1; coeffs_1.push_back(1.0);
 
         //? Assign names and variables
         double* f_u = &auxiliary_expint[0]; double* u_flux = &u_exprb2[0]; 
@@ -58,7 +59,7 @@ namespace LeXInt
         axpby(dt, f_u, f_u, N, GPU);
 
         //? Interpolation of RHS(u) at 1; u_flux = phi_1(J(u) dt) f(u) dt
-        real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, {1.0}, 
+        real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N,  coeffs_1, 
                         phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
 
         //! Internal stage 1; 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
@@ -70,7 +71,7 @@ namespace LeXInt
         axpby(dt, NL_a, -dt, NL_u, R_a, N, GPU);
 
         //? u_nl_3 = phi_3(J(u) dt) R(a) dt
-        real_Leja_phi(RHS, u, R_a, u_nl_3, auxiliary_Leja, N, {1.0}, 
+        real_Leja_phi(RHS, u, R_a, u_nl_3, auxiliary_Leja, N,  coeffs_1, 
                         phi_3, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
                         
         //! 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt

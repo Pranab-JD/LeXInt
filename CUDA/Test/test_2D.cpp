@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = n_cfl*min(dif_cfl, adv_cfl);                  // Step size
+    double dt = n_cfl*min(dif_cfl, adv_cfl);                // Step size
     cout << endl << "Step size: " << dt << endl;
 
     int iters = 0;                                          //* # of Leja points used per iteration (iteration variable for Leja interpolation)

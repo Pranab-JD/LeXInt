@@ -62,7 +62,7 @@ namespace LeXInt
         }
     }
 
-    //? ones(y) = (y[0:N] =) 1.0
+    //? ones(x) = (x[0:N] =) 1.0
     void ones(double *x, size_t N, bool GPU)
     {
         if (GPU == true)

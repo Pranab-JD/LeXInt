@@ -2,9 +2,6 @@
 
 #include <fstream>
 
-#include <iostream>
-#include <unistd.h>
-
 #include "Timer.hpp"
 #include "Eigenvalues.hpp"
 #include "error_check.hpp"
@@ -130,7 +127,7 @@ struct Leja
         #endif
     }
 
-    //! ============ Operator Functions ============ !//
+    //! ========================== LeXInt Functions========================== !//
 
     //! Read Leja points from file
     std::vector<double> Leja_Points()
@@ -158,15 +155,56 @@ struct Leja
         return Leja_X;
     }
 
-    //? Power Iterations
-    void Power_iterations(rhs& RHS, 
-                          double* u_input,
-                          double& eigenvalue,
-                          bool GPU
-                          )
+    //! ---------------- Generic functions  ---------------- !//
+
+    double l2norm(double *x, size_t N, bool GPU)
+    {
+        double norm = LeXInt::l2norm(x, N, GPU, cublas_handle);
+        return norm;
+    }
+
+    void copy(double *x, double *y, size_t N, bool GPU)
+    {
+        //? Set x = y
+        LeXInt::copy(x, y, N, GPU);
+    }
+
+    void ones(double *x, size_t N, bool GPU)
+    {
+        //? ones(x) = (x[0:N] =) 1.0
+        LeXInt::ones(x, N, GPU);
+    }
+    
+    void axpby(double a, double *x, double *y, size_t N, bool GPU)
+    {
+        //? y = ax
+        LeXInt::axpby(a, x, y, N, GPU);
+    }
+
+    void axpby(double a, double *x, double b, double *y, double *z, size_t N, bool GPU)
+    {
+        //? z = ax + by
+        LeXInt::axpby(a, x, b, y, z, N, GPU);
+    }
+
+    void axpby(double a, double *x, double b, double *y, double c, double *z, double *w, size_t N, bool GPU)
+    {
+        //? w = ax + by + cz
+        LeXInt::axpby(a, x, b, y, c, z, w, N, GPU);
+    }
+
+    void axpby(double a, double *x, double b, double *y, double c, double *z, double d, double *w, double *v, size_t N, bool GPU)
+    {
+        //? v = ax + by + cz + dw
+        LeXInt::axpby(a, x, b, y, c, z, w, N, GPU);
+    }
+
+    void Power_iterations(rhs& RHS, double* u_input, double& eigenvalue, bool GPU)
     {
         LeXInt::Power_iterations(RHS, u_input, N, eigenvalue, auxiliary_Leja, GPU, cublas_handle);
     }
+
+    //! ---------------- Leja & Exp Int ---------------- !//
 
     //? Real Leja Phi NL (Nonhomogenous linear equations)
     void real_Leja_phi_nl(rhs& RHS, 
@@ -252,51 +290,51 @@ struct Leja
         if (integrator_name == "EXPRB32")
         {
             LeXInt::EXPRB32(RHS, u_input, u_output_low, u_output_high, error,
-                            auxiliary_expint, auxiliary_Leja, 
+                            auxiliary_expint, auxiliary_Leja,
                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
         }
-        else if (integrator_name == "EXPRB42")
-        {
-            LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, error, 
-                            auxiliary_expint, auxiliary_Leja,
-                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
-        }
-        else if (integrator_name == "EXPRB43")
-        {
-            LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, error,
-                            auxiliary_expint, auxiliary_Leja,
-                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
-        }
-        else if (integrator_name == "EXPRB53s3")
-        {
-            LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, error,
-                              auxiliary_expint, auxiliary_Leja,
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
-        }
-        else if (integrator_name == "EXPRB54s4")
-        {
-            LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, error,
-                              auxiliary_expint, auxiliary_Leja, 
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
-        }
-        else if (integrator_name == "EPIRK4s3")
-        {
-            LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, error,
-                             auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
-        }
-        else if (integrator_name == "EPIRK4s3A")
-        {
-            LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, error,
-                             auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
-        }
-        else if (integrator_name == "EPIRK5P1")
-        {
-            LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, error,
-                             auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
-        }
+        // else if (integrator_name == "EXPRB42")
+        // {
+        //     LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, error, 
+        //                     auxiliary_expint, auxiliary_Leja,
+        //                     N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+        // }
+        // else if (integrator_name == "EXPRB43")
+        // {
+        //     LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, error,
+        //                     auxiliary_expint, auxiliary_Leja,
+        //                     N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+        // }
+        // else if (integrator_name == "EXPRB53s3")
+        // {
+        //     LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, error,
+        //                       auxiliary_expint, auxiliary_Leja,
+        //                       N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+        // }
+        // else if (integrator_name == "EXPRB54s4")
+        // {
+        //     LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, error,
+        //                       auxiliary_expint, auxiliary_Leja, 
+        //                       N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+        // }
+        // else if (integrator_name == "EPIRK4s3")
+        // {
+        //     LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, error,
+        //                      auxiliary_expint, auxiliary_Leja,
+        //                      N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+        // }
+        // else if (integrator_name == "EPIRK4s3A")
+        // {
+        //     LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, error,
+        //                      auxiliary_expint, auxiliary_Leja,
+        //                      N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+        // }
+        // else if (integrator_name == "EPIRK5P1")
+        // {
+        //     LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, error,
+        //                      auxiliary_expint, auxiliary_Leja,
+        //                      N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+        // }
         else
         {
             std::cout << "ERROR: 2 output vectors for EXPRB32, EXPRB52, EXPRB43,\
