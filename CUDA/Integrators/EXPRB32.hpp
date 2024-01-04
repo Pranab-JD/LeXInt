@@ -77,9 +77,10 @@ namespace LeXInt
         //! 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
         axpby(1.0, u_exprb2, 2.0, u_nl_3, u_exprb3, N, GPU);
 
-        //? Error estimate
+        //? Error estimate (normalised to 'u')
         axpby(2.0, u_nl_3, error_vector, N, GPU);
-        error = l2norm(error_vector, N, GPU, cublas_handle);
+        double u_norm = l2norm(u, N, GPU, cublas_handle);
+        error = l2norm(error_vector, N, GPU, cublas_handle)/u_norm;
 
         //? Total number of Leja iterations
         iters = iters_1 + iters_2;

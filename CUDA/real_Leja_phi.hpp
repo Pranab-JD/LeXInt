@@ -102,7 +102,7 @@ namespace LeXInt
             //? If new term to be added < tol, break loop
             if (poly_error < ((tol*poly_norm) + tol))
             {
-                std::cout << "Converged! Iterations: " << iters << std::endl;
+                // std::cout << "Converged! Iterations: " << iters << std::endl;
                 break;
             }
 

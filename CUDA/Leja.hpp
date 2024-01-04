@@ -1,8 +1,10 @@
 #pragma once
 
 #include <fstream>
+#include <string>
 
 #include "Timer.hpp"
+#include "linear_phi.hpp"
 #include "Eigenvalues.hpp"
 #include "error_check.hpp"
 #include "Kernels_CUDA_Cpp.hpp"
@@ -31,6 +33,7 @@ struct Leja
     int N;                          //? Number of grid points
     int num_vectors;                //? Number of vectors in an exponential integrator
     std::string integrator_name;    //? Name of the exponential integrator
+    std::string path_to_lexint ;    //? Path to LeXInt
     GPU_handle cublas_handle;       //? Modified handle for cublas
 
     //! Allocate memory - these are device vectors if GPU support is activated
@@ -41,7 +44,8 @@ struct Leja
     std::vector<double> Leja_X;
 
     //! Constructor
-    Leja(int _N, std::string _integrator_name) :  N(_N), integrator_name(_integrator_name)
+    Leja(int _N, std::string _integrator_name, std::string _path_to_lexint)
+        : N(_N), integrator_name(_integrator_name), path_to_lexint(_path_to_lexint)
     {
         if (integrator_name == "Rosenbrock_Euler")
         {
@@ -106,7 +110,7 @@ struct Leja
 
         #endif
 
-        Leja_X = Leja_Points();
+        Leja_X = Leja_Points(path_to_lexint);
 
     }
 
@@ -130,17 +134,17 @@ struct Leja
     //! ========================== LeXInt Functions========================== !//
 
     //! Read Leja points from file
-    std::vector<double> Leja_Points()
+    std::vector<double> Leja_Points(string path_to_lexint)
     {
         //* Load Leja points
-        std::ifstream inputFile("/home/pranab/PJD/LeXInt/CUDA/Leja_10000.txt");
+        std::ifstream inputFile((path_to_lexint + "LeXInt/CUDA/Leja_10000.txt").c_str());
 
         if (!inputFile.is_open()) 
         {
-            std::cout << "Unable to open Leja_10000.txt file." << std::endl;
+            std::cout << "Unable to open Leja_10000.txt file. Check if the path to LeXInt is correct." << std::endl;
         }
 
-        int max_Leja_pts = 150;                        // Max. number of Leja points
+        int max_Leja_pts = 250;                        // Max. number of Leja points
         std::vector<double> Leja_X(max_Leja_pts);      // Initialize array
 
         //* Read Leja_points from file into the vector Leja_X
