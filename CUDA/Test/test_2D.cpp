@@ -31,8 +31,7 @@ int main(int argc, char** argv)
     double t_final = atof(argv[4]);     // Final simulation time
 
     cout << " =============================================== " << endl << endl;
-    cout << "N = " << index << ", N_cfl = " << n_cfl << ", tol = "
-    << tol << ", T_f = " << t_final << endl;
+    cout << "N = " << index << ", N_cfl = " << n_cfl << ", tol = " << tol << ", T_f = " << t_final << endl;
 
     //! Set GPU spport to false
     bool GPU_access = false;
@@ -67,27 +66,28 @@ int main(int argc, char** argv)
 
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
-    double dt = n_cfl*min(dif_cfl, adv_cfl);                  // Step size
+    double dt = n_cfl*min(dif_cfl, adv_cfl);                // Step size
     cout << endl << "Step size: " << dt << endl;
+    cout << "Number of time steps: " << ceil(t_final/dt) << endl;
 
     int iters = 0;                                          //* # of Leja points used per iteration (iteration variable for Leja interpolation)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Burgers_2D";
-    string integrator = "Rosenbrock_Euler";
+    string problem = "Diff_Adv_Source_2D";
+    string integrator = "NonHom_Linear";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
-    // RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
-    // Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
+    RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
+    Leja<RHS_Dif_Adv_2D> leja_gpu{N, integrator};
 
     //! Burgers' Equation
-    RHS_Burgers_2D RHS(n, dx, dy, velocity);
-    Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
+    // RHS_Burgers_2D RHS(n, dx, dy, velocity);
+    // Leja<RHS_Burgers_2D> leja_gpu{N, integrator};
 
     //? Strings for directory names
-    stringstream step_size, tf, grid, acc;
-    step_size << fixed << scientific << setprecision(1) << dt;
+    stringstream cfl, tf, grid, acc;
+    cfl << fixed << scientific << setprecision(1) << n_cfl;
     tf << fixed << scientific << setprecision(1) << t_final;
     grid << fixed << scientific << setprecision(0) << n;
     acc << fixed << scientific << setprecision(0) << tol;
@@ -348,10 +348,10 @@ int main(int argc, char** argv)
     cout << "==================================================" << endl << endl;
 
     //! Create nested directories
-    int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_4"
-                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str()).c_str());
-    string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/Constant/" + problem + "/" + integrator + "/cores_4"
-                                + "/N_" + grid.str().c_str() + "/t_" + tf.str().c_str() + "/dt_" + step_size.str().c_str() + "/tol_" + acc.str().c_str();
+    // int sys_value_f = system(("mkdir -p ../../LeXInt_Test/" + to_string(GPU_access) + "/" + problem + "_" + integrator + "/cores_56"
+    //                             + "/N_" + grid.str().c_str() + "_t_" + tf.str().c_str() + "_dt_" + cfl.str().c_str() + "/tol_" + acc.str()).c_str());
+    // string directory_f = "../../LeXInt_Test/" + to_string(GPU_access) + "/" + problem + "_" + integrator + "/cores_56"
+    //                             + "/N_" + grid.str().c_str() + "_t_" + tf.str().c_str() + "_dt_" + cfl.str().c_str() + "/tol_" + acc.str().c_str();
 
     //? Write data to files
     // string final_data = directory_f + "/Final_data.txt";
@@ -363,15 +363,15 @@ int main(int argc, char** argv)
     // }
     // data.close();
 
-    string results = directory_f + "/Results.txt";
-    ofstream params;
-    params.open(results);
-    params << "Simulation time: " << time << endl;
-    params << "Total number of time steps: " << time_steps << endl;
-    params << "Total number of Leja iterations: " << iters_total << endl;
-    params << "Average Bandwidth (GB/s): " << bandwidth << endl;
-    params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
-    params.close();
+    // string results = directory_f + "/Results.txt";
+    // ofstream params;
+    // params.open(results);
+    // params << "Simulation time: " << time << endl;
+    // params << "Total number of time steps: " << time_steps << endl;
+    // params << "Total number of Leja iterations: " << iters_total << endl;
+    // params << "Average Bandwidth (GB/s): " << bandwidth << endl;
+    // params << setprecision(16) << "Total time elapsed (s): " << time_loop.total() << endl;
+    // params.close();
 
     cout << "Writing data to files complete!" << endl;
     cout << "Simulations complete!" << endl;
