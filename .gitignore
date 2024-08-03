@@ -1,0 +1,5 @@
+.vscode
+*.sh
+N_*
+lexint_cpp
+lexint_cuda
