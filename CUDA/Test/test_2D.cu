@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     double tol = atof(argv[3]);         // User-specified tolerance
     double t_final = atof(argv[4]);     // Final simulation time
 
-    cout << "N = " << index << ", N_cfl = " << n_cfl << ", tol = " << tol << ", T_f = " << t_final << endl;
+    cout << "N = " << index << ", N_cfl = " << n_cfl << ", tol = " << tol << ", T_f = " << t_final << endl << endl;
 
     //! Set GPU support to true
     bool GPU_access = true;
@@ -73,8 +73,8 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Diff_Adv_Source_2D";
-    string integrator = "NonHom_Linear";
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
     RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
@@ -278,6 +278,9 @@ int main(int argc, char** argv)
     cudaDeviceSynchronize(); 
     time_loop.stop();
 
+    cout << "Total time: " << time_loop.total() << endl;
+    cout << "Average time: " << time_loop.average() << endl;
+
     //? ---------------------- Bandwidth computation ---------------------- ?//
 
     //! Number of vector reads and writes (to compute achieved bandwidth):
@@ -331,7 +334,7 @@ int main(int argc, char** argv)
 
     }
 
-    double bandwidth = (1.0 * N * 8 *  reads_writes * 1e-9)/time_loop.total();
+    double bandwidth = (1.0 * N * sizeof(double) * reads_writes * 1e-9)/time_loop.total();
 
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
@@ -372,6 +375,7 @@ int main(int argc, char** argv)
 
     cout << "Writing data to files complete!" << endl;
     cout << "Simulations complete!" << endl;
+    cout << "==================================================" << endl << endl;
 
     return 0;
 }
