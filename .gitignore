@@ -1,5 +1,5 @@
 .vscode
-*.sh
-N_*
-lexint_cpp
-lexint_cuda
+CUDA/Test/build/
+CUDA/Test/lexint_cuda
+CUDA/Test/lexint_cpp
+CUDA/Test/*.sh
