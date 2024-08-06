@@ -36,6 +36,7 @@ namespace LeXInt
         
         int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
         double* Jac_vec = &auxiliary_Leja[0];                           //? auxiliary variable for Jacobian-vector product
+        double* u_vector = &auxiliary_Leja[N];                          //? auxiliary variable to avoid overwriting u
 
         //* Matrix exponential (scaled and shifted)
         vector<double> matrix_exponential(max_Leja_pts);
@@ -49,22 +50,22 @@ namespace LeXInt
         vector<double> coeffs = Divided_Differences(Leja_X, matrix_exponential);
 
         //* Form the polynomial (first term): polynomial = coeffs[0] * u
-        axpby(coeffs[0], u, polynomial, N, GPU);
+        axpby(coeffs[0], u_vector, polynomial, N, GPU);
 
         //? Iterate until converges
         for (iters = 1; iters < max_Leja_pts - 1; iters++)
         {
             //* Compute numerical Jacobian (for linear eqs., this is the RHS evaluation at u)
-            RHS(u, Jac_vec);
+            RHS(u_vector, Jac_vec);
 
             //* u = u * ((z - c)/Gamma - Leja_X)
-            axpby(1./Gamma, Jac_vec, (-c/Gamma - Leja_X[iters - 1]), u, u, N, GPU);
+            axpby(1./Gamma, Jac_vec, (-c/Gamma - Leja_X[iters - 1]), u_vector, u_vector, N, GPU);
 
             //* Add the new term to the polynomial (polynomial = polynomial + (coeffs[iters] * u))
-            axpby(coeffs[iters], u, 1.0, polynomial, polynomial, N, GPU);
+            axpby(coeffs[iters], u_vector, 1.0, polynomial, polynomial, N, GPU);
 
             //* Error estimate: poly_error = |coeffs[iters]| ||u|| at every iteration
-            double poly_error = l2norm(u, N, GPU, cublas_handle);
+            double poly_error = l2norm(u_vector, N, GPU, cublas_handle);
             poly_error = abs(coeffs[iters]) * poly_error;
 
             //* Norm of the polynomial
