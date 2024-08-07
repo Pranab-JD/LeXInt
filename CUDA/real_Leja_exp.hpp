@@ -37,6 +37,7 @@ namespace LeXInt
         int max_Leja_pts = Leja_X.size();                               //? Max. # of Leja points
         double* Jac_vec = &auxiliary_Leja[0];                           //? auxiliary variable for Jacobian-vector product
         double* u_vector = &auxiliary_Leja[N];                          //? auxiliary variable to avoid overwriting u
+        copy(u, u_vector, N, GPU);
 
         //* Matrix exponential (scaled and shifted)
         vector<double> matrix_exponential(max_Leja_pts);
