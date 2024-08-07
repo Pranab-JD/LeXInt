@@ -74,8 +74,8 @@ int main(int argc, char** argv)
     int iters_total = 0;                                    //* Total # of Leja iterations during the simulation
 
     //? Choose problem and integrator
-    string problem = "Diff_Adv_Source_2D";
-    string integrator = "NonHom_Linear";
+    string problem = "Diff_Adv_2D";
+    string integrator = "Hom_Linear";
 
     //! Diffusion-Advection or Diffusion-Advection + Sources
     RHS_Dif_Adv_2D RHS(n, dx, dy, velocity); 
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
     double reads_writes;
     if (integrator == "Hom_Linear")
     {
-        reads_writes = (1.0 * time_steps) + (10.0 * iters_total);
+        reads_writes = (2.0 * time_steps) + (10.0 * iters_total);
     }
     else if (integrator == "NonHom_Linear")
     {
@@ -338,7 +338,8 @@ int main(int argc, char** argv)
 
     }
 
-    double bandwidth = (1.0 * N * 8 *  reads_writes * 1e-9)/time_loop.total();
+    double bandwidth = (N * sizeof(double) *  reads_writes * 1e-9)/time_loop.total();
+
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
     cout << "Total number of time steps: " << time_steps << endl;

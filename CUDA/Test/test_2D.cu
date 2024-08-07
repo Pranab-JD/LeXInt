@@ -278,9 +278,6 @@ int main(int argc, char** argv)
     cudaDeviceSynchronize(); 
     time_loop.stop();
 
-    cout << "Total time: " << time_loop.total() << endl;
-    cout << "Average time: " << time_loop.average() << endl;
-
     //? ---------------------- Bandwidth computation ---------------------- ?//
 
     //! Number of vector reads and writes (to compute achieved bandwidth):
@@ -291,7 +288,7 @@ int main(int argc, char** argv)
     double reads_writes;
     if (integrator == "Hom_Linear")
     {
-        reads_writes = (1.0 * time_steps) + (10.0 * iters_total);
+        reads_writes = (2.0 * time_steps) + (10.0 * iters_total);
     }
     else if (integrator == "NonHom_Linear")
     {
@@ -334,7 +331,7 @@ int main(int argc, char** argv)
 
     }
 
-    double bandwidth = (1.0 * N * sizeof(double) * reads_writes * 1e-9)/time_loop.total();
+    double bandwidth = (N * sizeof(double) * reads_writes * 1e-9)/time_loop.total();
 
     cout << endl << "==================================================" << endl;
     cout << "Simulation time: " << time << endl;
