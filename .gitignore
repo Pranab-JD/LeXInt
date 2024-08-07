@@ -1,5 +1,8 @@
 .vscode
 CUDA/Test/build/
-CUDA/Test/lexint_cuda
 CUDA/Test/lexint_cpp
+CUDA/Test/lexint_cuda
+CUDA/Test/lexint_cpp_DA
+CUDA/Test/lexint_cpp_DAS
 CUDA/Test/*.sh
+CUDA/Test/run_cuda.sh
