@@ -127,7 +127,7 @@ struct Leja
     //! Read Leja points from file
     vector<double> Leja_Points()
     {
-        int max_Leja_pts = 150;                        // Max. number of Leja points
+        int max_Leja_pts = 250;                        // Max. number of Leja points
         vector<double> Leja_X(max_Leja_pts);           // Initialize array
 
         //* Load Leja points
