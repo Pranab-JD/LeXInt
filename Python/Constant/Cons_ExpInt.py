@@ -2,14 +2,7 @@
 Created on Fri Aug 13 15:31:46 2021
 
 @author: Pranab JD
-
-Description: -
-        Contains several EXPRB and EPIRK methods.
-
 """
-
-import sys
-sys.path.insert(1, "../")
 
 from Rosenbrock_Euler import Rosenbrock_Euler           #! 2nd order
 from EXPRB32 import EXPRB32                             #! 3rd order
@@ -24,3 +17,5 @@ from EPIRK4s3B import EPIRK4s3B                         #! 4th order
 
 from EPI3 import EPI3                                   #! 3rd order
 from EPI4 import EPI4                                   #! 4th order
+from EPI5 import EPI5                                   #! 5th order
+from EPI6 import EPI6                                   #! 6th order
