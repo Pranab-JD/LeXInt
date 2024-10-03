@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, "../")
+
 import numpy as np
 
 ###! LeXInt functions
@@ -57,17 +60,17 @@ def EPI4(u, u_prev, T_final, substeps, RHS_function, c, Gamma, Leja_X, tol, Real
     Jacobian_u = Jacobian(RHS_function, u, u, rhs_u)
     
     ###? EPI4 coefficients
-    a21 = -3/10; a22 = 3/40
-    a31 = 32/5;  a32 = -11/10
+    a21 = -3/10; a22 =   3/40
+    a31 =  32/5; a32 = -11/10
     
     ###? Difference of nonlinear remainders at u^{n-1} and u^{n-2}
     R_1 = (RHS_function(u_prev[:, 0]) - Jacobian(RHS_function, u, u_prev[:, 0], rhs_u)) - (rhs_u - Jacobian_u)
     R_2 = (RHS_function(u_prev[:, 1]) - Jacobian(RHS_function, u, u_prev[:, 1], rhs_u)) - (rhs_u - Jacobian_u)
     
     ###? Interpolation 1; phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2})) dt + phi_3(J(u) dt) (a31 R(u^{n-1}) + a32 R(u^{n-2})) dt
-    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final, (a21*R_1+a22*R_2)*T_final, (a31*R_1+a32*R_2)*T_final], T_final, Jac_vec, 1, c, Gamma, Leja_X, tol)
+    u_flux, rhs_calls, substeps = linear_phi([zero_vec, rhs_u*T_final, (a21*R_1+a22*R_2)*T_final, (a31*R_1+a32*R_2)*T_final], T_final, substeps, Jac_vec, 1, c, Gamma, Leja_X, tol)
 
-    ###? Internal stage; 4th order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2})) dt + phi_3(J(u) dt) (a31 R(u^{n-1}) + a32 R(u^{n-2})) dt
+    ###? Internal stage; 4th order solution; u_4 = u + phi_1(J(u) dt) f(u) dt + phi_2(J(u) dt) (a21 R(u^{n-1}) + a22 R(u^{n-2})) dt + phi_3(J(u) dt) (a31 R(u^{n-1}) + a32 R(u^{n-2})) dt
     u_epi4 = u + u_flux
 
     ###? Proxy of computational cost
