@@ -1,0 +1,6 @@
+.vscode/
+CUDA/.vscode/
+CUDA/Test/build/
+
+Python/Constant/__pycache__/
+Python/Test/Test_data/
