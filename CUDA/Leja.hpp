@@ -1,18 +1,19 @@
 #pragma once
 
-#include <fstream>
 #include <string>
+#include <fstream>
 
 #include "Timer.hpp"
-#include "linear_phi.hpp"
 #include "Eigenvalues.hpp"
 #include "error_check.hpp"
 #include "Kernels_CUDA_Cpp.hpp"
 
 //! Include Leja interpolation functions
+#include "linear_phi.hpp"
 #include "real_Leja_exp.hpp"
 #include "real_Leja_phi.hpp"
 #include "real_Leja_phi_nl.hpp"
+#include "real_Leja_linear_exp.hpp"
 
 //! Include all integrators
 #include "./Integrators/Rosenbrock_Euler.hpp"       //! 2nd order; no embedded error estimate
@@ -49,7 +50,7 @@ struct Leja
     {
         if (integrator_name == "Rosenbrock_Euler")
         {
-            num_vectors = 1;
+            num_vectors = 2;
         }
         else if (integrator_name == "EXPRB32")
         {
@@ -137,7 +138,8 @@ struct Leja
     std::vector<double> Leja_Points(string path_to_lexint)
     {
         //* Load Leja points
-        std::ifstream inputFile((path_to_lexint + "LeXInt/CUDA/Leja_10000.txt").c_str());
+        // std::ifstream inputFile((path_to_lexint + "LeXInt/CUDA/Leja_10000.txt").c_str());
+        std::ifstream inputFile("../Leja_10000.txt");
 
         if (!inputFile.is_open()) 
         {
@@ -210,6 +212,26 @@ struct Leja
 
     //! ---------------- Leja & Exp Int ---------------- !//
 
+    // //? Real Leja Phi NL (Nonhomogenous linear equations)
+    // void real_Leja_phi(rhs& RHS, 
+    //                    double* u_input,
+    //                    double* interp_vector,
+    //                    double* u_output,
+    //                    std::vector<double> integrator_coeffs,
+    //                    double (* phi_function) (double),
+    //                    double c,
+    //                    double Gamma,
+    //                    double tol,
+    //                    double dt,
+    //                    int& iters,
+    //                    bool GPU
+    //                    )
+    // {
+    //     LeXInt::real_Leja_phi(RHS, u_input, interp_vector, u_output,
+    //                          auxiliary_Leja, 
+    //                          N, integrator_coeffs, (* phi_function), Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+    // }
+
     //? Real Leja Phi NL (Nonhomogenous linear equations)
     void real_Leja_phi_nl(rhs& RHS, 
                           double* u_input, 
@@ -253,6 +275,7 @@ struct Leja
                  double Gamma,
                  double tol,
                  double dt,
+                 int substeps,
                  int& iters,
                  bool GPU
                  )
@@ -262,7 +285,7 @@ struct Leja
         {
             LeXInt::Ros_Eu(RHS, u_input, u_output,
                            auxiliary_expint, auxiliary_Leja,
-                           N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                           N, Leja_X, c, Gamma, tol, dt, substeps, iters, GPU, cublas_handle);
         }
         // else if (integrator_name == "EPIRK4s3B")
         // {

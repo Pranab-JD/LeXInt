@@ -18,6 +18,7 @@ namespace LeXInt
                 double Gamma,                   //? Scaling factor
                 double tol,                     //? Tolerance (normalised desired accuracy)
                 double dt,                      //? Step size
+                int substeps,                   //? Initial guess for substeps/substeps used
                 int& iters,                     //? # of iterations needed to converge (iteration variable)
                 bool GPU,                       //? false (0) --> CPU; true (1) --> GPU
                 GPU_handle& cublas_handle       //? CuBLAS handle
@@ -42,6 +43,7 @@ namespace LeXInt
 
         //? Assign names and variables
         double* f_u = &auxiliary_expint[0];
+        double* zero_vec = &auxiliary_expint[1];
 
         //? RHS evaluated at 'u' multiplied by 'dt'; f_u = RHS(u)*dt
         RHS(u, f_u);
@@ -54,5 +56,8 @@ namespace LeXInt
 
         //? 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
         axpby(1.0, u, 1.0, u_exprb2, u_exprb2, N, GPU);
+
+        linear_phi(RHS, {zero_vec, f_u}, u_exprb2, auxiliary_Leja, N, dt, substeps, 1.0, Leja_X, c, Gamma, tol, iters, GPU, cublas_handle);
+
     }
 }

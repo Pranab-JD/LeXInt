@@ -1,10 +1,12 @@
 #pragma once
 
-#include <functional>
 #include<vector>
+#include <functional>
 
+#include "Leja.hpp"
 #include "Timer.hpp"
 #include "Kernels_CUDA_Cpp.hpp"
+#include "real_Leja_linear_exp.hpp"
 
 namespace LeXInt
 {
@@ -56,11 +58,12 @@ namespace LeXInt
     void linear_phi(rhs& RHS,                                //? RHS function (function that evaluates the augmented matrix)
                     std::vector<double*> interp_vector,      //? Vector to evaluated/interpolated
                     double* polynomial,                      //? Output vector multiplied to linear combinations of phi functions
+                    double* auxiliary_Leja,                  //? Internal auxiliary variables (Leja)
                     size_t N,                                //? Number of grid points
-                    std::vector<double>& Leja_X,             //? Array of Leja points
                     double T_final,                          //? Step size
                     int substeps,                            //? Initial guess for substeps
                     double integrator_coeff,                 //? Coefficients of the integrator
+                    std::vector<double>& Leja_X,             //? Array of Leja points
                     double c,                                //? Shifting factor
                     double Gamma,                            //? Scaling factor
                     double tol,                              //? Tolerance (normalised desired accuracy)
@@ -96,10 +99,10 @@ namespace LeXInt
 
         std::vector<double*> B(interp_vector.rbegin(), interp_vector.rend()-1);
 
-        // auto RHS_aug_v = [&](double* input, double* output)
-        // {
-        //     RHS_aug(RHS, interp_vector, input, output, N, GPU);
-        // };
+        auto RHS_aug_v = [&](double* input, double* output) 
+        {
+            RHS_aug(RHS, interp_vector, input, output, N, GPU);
+        };
 
         double* v = (double*)malloc((N+p)*sizeof(double));
         for(int ii = 0; ii < N+p-1; ii++)
@@ -107,8 +110,9 @@ namespace LeXInt
             v[ii] = 0.0;
         }
         v[N+p-1] = 1.0;
+        std::cout << sizeof(v)/sizeof(v[0]) << std::endl;
 
-        // polynomial, iters, substeps = real_Leja_linear_exp(RHS_aug_v, v, polynomial, T_final, substeps, integrator_coeff, c, Gamma, Leja_X, tol);
+        real_Leja_linear_exp(RHS_aug_v, v, polynomial, auxiliary_Leja, N, T_final, substeps, integrator_coeff, Leja_X, c, Gamma, tol, iters, GPU, cublas_handle);
 
 
     }
