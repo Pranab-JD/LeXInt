@@ -59,13 +59,13 @@ def real_Leja_exp(u, dt, RHS_function, c, Gamma, Leja_X, tol):
         polynomial = polynomial + (poly_coeffs[ii] * y)
 
         ###? If new term to be added < tol, break loop
-        if  poly_error < tol*np.linalg.norm(polynomial):
+        if  poly_error < (tol*np.linalg.norm(polynomial) + tol):
             # print("Converged! # of Leja points used (exp): ", ii)
             break
 
         ###! Warning flags
         if ii == max_Leja_pts - 1:
-            print("Warning!! Max. # of Leja points reached without convergence!!")
+            print("Warning!! Max. # of Leja points reached without convergence in real_Leja_exp.")
             print("Max. Leja points currently set to", max_Leja_pts)
             print("Try increasing the number of Leja points. Max available: 10000.\n")
             break
