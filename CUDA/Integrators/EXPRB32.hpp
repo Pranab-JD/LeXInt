@@ -18,7 +18,8 @@ namespace LeXInt
                  vector<double>& Leja_X,     //? Array of Leja points
                  double c,                   //? Shifting factor
                  double Gamma,               //? Scaling factor
-                 double tol,                 //? Tolerance (normalised desired accuracy)
+                 double rtol,                //? Relative tolerance (normalised desired accuracy)
+                 double atol,                //? Absolute tolerance
                  double dt,                  //? Step size
                  int& iters,                 //? # of iterations needed to converge (iteration variable)
                  bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
@@ -59,7 +60,7 @@ namespace LeXInt
 
         //? Interpolation of RHS(u) at 1; u_flux = phi_1(J(u) dt) f(u) dt
         real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, {1.0}, 
-                        phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
+                      phi_1, Leja_X, c, Gamma, rtol, atol, dt, iters_1, GPU, cublas_handle);
 
         //! Internal stage 1; 2nd order solution; u_2 = u + phi_1(J(u) dt) f(u) dt
         axpby(1.0, u, 1.0, u_flux, u_exprb2, N, GPU);
@@ -71,7 +72,7 @@ namespace LeXInt
 
         //? u_nl_3 = phi_3(J(u) dt) R(a) dt
         real_Leja_phi(RHS, u, R_a, u_nl_3, auxiliary_Leja, N, {1.0}, 
-                        phi_3, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
+                      phi_3, Leja_X, c, Gamma, rtol, atol, dt, iters_2, GPU, cublas_handle);
                         
         //! 3rd order solution; u_3 = u_2 + 2 phi_3(J(u) dt) R(a) dt
         axpby(1.0, u_exprb2, 2.0, u_nl_3, u_exprb3, N, GPU);

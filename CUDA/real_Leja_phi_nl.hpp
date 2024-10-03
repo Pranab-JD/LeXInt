@@ -17,7 +17,8 @@ namespace LeXInt
                           vector<double>& Leja_X,             //? Array of Leja points
                           double c,                           //? Shifting factor
                           double Gamma,                       //? Scaling factor
-                          double tol,                         //? Tolerance (normalised desired accuracy)
+                          double rtol,                        //? Relative tolerance (normalised desired accuracy)
+                          double atol,                        //? Absolute tolerance
                           double dt,                          //? Step size
                           int& iters,                         //? # of iterations needed to converge (iteration variable)
                           bool GPU,                           //? false (0) --> CPU; true (1) --> GPU
@@ -73,7 +74,7 @@ namespace LeXInt
             double poly_norm = l2norm(polynomial, N, GPU, cublas_handle);
 
             //? If new term to be added < tol, break loop
-            if (poly_error < ((tol*poly_norm) + tol))
+            if (poly_error < ((rtol*poly_norm) + atol))
             {
                 // ::std::cout << "Converged! Iterations: " << iters << ::std::endl;
                 break;

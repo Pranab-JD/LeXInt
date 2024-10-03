@@ -26,13 +26,15 @@ int main(int argc, char** argv)
 {
 
     int index = atoi(argv[1]);          // N = 2^index * 2^index
-    int n_cfl = atoi(argv[2]);          // dt = n_cfl * dt_cfl
-    double tol = atof(argv[3]);         // User-specified tolerance
-    double t_final = atof(argv[4]);     // Final simulation time
+    double n_cfl = atoi(argv[2]);       // dt = n_cfl * dt_cfl
+    double rtol = atof(argv[3]);        // Relative tolerance
+    double atol = atof(argv[4]);        // Absolute tolerance
+    double t_final = atof(argv[5]);     // Final simulation time
 
-    cout << " =============================================== " << endl << endl;
-    cout << "N = " << index << ", N_cfl = " << n_cfl << ", tol = "
-    << tol << ", T_f = " << t_final << endl;
+    cout << endl << " =============================================== " << endl << endl;
+    cout << "N = " << index << ", N_cfl = " << n_cfl <<
+    ", rtol = " << rtol << ", atol = " << atol << 
+    ", T_f = " << t_final << endl;
 
     //! Set GPU spport to false
     bool GPU_access = false;
@@ -90,7 +92,7 @@ int main(int argc, char** argv)
     step_size << fixed << scientific << setprecision(1) << dt;
     tf << fixed << scientific << setprecision(1) << t_final;
     grid << fixed << scientific << setprecision(0) << n;
-    acc << fixed << scientific << setprecision(0) << tol;
+    acc << fixed << scientific << setprecision(0) << rtol;
 
     if (problem == "Diff_Adv_2D")
     {
@@ -186,7 +188,7 @@ int main(int argc, char** argv)
 
         if (integrator == "Hom_Linear")
         {
-            leja_gpu.real_Leja_exp(RHS, u, u_sol, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.real_Leja_exp(RHS, u, u_sol, c, Gamma, rtol, atol, dt, iters, GPU_access);
         }
 
         //? ---------------------------------------------------------------- ?//
@@ -198,7 +200,7 @@ int main(int argc, char** argv)
             LeXInt::axpby(1.0, source, 1.0, u, interp_vector, N, GPU_access);
             LeXInt::axpby(dt, interp_vector, interp_vector, N, GPU_access);
 
-            leja_gpu.real_Leja_phi_nl(RHS, interp_vector, u_sol, LeXInt::phi_1, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.real_Leja_phi_nl(RHS, interp_vector, u_sol, LeXInt::phi_1, c, Gamma, rtol, atol, dt, iters, GPU_access);
         }
         
         //? ---------------------------------------------------------------- ?//
@@ -218,7 +220,7 @@ int main(int argc, char** argv)
             }
 
            //? Non-embedded integrators
-            leja_gpu.exp_int(RHS, u, u_sol, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.exp_int(RHS, u, u_sol, c, Gamma, rtol, atol, dt, iters, GPU_access);
         }
 
         //* Embedded Integrators 
@@ -237,7 +239,7 @@ int main(int argc, char** argv)
             }
 
             //? Embedded integrators
-            leja_gpu.embed_exp_int(RHS, u, u_low, u_sol, error, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.embed_exp_int(RHS, u, u_low, u_sol, error, c, Gamma, rtol, atol, dt, iters, GPU_access);
         }
         else
         {

@@ -163,7 +163,8 @@ struct Leja
                           double (* phi_function) (double),
                           double c,
                           double Gamma,
-                          double tol,
+                          double rtol,
+                          double atol,
                           double dt,
                           int& iters,
                           bool GPU
@@ -171,7 +172,7 @@ struct Leja
     {
         LeXInt::real_Leja_phi_nl(RHS, u_input, u_output, 
                                  auxiliary_Leja, 
-                                 N, (* phi_function), Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                                 N, (* phi_function), Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);
     }
 
     //? Real Leja Exp (Homogenous linear equations - matrix exponential)
@@ -180,7 +181,8 @@ struct Leja
                        double* u_output, 
                        double c,
                        double Gamma,
-                       double tol,
+                       double rtol,
+                       double atol,
                        double dt,
                        int& iters,
                        bool GPU
@@ -188,7 +190,7 @@ struct Leja
     {
         LeXInt::real_Leja_exp(RHS, u_input, u_output,
                               auxiliary_Leja, 
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                              N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);
     }
 
     //? Solvers without an error estimate
@@ -197,7 +199,8 @@ struct Leja
                  double* u_output, 
                  double c,
                  double Gamma,
-                 double tol,
+                 double rtol,
+                 double atol,
                  double dt,
                  int& iters,
                  bool GPU
@@ -208,13 +211,13 @@ struct Leja
         {
             LeXInt::Ros_Eu(RHS, u_input, u_output,
                            auxiliary_expint, auxiliary_Leja,
-                           N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                           N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);
         }
         else if (integrator_name == "EPIRK4s3B")
         {
             LeXInt::EPIRK4s3B(RHS, u_input, u_output, 
                               auxiliary_expint, auxiliary_Leja,
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                              N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);
         }
         else
         {
@@ -230,7 +233,8 @@ struct Leja
                        double& error,
                        double c,
                        double Gamma,
-                       double tol,
+                       double rtol,
+                       double atol,
                        double dt,
                        int& iters,
                        bool GPU
@@ -241,49 +245,49 @@ struct Leja
         {
             LeXInt::EXPRB32(RHS, u_input, u_output_low, u_output_high, error,
                             auxiliary_expint, auxiliary_Leja, 
-                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);
+                            N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);
         }
         else if (integrator_name == "EXPRB42")
         {
             LeXInt::EXPRB42(RHS, u_input, u_output_low, u_output_high, error, 
                             auxiliary_expint, auxiliary_Leja,
-                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+                            N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB43")
         {
             LeXInt::EXPRB43(RHS, u_input, u_output_low, u_output_high, error,
                             auxiliary_expint, auxiliary_Leja,
-                            N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+                            N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB53s3")
         {
             LeXInt::EXPRB53s3(RHS, u_input, u_output_low, u_output_high, error,
                               auxiliary_expint, auxiliary_Leja,
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+                              N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EXPRB54s4")
         {
             LeXInt::EXPRB54s4(RHS, u_input, u_output_low, u_output_high, error,
                               auxiliary_expint, auxiliary_Leja, 
-                              N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);        
+                              N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);        
         }
         else if (integrator_name == "EPIRK4s3")
         {
             LeXInt::EPIRK4s3(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+                             N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK4s3A")
         {
             LeXInt::EPIRK4s3A(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+                             N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);         
         }
         else if (integrator_name == "EPIRK5P1")
         {
             LeXInt::EPIRK5P1(RHS, u_input, u_output_low, u_output_high, error,
                              auxiliary_expint, auxiliary_Leja,
-                             N, Leja_X, c, Gamma, tol, dt, iters, GPU, cublas_handle);         
+                             N, Leja_X, c, Gamma, rtol, atol, dt, iters, GPU, cublas_handle);         
         }
         else
         {

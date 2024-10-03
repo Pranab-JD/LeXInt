@@ -18,7 +18,8 @@ namespace LeXInt
                   vector<double>& Leja_X,     //? Array of Leja points
                   double c,                   //? Shifting factor
                   double Gamma,               //? Scaling factor
-                  double tol,                 //? Tolerance (normalised desired accuracy)
+                  double rtol,                //? Relative tolerance (normalised desired accuracy)
+                  double atol,                //? Absolute tolerance
                   double dt,                  //? Step size
                   int& iters,                 //? # of iterations needed to converge (iteration variable)
                   bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
@@ -66,7 +67,7 @@ namespace LeXInt
 
         //? Vertical interpolation of RHS(u) at 1/8, 1/9, and 1; u_flux = phi_1({1./8., 1./9., 1.0} J(u) dt) f(u) dt
         real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, {1./8., 1./9., 1.0}, 
-                        phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
+                      phi_1, Leja_X, c, Gamma, rtol, atol, dt, iters_1, GPU, cublas_handle);
 
         //? Internal stage 1; a = u + 1/8 phi_1(1/8 J(u) dt) f(u) dt
         axpby(1.0, u, 1./8., &u_flux[0], a, N, GPU);
@@ -89,11 +90,11 @@ namespace LeXInt
 
         //? u_nl_3 = phi_3(J(u) dt) (32R(a) - (27/2)R(b)) dt
         real_Leja_phi(RHS, u, R_3, u_nl_3, auxiliary_Leja, N, {1.0}, 
-                        phi_3, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
+                      phi_3, Leja_X, c, Gamma, rtol, atol, dt, iters_2, GPU, cublas_handle);
 
         //? u_nl_4 = phi_4(J(u) dt) (-144R(a) + 81R(b)) dt
         real_Leja_phi(RHS, u, R_4, u_nl_4, auxiliary_Leja, N, {1.0}, 
-                        phi_4, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
+                      phi_4, Leja_X, c, Gamma, rtol, atol, dt, iters_3, GPU, cublas_handle);
 
         //! 3rd order solution; u_3 = u + phi_1(J(u) dt) f(u) dt + phi_3(J(u) dt)  (-1024R(a) + 1458R(b)) dt
         axpby(1.0, u, 1.0, &u_flux[2*N], 1.0, u_nl_3, u_epirk3, N, GPU);

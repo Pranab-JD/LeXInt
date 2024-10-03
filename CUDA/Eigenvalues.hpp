@@ -42,7 +42,7 @@ namespace LeXInt
             axpby(1.0/eigenvalue_ii, eigenvector, init_vector, N, GPU);
 
             //? Check convergence for eigenvalues (eigenvalues converge faster than eigenvectors)
-            if (abs(eigenvalue_ii - eigenvalue_ii_1) <= tol * eigenvalue_ii)
+            if (abs(eigenvalue_ii - eigenvalue_ii_1) <= (tol * eigenvalue_ii) + tol)
             {
                 #ifdef __CUDACC__
                     //! Error Check

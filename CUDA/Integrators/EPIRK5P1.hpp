@@ -18,7 +18,8 @@ namespace LeXInt
                   vector<double>& Leja_X,     //? Array of Leja points
                   double c,                   //? Shifting factor
                   double Gamma,               //? Scaling factor
-                  double tol,                 //? Tolerance (normalised desired accuracy)
+                  double rtol,                //? Relative tolerance (normalised desired accuracy)
+                  double atol,                //? Absolute tolerance
                   double dt,                  //? Step size
                   int& iters,                 //? # of iterations needed to converge (iteration variable)
                   bool GPU,                   //? false (0) --> CPU; true (1) --> GPU
@@ -82,7 +83,7 @@ namespace LeXInt
         //? Vertical interpolation of RHS(u) at g11, g21, and g31; u_flux = phi_1({g11, g21, g31} J(u) dt) f(u) dt
         vector<double> coeffs_1 = {g11, g21, g31};
         real_Leja_phi(RHS, u, f_u, u_flux, auxiliary_Leja, N, coeffs_1, 
-                        phi_1, Leja_X, c, Gamma, tol, dt, iters_1, GPU, cublas_handle);
+                      phi_1, Leja_X, c, Gamma, rtol, atol, dt, iters_1, GPU, cublas_handle);
 
         //? Internal stage 1; a = u + a11 phi_1(g11 J(u) dt) f(u) dt 
         axpby(1.0, u, a11, &u_flux[0], a, N, GPU);
@@ -95,7 +96,7 @@ namespace LeXInt
         //? Vertical interpolation of R_a at g32_4, g32, and g22; phi_1({g32_4, g32, g22} J(u) dt) R(a) dt
         vector<double> coeffs_2 = {g32_4, g32, g22};
         real_Leja_phi(RHS, u, R_a, u_nl_1, auxiliary_Leja, N, coeffs_2, 
-                        phi_1, Leja_X, c, Gamma, tol, dt, iters_2, GPU, cublas_handle);
+                      phi_1, Leja_X, c, Gamma, rtol, atol, dt, iters_2, GPU, cublas_handle);
 
         //? Internal stage 2; b = u + a21 phi_1(g21 J(u) dt) f(u) dt + a22 phi_1(g22 J(u) dt) R(a) dt
         axpby(1.0, u, a21, &u_flux[N], a22, &u_nl_1[2*N], b, N, GPU);
@@ -110,7 +111,7 @@ namespace LeXInt
         //? Vertical interpolation of (-2*R(a) + R(b)) at g33 and g33_4; phi_3({g33, g33_4} J(u) dt) (-2*R(a) + R(b)) dt
         vector<double> coeffs_3 = {g33, g33_4};
         real_Leja_phi(RHS, u, R_3, u_nl_2, auxiliary_Leja, N, coeffs_3, 
-                        phi_3, Leja_X, c, Gamma, tol, dt, iters_3, GPU, cublas_handle);
+                      phi_3, Leja_X, c, Gamma, rtol, atol, dt, iters_3, GPU, cublas_handle);
 
         //! 4th order solution; u_4 = u + b1 phi_1(g31 J(u) dt) f(u) dt + b2 phi_1(g32_4 J(u) dt) R(a) dt + b3 phi_3(g33_4 J(u) dt) (-2*R(a) + R(b)) dt
         axpby(1.0, u, b1, &u_flux[2*N], b2, &u_nl_1[0], b3, &u_nl_2[N], u_epirk4, N, GPU);
