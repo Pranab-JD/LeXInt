@@ -1,17 +1,6 @@
-<<<<<<< HEAD
 .vscode/
 CUDA/.vscode/
 CUDA/Test/build/
 
 Python/Constant/__pycache__/
 Python/Test/Test_data/
-=======
-.vscode
-CUDA/Test/build/
-CUDA/Test/lexint_cpp
-CUDA/Test/lexint_cuda
-CUDA/Test/lexint_cpp_DA
-CUDA/Test/lexint_cpp_DAS
-CUDA/Test/*.sh
-CUDA/Test/run_cuda.sh
->>>>>>> ab5102eb0507c1592a75203b4e3f0dd8c33ada01
