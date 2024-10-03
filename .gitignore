@@ -1,3 +1,7 @@
-Python/__pycache__*/
 .vscode/
 Python/.gitignore
+Python/Test/Test_data/*
+Python/Test/Test_data/Constant/Time_order_plots.py
+CUDA/Test/executable
+CUDA/Test/run_cpp.sh
+CUDA/Test/run_cuda.sh
