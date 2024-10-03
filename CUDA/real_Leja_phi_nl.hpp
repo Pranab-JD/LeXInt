@@ -67,11 +67,11 @@ namespace LeXInt
             axpby(coeffs[iters], interp_vector, 1.0, polynomial, polynomial, N, GPU);
 
             //* Error estimate: poly_error = |coeffs[iters]| ||interp_vector|| at every iteration
-            double poly_error = l2norm(interp_vector, N, GPU, cublas_handle);
+            double poly_error = l2norm(interp_vector, N, GPU, cublas_handle)/sqrt(N);
             poly_error = abs(coeffs[iters]) * poly_error;
 
             //* Norm of the polynomial
-            double poly_norm = l2norm(polynomial, N, GPU, cublas_handle);
+            double poly_norm = l2norm(polynomial, N, GPU, cublas_handle)/sqrt(N);
 
             //? If new term to be added < tol, break loop
             if (poly_error < ((rtol*poly_norm) + atol))

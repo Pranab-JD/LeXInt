@@ -79,7 +79,7 @@ namespace LeXInt
 
         //? Error estimate
         axpby(2.0, u_nl_3, error_vector, N, GPU);
-        error = l2norm(error_vector, N, GPU, cublas_handle);
+        error = l2norm(error_vector, N, GPU, cublas_handle)/sqrt(N);
 
         //? Total number of Leja iterations
         iters = iters_1 + iters_2;

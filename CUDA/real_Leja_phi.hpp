@@ -94,11 +94,11 @@ namespace LeXInt
             }
 
             //* Error estimate for 'y': poly_error = |coeffs[iters]| ||y|| at every iteration
-            double poly_error = l2norm(y, N, GPU, cublas_handle);
+            double poly_error = l2norm(y, N, GPU, cublas_handle)/sqrt(N);
             poly_error = abs(coeffs[num_interpolations - 1][iters]) * poly_error;
 
             //* Norm of the (largest) polynomial
-            double poly_norm = l2norm(&polynomial[(num_interpolations - 1)*N], N, GPU, cublas_handle);
+            double poly_norm = l2norm(&polynomial[(num_interpolations - 1)*N], N, GPU, cublas_handle)/sqrt(N);
 
             //? If new term to be added < tol, break loop
             if (poly_error < ((rtol*poly_norm) + atol))

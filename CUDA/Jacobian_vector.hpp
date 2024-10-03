@@ -28,7 +28,7 @@ namespace LeXInt
         RHS(u, f_u);
 
         //? epsilon ~ 1e-7 (normalised)
-        double rhs_norm = l2norm(f_u, N, GPU, cublas_handle);
+        double rhs_norm = l2norm(f_u, N, GPU, cublas_handle)/sqrt(N);
         double epsilon = 1e-7*rhs_norm;
         
         //? u_eps = u + epsilon*y

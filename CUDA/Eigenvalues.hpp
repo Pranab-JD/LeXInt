@@ -36,7 +36,7 @@ namespace LeXInt
             Jacobian_vector(RHS, u, init_vector, eigenvector, auxiliary_Jv, N, GPU, cublas_handle);
 
             //? Norm of eigenvector = eigenvalue
-            eigenvalue_ii = l2norm(eigenvector, N, GPU, cublas_handle);
+            eigenvalue_ii = l2norm(eigenvector, N, GPU, cublas_handle)/sqrt(N);
 
             //? Normalize eigenvector to eigenvalue; new estimate of eigenvector
             axpby(1.0/eigenvalue_ii, eigenvector, init_vector, N, GPU);

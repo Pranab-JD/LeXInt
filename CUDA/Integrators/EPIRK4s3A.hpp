@@ -99,7 +99,7 @@ namespace LeXInt
         axpby(1.0, u_epirk3, 1.0, u_nl_4, u_epirk4, N, GPU);
 
         //? Embedded error estimate
-        error = l2norm(u_nl_4, N, GPU, cublas_handle);
+        error = l2norm(u_nl_4, N, GPU, cublas_handle)/sqrt(N);
 
         //? Total number of Leja iterations
         iters = iters_1 + iters_2 + iters_3;
