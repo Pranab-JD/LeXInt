@@ -64,6 +64,7 @@ int main(int argc, char** argv)
     //* Temporal parameters
     double time = 0;                                        // Simulation time elapsed                          
     int time_steps = 0;                                     // # time steps
+    int substeps = 3;
 
     double dif_cfl = (dx*dx * dy*dy)/(2*dx*dx + 2*dy*dy);   // Diffusion CFL
     double adv_cfl = dx*dy/(velocity * (dx + dy));          // Advection CFL
@@ -219,7 +220,7 @@ int main(int argc, char** argv)
             }
 
            //? Non-embedded integrators
-            leja_gpu.exp_int(RHS, u, u_sol, c, Gamma, tol, dt, iters, GPU_access);
+            leja_gpu.exp_int(RHS, u, u_sol, c, Gamma, tol, dt, substeps, iters, GPU_access);
         }
 
         //* Embedded Integrators 
