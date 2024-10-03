@@ -23,9 +23,7 @@ def A_tilde(A, B, v):
 
     [p, n] = np.shape(B)
     
-    y = np.concatenate([A(v[0:n]).reshape(1, n) + np.dot(v[n:n+p].reshape(1, p), B),
-                        [v[n+1:n+p]],
-                        np.array([0]).reshape(1, 1)], axis = 1)
+    y = np.concatenate([A(v[0:n]).reshape(1, n) + np.dot(v[n:n+p].reshape(1, p), B), [v[n+1:n+p]], np.array([0]).reshape(1, 1)], axis = 1)
     
     return y.reshape(np.shape(y)[1])
 
